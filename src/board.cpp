@@ -1,7 +1,0 @@
-class board
-{
-    public:
-        board();
-    
-
-};
