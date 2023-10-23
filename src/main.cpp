@@ -1,13 +1,10 @@
 #include "bitboard.hpp"
+#include "engine.hpp"
 
 int main() {
-    Bitboard board;
-
-    // Initialize the chessboard (you can call this if it's not automatically done in the constructor)
-    board.init();
-
-    // print the board
-
+    
+    Engine gameState = Engine();
+    gameState.board.printBB();
 
     return 0;
 }

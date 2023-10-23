@@ -1,5 +1,5 @@
 #ifndef BITBOARD_HPP
-#define HITBOARD_HPP
+#define BITBOARD_HPP
 
 #include <cstdint>
 #include <iostream>
@@ -19,11 +19,11 @@ class Bitboard
 
         void init();
         void printBB();
-        void pprint_bb(uint64_t bitboard, int board_size=8);
-        void pprint_pieces(map<char, set<int>> piece_map, int board_size=8);
+        void pprint_bb(uint64_t bitboard, int board_size);
+        void pprint_pieces(map<char, set<int>> piece_map, int board_size);
 
 
-        vector<int> get_squares_from_bb(uint16_t bitboard);  
+        
         
 
         // get bitboards methods

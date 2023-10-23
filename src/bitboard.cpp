@@ -123,20 +123,10 @@ void Bitboard::pprint_pieces(std::map<char, std::set<int>> piece_map, int board_
     std::cout << std::endl;
 }
 
-vector<int> Bitboard::get_squares_from_bb(uint16_t bitboard)
-{
-    vector<int> squares;
-    bitset<64> bits(bitboard);
-
-    for (int i=0;i<64;i++)
-    {
-        if (bits[i]==1)
-            squares.push_back(i);
-    }
-    return squares;
-}
 
 
+
+// GET CERTAIN BITBOARDS
 uint64_t Bitboard::get_white_pieces()
 {
     return whitePawns | whiteRooks | whiteKnights | whiteBishops | whiteQueens | whiteKings;
