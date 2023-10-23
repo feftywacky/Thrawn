@@ -1,0 +1,7 @@
+class board
+{
+    public:
+        board();
+    
+
+};
