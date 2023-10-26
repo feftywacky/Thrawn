@@ -12,6 +12,7 @@ using namespace std;
 Engine::Engine()
 {
     board = Bitboard();
+    
 }
 
 

@@ -6,32 +6,15 @@
 #include <map>
 #include <set>
 #include <vector>
+#include "bitboard_functions.hpp"
+#include "constants.hpp"
 
 using namespace std;
 
 class Bitboard
 {
     public:
-
-        // contructor
-        Bitboard();
-
-
-        void init();
-        void printBB();
-        void pprint_bb(uint64_t bitboard, int board_size);
-        void pprint_pieces(map<char, set<int>> piece_map, int board_size);
-
-
-        
-        
-
-        // get bitboards methods
-        uint64_t get_white_pieces();
-        uint64_t get_black_pieces();
-              
-    
-    private:
+        //variables 
         uint64_t whitePawns;
         uint64_t whiteRooks;
         uint64_t whiteKnights;
@@ -45,6 +28,28 @@ class Bitboard
         uint64_t blackBishops;
         uint64_t blackQueens;
         uint64_t blackKings;
+
+        uint64_t pawn_attacks[2][BOARD_SIZE];
+
+        // contructor
+        Bitboard();
+
+        void printBB();
+
+
+        // get bitboards methods
+        uint64_t get_white_pieces();
+        uint64_t get_black_pieces();     
+
+
+        // pre-compute all attacks from a square methods
+
+        // pawns
+        uint64_t get_pawn_attack_from_sq(Side side, int square);
+        void init_pawn_attacks();
+
+    private:
+        
 };
 
 #endif

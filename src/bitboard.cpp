@@ -9,30 +9,30 @@
 
 using namespace std;
 
+
+
 // contructor
 Bitboard::Bitboard()
 {
-    init();
-}
-
-void Bitboard::init()
-{
     // white
-    whitePawns = 0xFF00;
-    whiteRooks = 0x81;
-    whiteKnights = 0x42;
-    whiteBishops = 0x24;
-    whiteQueens = 0x08;
-    whiteKings = 0x10;
+    whitePawns = 0x000000000000FF00ULL;
+    whiteRooks = 0x0000000000000081ULL;
+    whiteKnights = 0x0000000000000042ULL;
+    whiteBishops = 0x0000000000000024ULL;
+    whiteQueens = 0x0000000000000008ULL;
+    whiteKings = 0x0000000000000010ULL;
 
-    //black
-    blackPawns = 0xFF000000000000;
-    blackRooks = 0x8100000000000000;
-    blackKnights = 0x4200000000000000;
-    blackBishops = 0x2400000000000000;
-    blackQueens = 0x0800000000000000;
-    blackKings = 0x1000000000000000;
+    // black
+    blackPawns = 0x00FF000000000000ULL;
+    blackRooks = 0x8100000000000000ULL;
+    blackKnights = 0x4200000000000000ULL;
+    blackBishops = 0x2400000000000000ULL;
+    blackQueens = 0x0800000000000000ULL;
+    blackKings = 0x1000000000000000ULL; 
+
+    init_pawn_attacks();
 }
+
 
 void Bitboard::printBB()
 {
@@ -64,65 +64,6 @@ void Bitboard::printBB()
     }
 }
 
-void Bitboard::pprint_bb(uint64_t bitboard, int board_size = 8) {
-    std::string bitboardStr = "";
-    for (int i = 0; i < 64; i++) {
-        bitboardStr += (bitboard & (1ULL << i)) ? '1' : '0';
-    }
-    
-    int displayRank = board_size;
-    std::vector<std::string> board;
-    for (int i = 0; i < 64; i += board_size) {
-        board.push_back(bitboardStr.substr(i, board_size));
-    }
-
-    for (int i = board.size() - 1; i >= 0; i--) {
-        std::cout << displayRank << " ";
-        displayRank--;
-        for (char square : board[i]) {
-            if (square == '1') {
-                std::cout << " -";
-            } else {
-                std::cout << " -";
-            }
-        }
-        std::cout << std::endl;
-    }
-
-    std::cout << "  ";
-    for (char c = 'A'; c < 'A' + board_size; c++) {
-        std::cout << " " << c;
-    }
-    std::cout << std::endl;
-}
-
-void Bitboard::pprint_pieces(std::map<char, std::set<int>> piece_map, int board_size = 8) {
-    std::vector<char> board(64, '-');
-    for (const auto& entry : piece_map) {
-        char piece = entry.first;
-        const std::set<int>& squares = entry.second;
-        for (int square : squares) {
-            board[square] = piece;
-        }
-    }
-
-    int displayRank = board_size;
-    for (int i = board.size() - 1; i >= 0; i -= board_size) {
-        std::cout << displayRank << " ";
-        displayRank--;
-        for (int j = 0; j < board_size; j++) {
-            std::cout << " " << board[i - j];
-        }
-        std::cout << std::endl;
-    }
-
-    std::cout << "  ";
-    for (char c = 'A'; c < 'A' + board_size; c++) {
-        std::cout << " " << c;
-    }
-    std::cout << std::endl;
-}
-
 
 
 
@@ -136,6 +77,45 @@ uint64_t Bitboard::get_black_pieces()
 {
     return blackPawns | blackRooks | blackKnights | blackBishops | blackQueens | blackKings;
 }
+
+
+// PRE-COMPUTE PIECE ATTACK BITBOARDS
+uint64_t Bitboard::get_pawn_attack_from_sq(Side side, int square)
+{
+    uint64_t attacks = 0ULL;
+    uint64_t bitboard = 0ULL;
+
+    bitboard = set_bit(bitboard, square);
+
+    if (side == white) 
+    {
+        if ((bitboard >> 7) & not_a_file) 
+            attacks |= (bitboard >> 7);
+        if ((bitboard >> 9) & not_h_file) 
+            attacks |= (bitboard >> 9);
+    }
+    else 
+    {
+        if ((bitboard << 7) & not_h_file) 
+            attacks |= (bitboard << 7);
+        if ((bitboard << 9) & not_a_file) 
+            attacks |= (bitboard << 9);
+    }
+
+    return attacks;
+}
+
+void Bitboard::init_pawn_attacks()
+{
+    for (int square = 0; square < BOARD_SIZE; square++) 
+    {
+        pawn_attacks[white][square] = get_pawn_attack_from_sq(white, square);
+        pawn_attacks[black][square] = get_pawn_attack_from_sq(black, square);
+    }
+}
+
+
+
 
 
 
