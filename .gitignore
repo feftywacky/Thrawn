@@ -30,3 +30,10 @@
 *.exe
 *.out
 *.app
+
+# Code Editors
+*.vscode
+*.idea
+
+# Text Files
+*.txt
