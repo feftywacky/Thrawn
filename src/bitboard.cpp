@@ -30,7 +30,7 @@ Bitboard::Bitboard()
     blackQueens = 0x0800000000000000ULL;
     blackKings = 0x1000000000000000ULL; 
 
-    init_pawn_attacks();
+    init_piece_attacks();
 }
 
 
@@ -80,6 +80,9 @@ uint64_t Bitboard::get_black_pieces()
 
 
 // PRE-COMPUTE PIECE ATTACK BITBOARDS
+
+
+// pawns
 uint64_t Bitboard::get_pawn_attack_from_sq(Side side, int square)
 {
     uint64_t attacks = 0ULL;
@@ -105,16 +108,43 @@ uint64_t Bitboard::get_pawn_attack_from_sq(Side side, int square)
     return attacks;
 }
 
-void Bitboard::init_pawn_attacks()
+// knights
+uint64_t Bitboard::get_knight_attack_from_sq(int square)
+{
+    uint64_t attacks = 0ULL;
+    uint64_t bitboard = 0ULL;
+
+    bitboard = set_bit(bitboard, square);
+
+    if ((bitboard >> 17) & not_h_file) 
+        attacks |= (bitboard >> 17);
+    if ((bitboard >> 15) & not_a_file) 
+        attacks |= (bitboard >> 15);
+    if ((bitboard >> 10) & not_hg_file) 
+        attacks |= (bitboard >> 10);
+    if ((bitboard >> 6) & not_ab_file) 
+        attacks |= (bitboard >> 6);
+    if ((bitboard << 17) & not_a_file) 
+        attacks |= (bitboard << 17);
+    if ((bitboard << 15) & not_h_file) 
+        attacks |= (bitboard << 15);
+    if ((bitboard << 10) & not_ab_file) 
+        attacks |= (bitboard << 10);
+    if ((bitboard << 6) & not_hg_file) 
+        attacks |= (bitboard << 6);
+    
+    return attacks;
+}
+
+void Bitboard::init_piece_attacks()
 {
     for (int square = 0; square < BOARD_SIZE; square++) 
     {
         pawn_attacks[white][square] = get_pawn_attack_from_sq(white, square);
         pawn_attacks[black][square] = get_pawn_attack_from_sq(black, square);
+        knight_attacks[square] = get_knight_attack_from_sq(square);
     }
 }
-
-
 
 
 

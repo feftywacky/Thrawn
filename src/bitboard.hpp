@@ -30,6 +30,7 @@ class Bitboard
         uint64_t blackKings;
 
         uint64_t pawn_attacks[2][BOARD_SIZE];
+        uint64_t knight_attacks[BOARD_SIZE];
 
         // contructor
         Bitboard();
@@ -46,7 +47,13 @@ class Bitboard
 
         // pawns
         uint64_t get_pawn_attack_from_sq(Side side, int square);
-        void init_pawn_attacks();
+        
+        // knights
+        uint64_t get_knight_attack_from_sq(int sqaure);
+        
+        // init all piece attacks
+        void init_piece_attacks();
+
 
     private:
         

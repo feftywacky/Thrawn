@@ -41,7 +41,8 @@ vector<int> get_squares_from_bb(uint16_t bitboard)
 }
 
 
-void pprint_bb(uint64_t bitboard) {
+void pprint_bb(uint64_t bitboard) 
+{
     std::string bitboardStr = "";
     for (int i = 0; i < 64; i++) {
         bitboardStr += (bitboard & (1ULL << i)) ? '1' : '0';
@@ -74,7 +75,8 @@ void pprint_bb(uint64_t bitboard) {
     std::cout << std::endl;
 }
 
-void print_bitboard(uint64_t bitboard) {
+void print_bitboard(uint64_t bitboard) 
+{
     std::cout << std::endl;
 
     // Loop over board ranks
@@ -101,4 +103,19 @@ void print_bitboard(uint64_t bitboard) {
 
     // Print bitboard as an unsigned decimal number
     std::cout << "     Bitboard as unsigned decimal: " << bitboard << std::endl;
+}
+
+void print_bits(uint64_t num)
+{
+    int num_bits = 64;
+
+    for (int i = 0; i < num_bits; i++) {
+        uint64_t bit = (num >> i) & 1;
+        std::cout << bit;
+
+        if (i % 8 == 7 && i != num_bits - 1) {
+            std::cout << ' ';
+        }
+    }
+    std::cout << std::endl;
 }
