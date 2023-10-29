@@ -1,7 +1,7 @@
 # bitboard-nnue-chess-engine
 chess engine in c++ that uses a bitboard data structure and a nnue for evaluation
 
-to run on cmd:<br>
+to run:<br>
 > g++ -std=c++17 -c main.cpp engine.cpp bitboard.cpp bitboard_functions.cpp constants.cpp<br>
 > g++ -o chess main.o engine.o bitboard.o bitboard_functions.o constants.o<br>
 > chess<br>
