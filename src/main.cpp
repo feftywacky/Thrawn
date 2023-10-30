@@ -12,11 +12,14 @@ int main() {
 
     uint64_t test = 0ULL;
 
-    test = set_bit(test, h5);
+    test = set_bit(test, e4);
 
+    // print_bitboard(test);
+    // print_bitboard(test>>1);
+    // print_bitboard(test<<1);
     for (int i=0;i<64;i++)
     {
-        print_bitboard(board.knight_attacks[i]);
+        print_bitboard(board.king_attacks[i]);
     }
 
 

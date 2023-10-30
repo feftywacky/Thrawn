@@ -136,6 +136,33 @@ uint64_t Bitboard::get_knight_attack_from_sq(int square)
     return attacks;
 }
 
+uint64_t Bitboard::get_king_attack_from_sq(int square)
+{
+    uint64_t attacks = 0ULL;
+    uint64_t bitboard = 0ULL;
+    bitboard = set_bit(bitboard, square);
+
+    if (bitboard>>8)
+        attacks |= (bitboard>>8);
+    if ((bitboard>>9) & not_h_file)
+        attacks |= (bitboard>>9);
+    if ((bitboard>>7) & not_a_file)
+        attacks |= (bitboard>>7);
+    if ((bitboard >> 1) & not_h_file) 
+        attacks |= (bitboard >> 1);
+
+    if (bitboard<<8)
+        attacks |= (bitboard<<8);
+    if ((bitboard<<9) & not_a_file)
+        attacks |= (bitboard<<9);
+    if ((bitboard<<7) & not_h_file)
+        attacks |= (bitboard<<7);
+    if ((bitboard << 1) & not_a_file) 
+        attacks |= (bitboard << 1);
+
+    return attacks;
+}
+
 void Bitboard::init_piece_attacks()
 {
     for (int square = 0; square < BOARD_SIZE; square++) 
@@ -143,6 +170,7 @@ void Bitboard::init_piece_attacks()
         pawn_attacks[white][square] = get_pawn_attack_from_sq(white, square);
         pawn_attacks[black][square] = get_pawn_attack_from_sq(black, square);
         knight_attacks[square] = get_knight_attack_from_sq(square);
+        king_attacks[square] = get_king_attack_from_sq(square);
     }
 }
 
