@@ -163,6 +163,36 @@ uint64_t Bitboard::get_king_attack_from_sq(int square)
     return attacks;
 }
 
+// does not include squares on the edge of the board
+uint64_t Bitboard::get_bishop_attack_from_sq(int square)
+{
+    uint64_t attacks = 0ULL;
+
+    int row; int file;
+    int curr_row = square/8; 
+    int curr_col = square%8;
+
+    // mask relevant bishop occupancy bits
+
+    // bottom right diagonal 
+    for (row = curr_row+1, file = curr_col+1; row<=6 && file<=6; row++,file++)
+        attacks |= (1ULL << row*8 + file);
+    
+    // bottom left diagonal 
+    for (row = curr_row+1, file = curr_col-1; row<=6 && file>=1; row++, file--)
+        attacks |= (1ULL << row*8 + file);
+
+    // top right diagonal
+    for (row = curr_row-1, file = curr_col+1; row>=1 && file<=6; row--, file++)
+        attacks |= (1ULL << row*8 + file);
+    
+    // top left diagonal
+    for (row = curr_row-1, file = curr_col-1; row>=1 && file>=1; row--, file--)
+        attacks |= (1ULL << row*8 + file);
+
+    return attacks;    
+}
+
 void Bitboard::init_piece_attacks()
 {
     for (int square = 0; square < BOARD_SIZE; square++) 
@@ -171,6 +201,7 @@ void Bitboard::init_piece_attacks()
         pawn_attacks[black][square] = get_pawn_attack_from_sq(black, square);
         knight_attacks[square] = get_knight_attack_from_sq(square);
         king_attacks[square] = get_king_attack_from_sq(square);
+        bishop_attacks[square] = get_bishop_attack_from_sq(square);
     }
 }
 
