@@ -201,7 +201,6 @@ void Bitboard::init_piece_attacks()
         pawn_attacks[black][square] = get_pawn_attack_from_sq(black, square);
         knight_attacks[square] = get_knight_attack_from_sq(square);
         king_attacks[square] = get_king_attack_from_sq(square);
-        bishop_attacks[square] = get_bishop_attack_from_sq(square);
     }
 }
 

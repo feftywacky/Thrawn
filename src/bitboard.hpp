@@ -32,7 +32,6 @@ class Bitboard
         uint64_t pawn_attacks[2][BOARD_SIZE];
         uint64_t knight_attacks[BOARD_SIZE];
         uint64_t king_attacks[BOARD_SIZE];
-        uint64_t bishop_attacks[BOARD_SIZE];
 
         // contructor
         Bitboard();
