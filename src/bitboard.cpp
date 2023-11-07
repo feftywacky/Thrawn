@@ -168,29 +168,56 @@ uint64_t Bitboard::get_bishop_attack_from_sq(int square)
 {
     uint64_t attacks = 0ULL;
 
-    int row; int file;
+    int row; int col;
     int curr_row = square/8; 
     int curr_col = square%8;
 
     // mask relevant bishop occupancy bits
 
     // bottom right diagonal 
-    for (row = curr_row+1, file = curr_col+1; row<=6 && file<=6; row++,file++)
-        attacks |= (1ULL << row*8 + file);
+    for (row = curr_row+1, col = curr_col+1; row<=6 && col<=6; row++,col++)
+        attacks |= (1ULL << row*8 + col);
     
     // bottom left diagonal 
-    for (row = curr_row+1, file = curr_col-1; row<=6 && file>=1; row++, file--)
-        attacks |= (1ULL << row*8 + file);
+    for (row = curr_row+1, col = curr_col-1; row<=6 && col>=1; row++, col--)
+        attacks |= (1ULL << row*8 + col);
 
     // top right diagonal
-    for (row = curr_row-1, file = curr_col+1; row>=1 && file<=6; row--, file++)
-        attacks |= (1ULL << row*8 + file);
+    for (row = curr_row-1, col = curr_col+1; row>=1 && col<=6; row--, col++)
+        attacks |= (1ULL << row*8 + col);
     
     // top left diagonal
-    for (row = curr_row-1, file = curr_col-1; row>=1 && file>=1; row--, file--)
-        attacks |= (1ULL << row*8 + file);
+    for (row = curr_row-1, col = curr_col-1; row>=1 && col>=1; row--, col--)
+        attacks |= (1ULL << row*8 + col);
 
     return attacks;    
+}
+
+uint64_t Bitboard::get_rook_attack_from_sq(int square)
+{
+    uint64_t attacks = 0ULL;
+
+    int row; int col;
+    int curr_row = square/8; 
+    int curr_col = square%8;
+
+    // up
+    for (row = curr_row-1; row>=1; row--)
+        attacks |= (1ULL << row*8 + curr_col);
+
+    // down
+    for (row = curr_row+1; row<=6; row++)
+        attacks |= (1ULL << row*8 + curr_col);
+
+    // left
+    for (col = curr_col-1; col >=1; col--)
+        attacks |= (1ULL << curr_row*8 + col);
+
+    // right
+    for (col = curr_col+1; col<=6; col++)
+        attacks |= (1ULL << curr_row*8 + col);
+
+    return attacks;
 }
 
 void Bitboard::init_piece_attacks()

@@ -17,7 +17,8 @@ int main() {
     // print_bitboard(test);
     // print_bitboard(test>>1);
     // print_bitboard(test<<1);
-
+    for (int i=0;i<64;i++)
+        print_bitboard(board.get_rook_attack_from_sq(i));
 
     return 0;
 }
