@@ -21,6 +21,11 @@ uint64_t toggle_bit(uint64_t bitboard, int bit);
 
 vector<int> get_squares_from_bb(uint16_t bitboard);  
 
+// BIT MANIPULATION
+int count_bits(uint64_t bitboard);
+
+int get_lsb_index(uint64_t bitboard);
+
 void pprint_bb(uint64_t bitboard);
 
 void print_bitboard(uint64_t bitboard);

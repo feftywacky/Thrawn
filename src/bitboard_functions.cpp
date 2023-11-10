@@ -40,6 +40,29 @@ vector<int> get_squares_from_bb(uint16_t bitboard)
     return squares;
 }
 
+// BIT MANIPULATION
+int count_bits(uint64_t bitboard)
+{
+    int count = 0;
+
+    while(bitboard)
+    {
+        count++;
+
+        // reset/remove/set to zero the lsb
+        bitboard &= bitboard - 1;
+    }
+
+    return count;
+}
+
+int get_lsb_index(uint64_t bitboard)
+{
+    if (bitboard)
+        return count_bits( (bitboard & -bitboard)-1 );
+    return -1;
+}
+
 
 void pprint_bb(uint64_t bitboard) 
 {
