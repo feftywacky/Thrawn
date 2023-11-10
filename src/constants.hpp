@@ -2,6 +2,7 @@
 #define CONSTANTS_HPP
 
 #include <cstdint>
+#include <array>
 
 enum Side {
     white,
@@ -25,5 +26,5 @@ extern const uint64_t not_a_file;
 extern const uint64_t not_h_file;
 extern const uint64_t not_hg_file;
 extern const uint64_t not_ab_file;
-
+extern const std::array<const char*, 64> square_to_coordinates;
 #endif
