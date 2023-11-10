@@ -57,9 +57,11 @@ class Bitboard
 
         // bishops
         uint64_t get_bishop_attack_from_sq(int square);
+        uint64_t bishop_attack_runtime_gen(int square, uint64_t blockers);
 
         // rooks
         uint64_t get_rook_attack_from_sq(int square);
+        uint64_t rook_attack_runtime_gen(int square, uint64_t blockers);
         
         // init all piece attacks
         void init_piece_attacks();

@@ -193,6 +193,52 @@ uint64_t Bitboard::get_bishop_attack_from_sq(int square)
     return attacks;    
 }
 
+// does not distinguish the colour of the blocker
+uint64_t Bitboard::bishop_attack_runtime_gen(int square, uint64_t blockers)
+{
+    uint64_t attacks = 0ULL;
+
+    int row; int col;
+    int curr_row = square/8; 
+    int curr_col = square%8;
+
+    // generate bishop attacks
+
+    // bottom right diagonal 
+    for (row = curr_row+1, col = curr_col+1; row<=7 && col<=7; row++,col++)
+    {
+        attacks |= (1ULL << row*8 + col);
+        if ( (1ULL << row*8 + col) & blockers )
+            break;
+    }
+    
+    // bottom left diagonal 
+    for (row = curr_row+1, col = curr_col-1; row<=7 && col>=0; row++, col--)
+    {
+        attacks |= (1ULL << row*8 + col);
+         if ( (1ULL << row*8 + col) & blockers )
+            break;
+    }
+
+    // top right diagonal
+    for (row = curr_row-1, col = curr_col+1; row>=0 && col<=7; row--, col++)
+    {
+        attacks |= (1ULL << row*8 + col);
+         if ( (1ULL << row*8 + col) & blockers )
+            break;
+    }
+
+    // top left diagonal
+    for (row = curr_row-1, col = curr_col-1; row>=0 && col>=0; row--, col--)
+    {
+        attacks |= (1ULL << row*8 + col);
+         if ( (1ULL << row*8 + col) & blockers )
+            break;
+    }
+
+    return attacks; 
+}
+
 uint64_t Bitboard::get_rook_attack_from_sq(int square)
 {
     uint64_t attacks = 0ULL;
@@ -216,6 +262,50 @@ uint64_t Bitboard::get_rook_attack_from_sq(int square)
     // right
     for (col = curr_col+1; col<=6; col++)
         attacks |= (1ULL << curr_row*8 + col);
+
+    return attacks;
+}
+
+// does not distinguish the colour of the blocker
+uint64_t Bitboard::rook_attack_runtime_gen(int square, uint64_t blockers)
+{
+    uint64_t attacks = 0ULL;
+
+    int row; int col;
+    int curr_row = square/8; 
+    int curr_col = square%8;
+
+    // up
+    for (row = curr_row-1; row>=0; row--)
+    {
+        attacks |= (1ULL << row*8 + curr_col);
+        if ( (1ULL << row*8 + curr_col) & blockers )
+            break;
+    }
+
+    // down
+    for (row = curr_row+1; row<=7; row++)
+    {
+        attacks |= (1ULL << row*8 + curr_col);
+        if ( (1ULL << row*8 + curr_col) & blockers )
+            break;
+    }
+
+    // left
+    for (col = curr_col-1; col >=0; col--)
+    {
+        attacks |= (1ULL << curr_row*8 + col);
+        if ( (1ULL << curr_row*8 + col) & blockers)
+            break;
+    }
+
+    // right
+    for (col = curr_col+1; col<=7; col++)
+    {
+        attacks |= (1ULL << curr_row*8 + col);
+        if ( (1ULL << curr_row*8 + col) & blockers)
+            break;
+    }
 
     return attacks;
 }
