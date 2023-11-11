@@ -27,4 +27,8 @@ extern const uint64_t not_h_file;
 extern const uint64_t not_hg_file;
 extern const uint64_t not_ab_file;
 extern const std::array<const char*, 64> square_to_coordinates;
+
+extern const std::array<int, 64> bishop_relevant_bits;
+extern const std::array<int, 64> rook_relevant_bits;
+
 #endif
