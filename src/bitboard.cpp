@@ -310,6 +310,23 @@ uint64_t Bitboard::rook_attack_runtime_gen(int square, uint64_t blockers)
     return attacks;
 }
 
+uint64_t Bitboard::set_occupancy(int index, int bits_in_mask, uint64_t attack_mask)
+{
+    uint64_t occupancy = 0ULL;
+
+    for (int i=0;i<bits_in_mask;i++)
+    {
+        int square = get_lsb_index(attack_mask);
+        attack_mask = clear_bit(attack_mask, square);
+
+        // make sure occupancy is on board
+        if (index & (1 << i))
+            // populate occupancy map
+            occupancy |= (1ULL << square);
+    }
+    return occupancy;
+}
+
 void Bitboard::init_piece_attacks()
 {
     for (int square = 0; square < BOARD_SIZE; square++) 

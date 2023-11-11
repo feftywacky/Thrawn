@@ -62,6 +62,9 @@ class Bitboard
         // rooks
         uint64_t get_rook_attack_from_sq(int square);
         uint64_t rook_attack_runtime_gen(int square, uint64_t blockers);
+
+        // set occupancy
+        uint64_t set_occupancy(int index, int bits_in_mask, uint64_t attack_mask);
         
         // init all piece attacks
         void init_piece_attacks();
