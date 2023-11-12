@@ -4,8 +4,12 @@
 #include <iostream>
 #include <map>
 #include <set>
+#include "constants.hpp"
 
 using namespace std;
+
+// GLOBAL VARIABLES
+unsigned int state = 1804289383;
 
 uint64_t set_bit(uint64_t bitboard, int bit) {
     return bitboard |= (1ULL << bit);
@@ -54,6 +58,25 @@ int count_bits(uint64_t bitboard)
     }
 
     return count;
+}
+
+// RANDOM NUMBER GEN
+// Generate 32-bit pseudo legal numbers
+unsigned int get_random_number()
+{
+    // Get current state
+    unsigned int number = state;
+
+    // XOR shift algorithm
+    number ^= number << 13;
+    number ^= number >> 17;
+    number ^= number << 5;
+
+    // Update random number state
+    state = number;
+
+    // Return random number
+    return number;
 }
 
 int get_lsb_index(uint64_t bitboard)

@@ -8,6 +8,7 @@
 
 using namespace std;
 
+extern unsigned int state;
 
 uint64_t set_bit(uint64_t bitboard, int bit);
 
@@ -25,6 +26,10 @@ vector<int> get_squares_from_bb(uint16_t bitboard);
 int count_bits(uint64_t bitboard);
 
 int get_lsb_index(uint64_t bitboard);
+
+// XOR SHIFT RANDOM NUMBER GEN ALGORITHM
+// Generate 32-bit pseudo legal numbers
+unsigned int get_random_number();
 
 void pprint_bb(uint64_t bitboard);
 

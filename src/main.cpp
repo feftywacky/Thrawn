@@ -20,13 +20,12 @@ int main() {
     blocker = set_bit(blocker, b4);
     blocker = set_bit(blocker, g4);
 
-    print_bitboard(blocker);
-    cout<<"index: "<<get_lsb_index(blocker)<<"   coord: "<<square_to_coordinates[get_lsb_index(blocker)]<<"\n";
-
-
-    uint64_t test = 0ULL;
-    test = set_bit(test, get_lsb_index(blocker));
-    print_bitboard(test);
+    cout<<get_random_number()<<"\n";
+    cout<<get_random_number()<<"\n";
+    cout<<get_random_number()<<"\n";
+    cout<<get_random_number()<<"\n";
+    cout<<get_random_number()<<"\n";
+    cout<<get_random_number()<<"\n";
 
 
     return 0;

@@ -16,8 +16,7 @@ const std::array<int, 64> bishop_relevant_bits = {
     5, 5, 5, 5, 5, 5, 5, 5, 
     6, 5, 5, 5, 5, 5, 5, 6
 };
-
-
+    
 const std::array<int, 64> rook_relevant_bits = {
     12, 11, 11, 11, 11, 11, 11, 12, 
     11, 10, 10, 10, 10, 10, 10, 11, 
