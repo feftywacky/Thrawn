@@ -9,6 +9,8 @@ enum Side {
     black
 };
 
+enum {rook, bishop};
+
 enum {
     a8, b8, c8, d8, e8, f8, g8, h8,
     a7, b7, c7, d7, e7, f7, g7, h7,
@@ -30,5 +32,8 @@ extern const std::array<const char*, 64> square_to_coordinates;
 
 extern const std::array<int, 64> bishop_relevant_bits;
 extern const std::array<int, 64> rook_relevant_bits;
+
+extern std::array<uint64_t, 64> rook_magic_nums;
+extern std::array<uint64_t, 64> bishop_magic_nums;
 
 #endif

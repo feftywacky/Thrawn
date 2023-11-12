@@ -14,13 +14,19 @@ int main() {
     uint64_t blocker = 0ULL;
 
 
-    blocker = set_bit(blocker, d7);
-    blocker = set_bit(blocker, d2);
-    blocker = set_bit(blocker, d1);
-    blocker = set_bit(blocker, b4);
-    blocker = set_bit(blocker, g4);
+    // blocker = set_bit(blocker, d7);
+    // blocker = set_bit(blocker, d2);
+    // blocker = set_bit(blocker, d1);
+    // blocker = set_bit(blocker, b4);
+    // blocker = set_bit(blocker, g4);
 
-    print_bitboard(gen_magic_num());
+    
+    for (int i=0;i<64;i++)
+        printf(" 0x%llxULL\n", rook_magic_nums[i]);
+    cout<<"__________________________________________________________________"<<endl;
+    for (int i=0;i<64;i++)
+        printf(" 0x%llxULL\n", bishop_magic_nums[i]);
+
 
 
 

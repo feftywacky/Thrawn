@@ -5,7 +5,7 @@
 #include <map>
 #include <set>
 #include <bitset>
-
+#include <cstring> 
 
 using namespace std;
 
@@ -31,6 +31,7 @@ Bitboard::Bitboard()
     blackKings = 0x1000000000000000ULL; 
 
     init_piece_attacks();
+    init_magic_nums();
 }
 
 
@@ -325,6 +326,75 @@ uint64_t Bitboard::set_occupancy(int index, int bits_in_mask, uint64_t attack_ma
             occupancy |= (1ULL << square);
     }
     return occupancy;
+}
+
+// MAGIC BITBOARD
+uint64_t Bitboard::find_magic_num(int square, int relevant_bits, int bishop)
+{
+    array<uint64_t, 4096> occupancies;
+    array<uint64_t, 4096> attacks;
+    array<uint64_t, 4096> used_attacks;
+    
+    uint64_t attack_mask = bishop ? get_bishop_attack_from_sq(square) : get_rook_attack_from_sq(square);
+
+    // init occupancy indices
+    int occupancy_index = 1 << relevant_bits;
+
+    for (int i=0;i<occupancy_index;i++)
+    {
+        occupancies[i] = set_occupancy(i, relevant_bits, attack_mask);
+        attacks[i] = bishop ? bishop_attack_runtime_gen(square, occupancies[i]) : rook_attack_runtime_gen(square, occupancies[i]);
+    }
+    
+    // testing magic numbers
+    for (int random_count = 0; random_count < 100000000; random_count++) 
+    {
+         uint64_t magic_num = gen_magic_num();
+
+        // skip inappropriate magic numbers
+        if (count_bits((attack_mask * magic_num) & 0xFF00000000000000ULL) < 6) continue;
+
+        // init used attacks
+        used_attacks.fill(0ULL);
+
+        // init index & fail flag
+        int index, fail;
+
+        // test magic index loop
+        for (index = 0, fail = 0; !fail && index < occupancy_index; index++) 
+        {
+            // init magic index
+            int magic_index = (int)((occupancies[index] * magic_num) >> (64 - relevant_bits));
+
+            // if magic index works
+            if (used_attacks[magic_index] == 0ULL)
+                // init used attacks
+                used_attacks[magic_index] = attacks[index];
+
+            else if (used_attacks[magic_index] != attacks[index])
+                // magic index doesn't work
+                fail = 1;
+        }
+
+        // if magic number works
+        if (!fail)
+            return magic_num;
+    }
+
+    // if magic number doesn't work
+    std::cout << "Magic number fails!" << std::endl;
+    return 0ULL;
+}
+
+void Bitboard::init_magic_nums()
+{
+    for (int square = 0; square < 64; square++)
+        // init rook magic numbers
+        rook_magic_nums[square] = find_magic_num(square, rook_relevant_bits[square], rook);
+
+    for (int square = 0; square < 64; square++)
+        // init bishop magic numbers
+        bishop_magic_nums[square] = find_magic_num(square, bishop_relevant_bits[square], bishop);
 }
 
 void Bitboard::init_piece_attacks()

@@ -71,6 +71,9 @@ class Bitboard
 
 
     private:
+        // MAGIC NUMBERS AND BITBOARDS
+        uint64_t find_magic_num(int square, int relevant_bits, int bishop);
+        void init_magic_nums();
         
 };
 

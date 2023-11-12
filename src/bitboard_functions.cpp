@@ -9,7 +9,7 @@
 using namespace std;
 
 // GLOBAL VARIABLES
-unsigned int state = 1804289383;
+unsigned int random_state = 1804289383;
 
 uint64_t set_bit(uint64_t bitboard, int bit) {
     return bitboard |= (1ULL << bit);
@@ -17,6 +17,10 @@ uint64_t set_bit(uint64_t bitboard, int bit) {
 
 uint64_t clear_bit(uint64_t bitboard, int bit) {
     return bitboard & ~(1ULL << bit);
+}
+
+uint64_t pop_bit(uint64_t bitboard, int square) {
+    return (bitboard & (1ULL << square)) ? (bitboard ^ (1ULL << square)) : bitboard;
 }
 
 uint64_t get_bit(uint64_t bitboard, int bit){
@@ -60,13 +64,20 @@ int count_bits(uint64_t bitboard)
     return count;
 }
 
+int get_lsb_index(uint64_t bitboard)
+{
+    if (bitboard)
+        return count_bits( (bitboard & -bitboard)-1 );
+    return -1;
+}
+
 // RANDOM NUMBER GEN
 
 // Generate 32-bit pseudo legal numbers
-unsigned int get_random_U32()
+uint32_t get_random_U32()
 {
     // Get current state
-    unsigned int number = state;
+    uint32_t number = random_state;
 
     // XOR shift algorithm
     number ^= number << 13;
@@ -74,7 +85,7 @@ unsigned int get_random_U32()
     number ^= number << 5;
 
     // Update random number state
-    state = number;
+    random_state = number;
 
     return number;
 }
@@ -84,24 +95,18 @@ uint64_t get_random_U64()
 {
     uint64_t num1, num2, num3, num4;
 
-    num1 = (uint64_t)get_random_U32();
-    num2 = (uint64_t)get_random_U32();
-    num3 = (uint64_t)get_random_U32();
-    num4 = (uint64_t)get_random_U32();
+    num1 = (uint64_t)(get_random_U32()) & 0xFFFF;
+    num2 = (uint64_t)(get_random_U32()) & 0xFFFF;
+    num3 = (uint64_t)(get_random_U32()) & 0xFFFF;
+    num4 = (uint64_t)(get_random_U32()) & 0xFFFF;
 
     return num1 | (num2 << 16) | (num3 << 32) | (num4 << 48);
 }
 
+
 uint64_t gen_magic_num()
 {
     return get_random_U64() & get_random_U64() & get_random_U64();
-}
-
-int get_lsb_index(uint64_t bitboard)
-{
-    if (bitboard)
-        return count_bits( (bitboard & -bitboard)-1 );
-    return -1;
 }
 
 

@@ -8,11 +8,13 @@
 
 using namespace std;
 
-extern unsigned int state;
+extern unsigned int random_state;
 
 uint64_t set_bit(uint64_t bitboard, int bit);
 
 uint64_t clear_bit(uint64_t bitboard, int bit);
+
+uint64_t pop_bit(uint64_t bitboard, int bit);
 
 uint64_t get_bit(uint64_t bitboard, int bit);
 
@@ -29,7 +31,7 @@ int get_lsb_index(uint64_t bitboard);
 
 // XOR SHIFT RANDOM NUMBER GEN ALGORITHM
 // Generate 32-bit pseudo legal numbers
-unsigned int get_random_U32();
+uint32_t get_random_U32();
 
 // Generate 64-bit pseudo legal numbers
 uint64_t get_random_U64();

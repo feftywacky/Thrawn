@@ -6,6 +6,9 @@ const uint64_t not_h_file = 9187201950435737471ULL;
 const uint64_t not_hg_file = 4557430888798830399ULL;
 const uint64_t not_ab_file = 18229723555195321596ULL;
 
+std::array<uint64_t, 64> rook_magic_nums;
+std::array<uint64_t, 64> bishop_magic_nums;
+
 const std::array<int, 64> bishop_relevant_bits = {
     6, 5, 5, 5, 5, 5, 5, 6, 
     5, 5, 5, 5, 5, 5, 5, 5, 
