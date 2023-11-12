@@ -61,8 +61,9 @@ int count_bits(uint64_t bitboard)
 }
 
 // RANDOM NUMBER GEN
+
 // Generate 32-bit pseudo legal numbers
-unsigned int get_random_number()
+unsigned int get_random_U32()
 {
     // Get current state
     unsigned int number = state;
@@ -75,8 +76,25 @@ unsigned int get_random_number()
     // Update random number state
     state = number;
 
-    // Return random number
     return number;
+}
+
+// Generate 64-bit pseudo legal numbers
+uint64_t get_random_U64()
+{
+    uint64_t num1, num2, num3, num4;
+
+    num1 = (uint64_t)get_random_U32();
+    num2 = (uint64_t)get_random_U32();
+    num3 = (uint64_t)get_random_U32();
+    num4 = (uint64_t)get_random_U32();
+
+    return num1 | (num2 << 16) | (num3 << 32) | (num4 << 48);
+}
+
+uint64_t gen_magic_num()
+{
+    return get_random_U64() & get_random_U64() & get_random_U64();
 }
 
 int get_lsb_index(uint64_t bitboard)

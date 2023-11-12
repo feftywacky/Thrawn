@@ -29,7 +29,12 @@ int get_lsb_index(uint64_t bitboard);
 
 // XOR SHIFT RANDOM NUMBER GEN ALGORITHM
 // Generate 32-bit pseudo legal numbers
-unsigned int get_random_number();
+unsigned int get_random_U32();
+
+// Generate 64-bit pseudo legal numbers
+uint64_t get_random_U64();
+
+uint64_t gen_magic_num();
 
 void pprint_bb(uint64_t bitboard);
 

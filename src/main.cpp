@@ -20,12 +20,8 @@ int main() {
     blocker = set_bit(blocker, b4);
     blocker = set_bit(blocker, g4);
 
-    cout<<get_random_number()<<"\n";
-    cout<<get_random_number()<<"\n";
-    cout<<get_random_number()<<"\n";
-    cout<<get_random_number()<<"\n";
-    cout<<get_random_number()<<"\n";
-    cout<<get_random_number()<<"\n";
+    print_bitboard(gen_magic_num());
+
 
 
     return 0;
