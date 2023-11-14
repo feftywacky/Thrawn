@@ -12,6 +12,5 @@ using namespace std;
 Engine::Engine() : board()
 {
     // other initialization code for Engine
+    cout<<"engine contructor"<<endl;
 }
-
-

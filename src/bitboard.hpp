@@ -8,6 +8,7 @@
 #include <vector>
 #include "bitboard_functions.hpp"
 #include "constants.hpp"
+#include <array>
 
 using namespace std;
 
@@ -29,9 +30,20 @@ class Bitboard
         uint64_t blackQueens;
         uint64_t blackKings;
 
-        uint64_t pawn_attacks[2][BOARD_SIZE];
-        uint64_t knight_attacks[BOARD_SIZE];
-        uint64_t king_attacks[BOARD_SIZE];
+        // leaping
+        std::array<std::array<uint64_t, BOARD_SIZE>, 2> pawn_attacks;
+        std::array<uint64_t, BOARD_SIZE> knight_attacks;
+        std::array<uint64_t, BOARD_SIZE> king_attacks;
+
+        // sliding
+        // [square][occupancy]
+        array<uint64_t, 64> bishop_masks;
+        array<array<uint64_t, 512>, 64> bishop_attacks;
+        array<uint64_t, 64> rook_masks;
+        vector<vector<uint64_t>> rook_attacks;
+        
+
+
 
         // contructor
         Bitboard();
@@ -58,16 +70,19 @@ class Bitboard
         // bishops
         uint64_t get_bishop_attack_from_sq(int square);
         uint64_t bishop_attack_runtime_gen(int square, uint64_t blockers);
+        uint64_t get_bishop_attacks(int square, uint64_t occupancy);
 
         // rooks
         uint64_t get_rook_attack_from_sq(int square);
         uint64_t rook_attack_runtime_gen(int square, uint64_t blockers);
+        uint64_t get_rook_attacks(int square, uint64_t occupancy);
 
         // set occupancy
         uint64_t set_occupancy(int index, int bits_in_mask, uint64_t attack_mask);
         
         // init all piece attacks
         void init_piece_attacks();
+        void init_sliding_attacks(int isBishop);
 
 
     private:

@@ -29,7 +29,11 @@ Bitboard::Bitboard()
     blackQueens = 0x0800000000000000ULL;
     blackKings = 0x1000000000000000ULL; 
 
+    rook_attacks.resize(64, std::vector<uint64_t>(4096, 0));
+
     init_piece_attacks();
+    init_sliding_attacks(bishop);
+    init_sliding_attacks(rook);
     // init_magic_nums();
 }
 
@@ -397,6 +401,59 @@ void Bitboard::init_magic_nums()
         bishop_magic_nums[square] = find_magic_num(square, bishop_relevant_bits[square], bishop);
 }
 
+void Bitboard::init_sliding_attacks(int isBishop)
+{
+    for (int square = 0;square<64;square++)
+    {
+        if (isBishop)
+            bishop_masks[square] = get_bishop_attack_from_sq(square);
+        else
+            rook_masks[square] = get_rook_attack_from_sq(square);
+
+        uint64_t curr_attack_mask = isBishop ? bishop_masks[square] : rook_masks[square];
+
+        int relevant_bits_count = count_bits(curr_attack_mask);
+
+        int occupancy_index = 1 << relevant_bits_count;   
+
+        for (int i=0;i<occupancy_index;i++)
+        {
+            if (isBishop)
+            {
+                uint64_t occupancy = set_occupancy(i, relevant_bits_count, curr_attack_mask);
+                int magic_index = (occupancy * bishop_magic_nums[square]) >> (64-bishop_relevant_bits[square]);
+                bishop_attacks[square][magic_index] = bishop_attack_runtime_gen(square, occupancy);
+            }
+            else
+            {
+                uint64_t occupancy = set_occupancy(i, relevant_bits_count, curr_attack_mask);
+                int magic_index = (occupancy * rook_magic_nums[square]) >> (64-rook_relevant_bits[square]);
+                rook_attacks[square][magic_index] = rook_attack_runtime_gen(square, occupancy);
+            }
+        }
+    }
+}
+
+uint64_t Bitboard::get_bishop_attacks(int square, uint64_t occupancy)
+{
+    // generate bishop attacks given current board occupancy
+    occupancy &= bishop_masks[square];
+    occupancy *= bishop_magic_nums[square];
+    occupancy >>= 64-bishop_relevant_bits[square];
+
+    return bishop_attacks[square][occupancy];
+}
+
+uint64_t Bitboard::get_rook_attacks(int square, uint64_t occupancy)
+{
+    // generate rook attacks given current board occupancy
+    occupancy &= rook_masks[square];
+    occupancy *= rook_magic_nums[square];
+    occupancy >>= 64-rook_relevant_bits[square];
+
+    return rook_attacks[square][occupancy];
+}
+
 void Bitboard::init_piece_attacks()
 {
     for (int square = 0; square < BOARD_SIZE; square++) 
@@ -407,8 +464,4 @@ void Bitboard::init_piece_attacks()
         king_attacks[square] = get_king_attack_from_sq(square);
     }
 }
-
-
-
-
 
