@@ -73,6 +73,7 @@ std::array<uint64_t, 64> rook_magic_nums =
     0x2006104900a0804ULL,
     0x1004081002402ULL,
 };
+
 std::array<uint64_t, 64> bishop_magic_nums = 
 {
     0x40040844404084ULL,

@@ -6,12 +6,18 @@
 
 
 int main() {
-    
+    std::cout<<"1"<<std::endl;
     Engine gameState = Engine();
-    // Bitboard board = gameState.board;
+    std::cout<<"2"<<std::endl;
+    Bitboard board = gameState.board;
 
 
-    uint64_t blocker = 0ULL;
+
+
+    uint64_t test = 0ULL;
+    std::cout<<"3"<<std::endl;
+    print_bitboard(test);
+    print_bitboard(board.get_bishop_attacks(d4, test));
 
 
     // blocker = set_bit(blocker, d7);
@@ -20,12 +26,7 @@ int main() {
     // blocker = set_bit(blocker, b4);
     // blocker = set_bit(blocker, g4);
 
-    
-    for (int i=0;i<64;i++)
-        printf(" 0x%llxULL,\n", rook_magic_nums[i]);
-    cout<<"__________________________________________________________________"<<endl;
-    for (int i=0;i<64;i++)
-        printf(" 0x%llxULL,\n", bishop_magic_nums[i]);
+
     
     return 0;
 }
