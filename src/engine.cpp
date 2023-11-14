@@ -9,10 +9,9 @@
 using namespace std;
 
 // contructor
-Engine::Engine()
+Engine::Engine() : board()
 {
-    board = Bitboard();
-    
+    // other initialization code for Engine
 }
 
 

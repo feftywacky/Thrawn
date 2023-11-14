@@ -20,7 +20,7 @@ uint64_t clear_bit(uint64_t bitboard, int bit) {
 }
 
 uint64_t pop_bit(uint64_t bitboard, int square) {
-    return (bitboard & (1ULL << square)) ? (bitboard ^ (1ULL << square)) : bitboard;
+    return bitboard ^= (1ULL << square);
 }
 
 uint64_t get_bit(uint64_t bitboard, int bit){

@@ -10,7 +10,6 @@
 using namespace std;
 
 
-
 // contructor
 Bitboard::Bitboard()
 {
@@ -31,7 +30,7 @@ Bitboard::Bitboard()
     blackKings = 0x1000000000000000ULL; 
 
     init_piece_attacks();
-    init_magic_nums();
+    // init_magic_nums();
 }
 
 
@@ -385,6 +384,7 @@ uint64_t Bitboard::find_magic_num(int square, int relevant_bits, int bishop)
     std::cout << "Magic number fails!" << std::endl;
     return 0ULL;
 }
+
 
 void Bitboard::init_magic_nums()
 {

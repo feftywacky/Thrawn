@@ -8,7 +8,7 @@
 int main() {
     
     Engine gameState = Engine();
-    Bitboard board = gameState.board;
+    // Bitboard board = gameState.board;
 
 
     uint64_t blocker = 0ULL;
@@ -22,13 +22,10 @@ int main() {
 
     
     for (int i=0;i<64;i++)
-        printf(" 0x%llxULL\n", rook_magic_nums[i]);
+        printf(" 0x%llxULL,\n", rook_magic_nums[i]);
     cout<<"__________________________________________________________________"<<endl;
     for (int i=0;i<64;i++)
-        printf(" 0x%llxULL\n", bishop_magic_nums[i]);
-
-
-
-
+        printf(" 0x%llxULL,\n", bishop_magic_nums[i]);
+    
     return 0;
 }
