@@ -29,6 +29,8 @@ Bitboard::Bitboard()
     blackQueens = 0x0800000000000000ULL;
     blackKings = 0x1000000000000000ULL; 
 
+    rook_attacks.resize(64, std::vector<uint64_t>(4096, 0));
+
     init_piece_attacks();
     init_sliding_attacks(bishop);
     init_sliding_attacks(rook);
@@ -403,8 +405,10 @@ void Bitboard::init_sliding_attacks(int isBishop)
 {
     for (int square = 0;square<64;square++)
     {
-        bishop_masks[square] = get_bishop_attack_from_sq(square);
-        rook_masks[square] = get_rook_attack_from_sq(square);
+        if (isBishop)
+            bishop_masks[square] = get_bishop_attack_from_sq(square);
+        else
+            rook_masks[square] = get_rook_attack_from_sq(square);
 
         uint64_t curr_attack_mask = isBishop ? bishop_masks[square] : rook_masks[square];
 
@@ -440,7 +444,7 @@ uint64_t Bitboard::get_bishop_attacks(int square, uint64_t occupancy)
     return bishop_attacks[square][occupancy];
 }
 
-inline uint64_t Bitboard::get_rook_attacks(int square, uint64_t occupancy)
+uint64_t Bitboard::get_rook_attacks(int square, uint64_t occupancy)
 {
     // generate rook attacks given current board occupancy
     occupancy &= rook_masks[square];
@@ -460,8 +464,4 @@ void Bitboard::init_piece_attacks()
         king_attacks[square] = get_king_attack_from_sq(square);
     }
 }
-
-
-
-
 

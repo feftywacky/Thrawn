@@ -8,6 +8,7 @@
 #include <vector>
 #include "bitboard_functions.hpp"
 #include "constants.hpp"
+#include <array>
 
 using namespace std;
 
@@ -30,16 +31,19 @@ class Bitboard
         uint64_t blackKings;
 
         // leaping
-        uint64_t pawn_attacks[2][BOARD_SIZE];
-        uint64_t knight_attacks[BOARD_SIZE];
-        uint64_t king_attacks[BOARD_SIZE];
+        std::array<std::array<uint64_t, BOARD_SIZE>, 2> pawn_attacks;
+        std::array<uint64_t, BOARD_SIZE> knight_attacks;
+        std::array<uint64_t, BOARD_SIZE> king_attacks;
 
         // sliding
         // [square][occupancy]
-        uint64_t bishop_masks[64];
-        uint64_t bishop_attacks[64][512];
-        uint64_t rook_masks[64];
-        uint64_t rook_attacks[64][4096];
+        array<uint64_t, 64> bishop_masks;
+        array<array<uint64_t, 512>, 64> bishop_attacks;
+        array<uint64_t, 64> rook_masks;
+        vector<vector<uint64_t>> rook_attacks;
+        
+
+
 
         // contructor
         Bitboard();
