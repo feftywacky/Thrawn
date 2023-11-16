@@ -14,25 +14,16 @@ int main() {
     Bitboard board = Bitboard();
 
 
-    uint64_t occupancy = 0ULL;
+    board.piece_bitboards[P] = set_bit(board.piece_bitboards[P], e2);
     
-    // set blocker pieces on board
-    occupancy = set_bit(occupancy, c5);
-    occupancy = set_bit(occupancy, f2);
-    occupancy = set_bit(occupancy, g7);
-    occupancy = set_bit(occupancy, b2);
-    occupancy = set_bit(occupancy, g5);
-    occupancy = set_bit(occupancy, e2);
-    occupancy = set_bit(occupancy, e7);
+    // print white pawn bitboard
+    print_bitboard(board.piece_bitboards[P]);
     
-    // print occupancies
-    print_bitboard(occupancy);
-    
-    // print rook attacks
-    print_bitboard(board.get_rook_attacks(e5, occupancy));
-    
-    // print bishop attacks
-    print_bitboard(board.get_bishop_attacks(d4, occupancy));
+    // print piece
+    std::cout << "piece: " << ascii_pieces[P] << std::endl;
+    std::cout << "piece: " << ascii_pieces[char_pieces.at('K')] << std::endl;
+    std::cout << "piece: " << unicode_pieces[P] << std::endl;
+    std::cout << "piece: " << unicode_pieces[char_pieces.at('K')] << std::endl;
 
 
     

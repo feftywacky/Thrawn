@@ -29,6 +29,9 @@ Bitboard::Bitboard()
     blackQueens = 0x0800000000000000ULL;
     blackKings = 0x1000000000000000ULL; 
 
+    colour_to_move = -1;
+    enpassant = null_sq;
+
     rook_attacks.resize(64, std::vector<uint64_t>(4096, 0));
 
     init_piece_attacks();

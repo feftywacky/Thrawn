@@ -30,6 +30,23 @@ class Bitboard
         uint64_t blackQueens;
         uint64_t blackKings;
 
+        // Bitboards
+        array<uint64_t, 12> piece_bitboards;
+
+        // Bitboard occupancies
+        array<uint64_t, 3> occupancies; // white, black, both
+
+        // colour to move first
+        int colour_to_move;
+
+        // enpassant square
+        int enpassant;
+
+        // castle rights
+        int castle_right;
+
+
+
         // leaping
         std::array<std::array<uint64_t, BOARD_SIZE>, 2> pawn_attacks;
         std::array<uint64_t, BOARD_SIZE> knight_attacks;

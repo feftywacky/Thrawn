@@ -1,5 +1,9 @@
 #include "constants.hpp"
 #include <array>
+#include <string>
+#include <unordered_map>
+
+using namespace std;
 
 const uint64_t not_a_file = 18374403900871474942ULL;
 const uint64_t not_h_file = 9187201950435737471ULL;
@@ -153,7 +157,7 @@ const std::array<int, 64> bishop_relevant_bits = {
     6, 5, 5, 5, 5, 5, 5, 6
 };
     
-const std::array<int, 64> rook_relevant_bits = {
+const array<int, 64> rook_relevant_bits = {
     12, 11, 11, 11, 11, 11, 11, 12, 
     11, 10, 10, 10, 10, 10, 10, 11, 
     11, 10, 10, 10, 10, 10, 10, 11, 
@@ -164,7 +168,7 @@ const std::array<int, 64> rook_relevant_bits = {
     12, 11, 11, 11, 11, 11, 11, 12
 };
 
-const std::array<const char*, 64> square_to_coordinates = {
+const array<const char*, 64> square_to_coordinates = {
     "a8", "b8", "c8", "d8", "e8", "f8", "g8", "h8",
     "a7", "b7", "c7", "d7", "e7", "f7", "g7", "h7",
     "a6", "b6", "c6", "d6", "e6", "f6", "g6", "h6",
@@ -174,3 +178,25 @@ const std::array<const char*, 64> square_to_coordinates = {
     "a2", "b2", "c2", "d2", "e2", "f2", "g2", "h2",
     "a1", "b1", "c1", "d1", "e1", "f1", "g1", "h1",
 };
+
+const array<char, 12> ascii_pieces = {'P', 'N', 'B', 'R', 'Q', 'K', 'p', 'n', 'b', 'r', 'q', 'k'};
+
+const std::array<std::string, 12> unicode_pieces = {
+    "♙", "♘", "♗", "♖", "♕", "♔", "♟", "♞", "♝", "♜", "♛", "♚"
+};  
+
+const unordered_map<char, int> char_pieces = {
+    {'P', P},
+    {'N', N},
+    {'B', B},
+    {'R', R},
+    {'Q', Q},
+    {'K', K},
+    {'p', p},
+    {'n', n},
+    {'b', b},
+    {'r', r},
+    {'q', q},
+    {'k', k}
+};
+

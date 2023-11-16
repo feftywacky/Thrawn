@@ -3,13 +3,24 @@
 
 #include <cstdint>
 #include <array>
+#include <string>
+#include <unordered_map>
+
+using namespace std;
 
 enum Side {
     white,
-    black
+    black,
+    both
 };
 
+// encode pieces
+// white ->-> black
+enum {P, N, B, R, Q, K, p, n, b, r, q, k};
+
 enum {rook, bishop};
+
+enum {wks=1, wqs=2, bks=4, bqs=8};
 
 enum {
     a8, b8, c8, d8, e8, f8, g8, h8,
@@ -19,11 +30,23 @@ enum {
     a4, b4, c4, d4, e4, f4, g4, h4,
     a3, b3, c3, d3, e3, f3, g3, h3,
     a2, b2, c2, d2, e2, f2, g2, h2,
-    a1, b1, c1, d1, e1, f1, g1, h1
+    a1, b1, c1, d1, e1, f1, g1, h1, null_sq
 };
 
-// CONSTANTS (only declarations)
+
 constexpr int BOARD_SIZE = 64;
+
+
+// CONSTANTS (only declarations)
+
+// ASCII pieces
+extern const array<char, 12>ascii_pieces;
+extern const array<string, 12> unicode_pieces;
+
+extern const unordered_map<char, int> char_pieces;
+
+
+
 extern const uint64_t not_a_file;
 extern const uint64_t not_h_file;
 extern const uint64_t not_hg_file;
