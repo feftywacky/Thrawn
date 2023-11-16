@@ -5,14 +5,15 @@
 #include <map>
 #include <set>
 #include "constants.hpp"
+#include "bitboard.hpp"
 
 using namespace std;
 
 // GLOBAL VARIABLES
 unsigned int random_state = 1804289383;
 
-uint64_t set_bit(uint64_t bitboard, int bit) {
-    return bitboard |= (1ULL << bit);
+void set_bit(uint64_t& bitboard, int bit) {
+    bitboard |= (1ULL << bit);
 }
 
 uint64_t clear_bit(uint64_t bitboard, int bit) {
@@ -172,6 +173,52 @@ void print_bitboard(uint64_t bitboard)
 
     // Print bitboard as an unsigned decimal number
     std::cout << "     Bitboard as unsigned decimal: " << bitboard << std::endl;
+}
+
+void print_board(Bitboard& board, Side side) 
+{
+    // print offset
+    std::cout << "\n";
+
+
+    for (int rank = 0; rank < 8; rank++) {
+
+        // print ranks
+        std::cout << "  " << 8 - rank << " ";
+
+        for (int file = 0; file < 8; file++) {
+
+            int square = rank * 8 + file;
+
+            // define piece variable
+            int piece = -1;
+
+            // loop over all piece bitboards
+            for (int bb_piece = P; bb_piece <= k; bb_piece++) {
+                if (get_bit(board.piece_bitboards[bb_piece], square))
+                    piece = bb_piece;
+            }
+
+            std::cout << " " << ((piece == -1) ? '.' : ascii_pieces[piece]);
+
+        }
+
+        // print new line every rank
+        std::cout << "\n";
+    }
+
+    // print board files
+    std::cout << "\n     a b c d e f g h\n\n";
+
+    // print side to move
+    std::cout << "     Side:     " << (!side ? "white" : "black") << "\n";
+
+    // print enpassant square
+    std::cout << "     Enpassant:   " << ((board.enpassant != null_sq) ? square_to_coordinates[board.enpassant] : "no") << "\n";
+
+    // print castling rights
+    std::cout << "     Castling:  " << ((board.castle_rights & wks) ? 'K' : '-') << ((board.castle_rights & wqs) ? 'Q' : '-')
+              << ((board.castle_rights & bks) ? 'k' : '-') << ((board.castle_rights & bqs) ? 'q' : '-') << "\n\n";
 }
 
 void print_bits(uint64_t num)

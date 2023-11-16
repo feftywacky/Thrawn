@@ -183,8 +183,8 @@ const array<char, 12> ascii_pieces = {'P', 'N', 'B', 'R', 'Q', 'K', 'p', 'n', 'b
 
 const std::array<std::string, 12> unicode_pieces = {
     "♙", "♘", "♗", "♖", "♕", "♔", "♟", "♞", "♝", "♜", "♛", "♚"
-};  
-
+};
+ 
 const unordered_map<char, int> char_pieces = {
     {'P', P},
     {'N', N},

@@ -1,0 +1,165 @@
+bitboard>>8 -> moves piece up by 1 square
+bitboard<<8 -> moves piece down by 1 square
+bitboard>>1 -> moves piece to the left by 1 square
+bitboard<<1 -> moves piece to the right by 1 square
+
+
+CHESS BOARD SQUARES
+     0  1  2  3  4  5  6  7
+
+0    0  1  2  3  4  5  6  7
+1    8  9 10 11 12 13 14 15
+2    16 17 18 19 20 21 22 23
+3    24 25 26 27 28 29 30 31
+4    32 33 34 35 36 37 38 39
+5    40 41 42 43 44 45 46 47
+6    48 49 50 51 52 53 54 55
+7    56 57 58 59 60 61 62 63
+
+
+   a  b  c  d  e  f  g  h
+
+8  a8 b8 c8 d8 e8 f8 g8 h8
+7  a7 b7 c7 d7 e7 f7 g7 h7
+6  a6 b6 c6 d6 e6 f6 g6 h6
+5  a5 b5 c5 d5 e5 f5 g5 h5
+4  a4 b4 c4 d4 e4 f4 g4 h4
+3  a3 b3 c3 d3 e3 f3 g3 h3
+2  a2 b2 c2 d2 e2 f2 g2 h2
+1  a1 b1 c1 d1 e1 f1 g1 h1
+
+BIT MANIPULATION CHEAT SHEET
+bitboard &= bitboard - 1 -> resets lsb to 0
+bitboard & -block -> returns a bitboard with only the lsb set to 1, the rest of the bits are 0
+bitboard - 1 -> rightmost bit set to 0, all the bits to the right of that set to 1, ie. x = 00001000; x - 1 = 00000111
+
+
+
+bitboard.hpp -> uint64_t set_occupancy(int index, int bits_in_mask, uint64_t attack_mask);
+How it works:
+
+There are only 2**bits_in_mask different and unique possible combinations of the set bits in attack_mask. So, for any index from 0 up to 2**bits_in_mask, you get a unique occupancy combination bitboard. After this number, the combinations begin to repeat. The example with the rook on a1 and using index 4095 (which is (2**12) - 1) at 8:15 gives maximum occupancy (i.e., the full attack mask) because there are 12 set bits in that mask. Hence, for a rook on, say, b3, index (2**10) - 1=1023 gives max occupancy because there are 10 set bits in the mask.
+
+
+Essentially, 
+at index 0, you get occupancy with no bit set; 
+at index 1, you get occupancy with the square of the first LSB from attack_mask set; 
+at index 2, you get occupancy with the square of the second LSB from attack_mask set; 
+at index 3 (which is 2**1 + 2**0), you get occupancy with the squares of the first and second LSBs from attack_mask set; 
+and so on.
+
+
+// castling rights binary encoding
+
+    bin  dec
+    
+   0001    1  white king can castle to the king side
+   0010    2  white king can castle to the queen side
+   0100    4  black king can castle to the king side
+   1000    8  black king can castle to the queen side
+
+   examples
+
+   1111       both sides an castle both directions
+   1001       black king => queen side
+              white king => king side
+
+
+
+***********************************************
+BOARD REPRESENATION
+***********************************************
+
+
+                            WHITE PIECES
+
+
+        Pawns                  Knights              Bishops
+        
+  8  0 0 0 0 0 0 0 0    8  0 0 0 0 0 0 0 0    8  0 0 0 0 0 0 0 0
+  7  0 0 0 0 0 0 0 0    7  0 0 0 0 0 0 0 0    7  0 0 0 0 0 0 0 0
+  6  0 0 0 0 0 0 0 0    6  0 0 0 0 0 0 0 0    6  0 0 0 0 0 0 0 0
+  5  0 0 0 0 0 0 0 0    5  0 0 0 0 0 0 0 0    5  0 0 0 0 0 0 0 0
+  4  0 0 0 0 0 0 0 0    4  0 0 0 0 0 0 0 0    4  0 0 0 0 0 0 0 0
+  3  0 0 0 0 0 0 0 0    3  0 0 0 0 0 0 0 0    3  0 0 0 0 0 0 0 0
+  2  1 1 1 1 1 1 1 1    2  0 0 0 0 0 0 0 0    2  0 0 0 0 0 0 0 0
+  1  0 0 0 0 0 0 0 0    1  0 1 0 0 0 0 1 0    1  0 0 1 0 0 1 0 0
+
+     a b c d e f g h       a b c d e f g h       a b c d e f g h
+
+
+         Rooks                 Queens                 King
+
+  8  0 0 0 0 0 0 0 0    8  0 0 0 0 0 0 0 0    8  0 0 0 0 0 0 0 0
+  7  0 0 0 0 0 0 0 0    7  0 0 0 0 0 0 0 0    7  0 0 0 0 0 0 0 0
+  6  0 0 0 0 0 0 0 0    6  0 0 0 0 0 0 0 0    6  0 0 0 0 0 0 0 0
+  5  0 0 0 0 0 0 0 0    5  0 0 0 0 0 0 0 0    5  0 0 0 0 0 0 0 0
+  4  0 0 0 0 0 0 0 0    4  0 0 0 0 0 0 0 0    4  0 0 0 0 0 0 0 0
+  3  0 0 0 0 0 0 0 0    3  0 0 0 0 0 0 0 0    3  0 0 0 0 0 0 0 0
+  2  0 0 0 0 0 0 0 0    2  0 0 0 0 0 0 0 0    2  0 0 0 0 0 0 0 0
+  1  1 0 0 0 0 0 0 1    1  0 0 0 1 0 0 0 0    1  0 0 0 0 1 0 0 0
+
+     a b c d e f g h       a b c d e f g h       a b c d e f g h
+
+
+                            BLACK PIECES
+
+
+        Pawns                  Knights              Bishops
+        
+  8  0 0 0 0 0 0 0 0    8  0 1 0 0 0 0 1 0    8  0 0 1 0 0 1 0 0
+  7  1 1 1 1 1 1 1 1    7  0 0 0 0 0 0 0 0    7  0 0 0 0 0 0 0 0
+  6  0 0 0 0 0 0 0 0    6  0 0 0 0 0 0 0 0    6  0 0 0 0 0 0 0 0
+  5  0 0 0 0 0 0 0 0    5  0 0 0 0 0 0 0 0    5  0 0 0 0 0 0 0 0
+  4  0 0 0 0 0 0 0 0    4  0 0 0 0 0 0 0 0    4  0 0 0 0 0 0 0 0
+  3  0 0 0 0 0 0 0 0    3  0 0 0 0 0 0 0 0    3  0 0 0 0 0 0 0 0
+  2  0 0 0 0 0 0 0 0    2  0 0 0 0 0 0 0 0    2  0 0 0 0 0 0 0 0
+  1  0 0 0 0 0 0 0 0    1  0 0 0 0 0 0 0 0    1  0 0 0 0 0 0 0 0
+
+     a b c d e f g h       a b c d e f g h       a b c d e f g h
+
+
+         Rooks                 Queens                 King
+
+  8  1 0 0 0 0 0 0 1    8  0 0 0 1 0 0 0 0    8  0 0 0 0 1 0 0 0
+  7  0 0 0 0 0 0 0 0    7  0 0 0 0 0 0 0 0    7  0 0 0 0 0 0 0 0
+  6  0 0 0 0 0 0 0 0    6  0 0 0 0 0 0 0 0    6  0 0 0 0 0 0 0 0
+  5  0 0 0 0 0 0 0 0    5  0 0 0 0 0 0 0 0    5  0 0 0 0 0 0 0 0
+  4  0 0 0 0 0 0 0 0    4  0 0 0 0 0 0 0 0    4  0 0 0 0 0 0 0 0
+  3  0 0 0 0 0 0 0 0    3  0 0 0 0 0 0 0 0    3  0 0 0 0 0 0 0 0
+  2  0 0 0 0 0 0 0 0    2  0 0 0 0 0 0 0 0    2  0 0 0 0 0 0 0 0
+  1  0 0 0 0 0 0 0 0    1  0 0 0 0 0 0 0 0    1  0 0 0 0 0 0 0 0
+
+     a b c d e f g h       a b c d e f g h       a b c d e f g h
+
+
+
+                             OCCUPANCIES
+
+
+     White occupancy       Black occupancy       All occupancies
+
+  8  0 0 0 0 0 0 0 0    8  1 1 1 1 1 1 1 1    8  1 1 1 1 1 1 1 1
+  7  0 0 0 0 0 0 0 0    7  1 1 1 1 1 1 1 1    7  1 1 1 1 1 1 1 1
+  6  0 0 0 0 0 0 0 0    6  0 0 0 0 0 0 0 0    6  0 0 0 0 0 0 0 0
+  5  0 0 0 0 0 0 0 0    5  0 0 0 0 0 0 0 0    5  0 0 0 0 0 0 0 0
+  4  0 0 0 0 0 0 0 0    4  0 0 0 0 0 0 0 0    4  0 0 0 0 0 0 0 0
+  3  0 0 0 0 0 0 0 0    3  0 0 0 0 0 0 0 0    3  0 0 0 0 0 0 0 0
+  2  1 1 1 1 1 1 1 1    2  0 0 0 0 0 0 0 0    2  1 1 1 1 1 1 1 1
+  1  1 1 1 1 1 1 1 1    1  0 0 0 0 0 0 0 0    1  1 1 1 1 1 1 1 1
+
+
+
+                              ALL TOGETHER
+
+                           8  r n b q k b n r
+                           7  p p p p p p p p
+                           6  . . . . . . . .
+                           5  . . . . . . . .
+                           4  . . . . . . . .
+                           3  . . . . . . . .
+                           2  P P P P P P P P
+                           1  R N B Q K B N R
+
+                              a b c d e f g h
+

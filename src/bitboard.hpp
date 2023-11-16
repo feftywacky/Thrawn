@@ -15,35 +15,20 @@ using namespace std;
 class Bitboard
 {
     public:
-        //variables 
-        uint64_t whitePawns;
-        uint64_t whiteRooks;
-        uint64_t whiteKnights;
-        uint64_t whiteBishops;
-        uint64_t whiteQueens;
-        uint64_t whiteKings;
-
-        uint64_t blackPawns;
-        uint64_t blackRooks;
-        uint64_t blackKnights;
-        uint64_t blackBishops;
-        uint64_t blackQueens;
-        uint64_t blackKings;
-
-        // Bitboards
+        // ALl piece bitboards -> 12 in total -> one for each piece type and colour
         array<uint64_t, 12> piece_bitboards;
 
         // Bitboard occupancies
         array<uint64_t, 3> occupancies; // white, black, both
 
         // colour to move first
-        int colour_to_move;
+        Side colour_to_move;
 
         // enpassant square
         int enpassant;
 
         // castle rights
-        int castle_right;
+        int castle_rights;
 
 
 
@@ -65,12 +50,10 @@ class Bitboard
         // contructor
         Bitboard();
 
-        void printBB();
-
-
-        // get bitboards methods
-        uint64_t get_white_pieces();
-        uint64_t get_black_pieces();     
+        // get occupancy bitboard by colour
+        uint64_t get_white_occupancy();
+        uint64_t get_black_occupancy(); 
+        uint64_t get_both_occupancy();    
 
 
         // pre-compute all attacks from a square methods
@@ -100,6 +83,8 @@ class Bitboard
         // init all piece attacks
         void init_piece_attacks();
         void init_sliding_attacks(int isBishop);
+        void init_white_pieces();
+        void init_black_pieces();
 
 
     private:

@@ -5,12 +5,15 @@
 #include <bitset>
 #include <map>
 #include <set>
+#include "constants.hpp"
 
 using namespace std;
 
+class Bitboard;
+
 extern unsigned int random_state;
 
-uint64_t set_bit(uint64_t bitboard, int bit);
+void set_bit(uint64_t& bitboard, int bit);
 
 uint64_t clear_bit(uint64_t bitboard, int bit);
 
@@ -41,6 +44,8 @@ uint64_t gen_magic_num();
 void pprint_bb(uint64_t bitboard);
 
 void print_bitboard(uint64_t bitboard);
+
+void print_board(Bitboard& board, Side side);
 
 void print_bits(uint64_t num);
 

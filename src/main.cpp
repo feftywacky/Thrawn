@@ -11,19 +11,15 @@ int main() {
     // Engine gameState = Engine();
     // Bitboard board = gameState.board;
 
-    Bitboard board = Bitboard();
+    Bitboard board;
 
 
-    board.piece_bitboards[P] = set_bit(board.piece_bitboards[P], e2);
-    
-    // print white pawn bitboard
-    print_bitboard(board.piece_bitboards[P]);
-    
-    // print piece
-    std::cout << "piece: " << ascii_pieces[P] << std::endl;
-    std::cout << "piece: " << ascii_pieces[char_pieces.at('K')] << std::endl;
-    std::cout << "piece: " << unicode_pieces[P] << std::endl;
-    std::cout << "piece: " << unicode_pieces[char_pieces.at('K')] << std::endl;
+    print_board(board, board.colour_to_move);
+    for(int i=0;i<3;i++)
+    {
+        cout<<i<<endl;
+        print_bitboard(board.occupancies[i]);
+    }
 
 
     

@@ -13,25 +13,23 @@ using namespace std;
 // contructor
 Bitboard::Bitboard()
 {
-    // white
-    whitePawns = 0x000000000000FF00ULL;
-    whiteRooks = 0x0000000000000081ULL;
-    whiteKnights = 0x0000000000000042ULL;
-    whiteBishops = 0x0000000000000024ULL;
-    whiteQueens = 0x0000000000000008ULL;
-    whiteKings = 0x0000000000000010ULL;
+    // init start game pieces
+    init_white_pieces();
+    init_black_pieces();
 
-    // black
-    blackPawns = 0x00FF000000000000ULL;
-    blackRooks = 0x8100000000000000ULL;
-    blackKnights = 0x4200000000000000ULL;
-    blackBishops = 0x2400000000000000ULL;
-    blackQueens = 0x0800000000000000ULL;
-    blackKings = 0x1000000000000000ULL; 
+    occupancies[0] = get_white_occupancy();
+    occupancies[1] = get_black_occupancy();
+    occupancies[2] = get_both_occupancy();
 
-    colour_to_move = -1;
+    colour_to_move = white;
     enpassant = null_sq;
 
+    castle_rights |= wks;
+    castle_rights |= wqs;
+    castle_rights |= bks;
+    castle_rights |= bqs;
+
+    // resize attack rook table since it's a vector
     rook_attacks.resize(64, std::vector<uint64_t>(4096, 0));
 
     init_piece_attacks();
@@ -40,49 +38,29 @@ Bitboard::Bitboard()
     // init_magic_nums();
 }
 
-
-void Bitboard::printBB()
+// GET OCCUPANCY BITBOARDS
+uint64_t Bitboard::get_white_occupancy()
 {
-    // Print the chessboard state with a simplified representation
-    // For each square, indicate the presence of a piece with 'P', 'R', 'N', 'B', 'Q', 'K', or '-'
-    // 'P' represents a white pawn, 'p' represents a black pawn, and so on
-    for (int rank = 7; rank >= 0; rank--) {
-        for (int file = 0; file < 8; file++) {
-            uint64_t mask = 1ULL << (rank * 8 + file);
-            
-            char piece = '-';
-            
-            if (whitePawns & mask) piece = 'P';
-            if (whiteRooks & mask) piece = 'R';
-            if (whiteKnights & mask) piece = 'N';
-            if (whiteBishops & mask) piece = 'B';
-            if (whiteQueens & mask) piece = 'Q';
-            if (whiteKings & mask) piece = 'K';
-            if (blackPawns & mask) piece = 'p';
-            if (blackRooks & mask) piece = 'r';
-            if (blackKnights & mask) piece = 'n';
-            if (blackBishops & mask) piece = 'b';
-            if (blackQueens & mask) piece = 'q';
-            if (blackKings & mask) piece = 'k';
-
-            std::cout << piece << ' ';
-        }
-        std::cout << std::endl;
-    }
+    uint64_t res = 0ULL;
+    for(int i=0;i<6;i++)
+        res |= piece_bitboards[i];
+    return res;
 }
 
-
-
-
-// GET CERTAIN BITBOARDS
-uint64_t Bitboard::get_white_pieces()
+uint64_t Bitboard::get_black_occupancy()
 {
-    return whitePawns | whiteRooks | whiteKnights | whiteBishops | whiteQueens | whiteKings;
+    uint64_t res = 0ULL;
+    for(int i=6;i<12;i++)
+        res |= piece_bitboards[i];
+    return res;
 }
 
-uint64_t Bitboard::get_black_pieces()
+uint64_t Bitboard::get_both_occupancy()
 {
-    return blackPawns | blackRooks | blackKnights | blackBishops | blackQueens | blackKings;
+    uint64_t res = 0ULL;
+    res |= get_white_occupancy();
+    res |= get_black_occupancy();
+    return res;
 }
 
 
@@ -95,7 +73,7 @@ uint64_t Bitboard::get_pawn_attack_from_sq(Side side, int square)
     uint64_t attacks = 0ULL;
     uint64_t bitboard = 0ULL;
 
-    bitboard = set_bit(bitboard, square);
+    set_bit(bitboard, square);
 
     if (side == white) 
     {
@@ -121,7 +99,7 @@ uint64_t Bitboard::get_knight_attack_from_sq(int square)
     uint64_t attacks = 0ULL;
     uint64_t bitboard = 0ULL;
 
-    bitboard = set_bit(bitboard, square);
+    set_bit(bitboard, square);
 
     if ((bitboard >> 17) & not_h_file) 
         attacks |= (bitboard >> 17);
@@ -147,7 +125,7 @@ uint64_t Bitboard::get_king_attack_from_sq(int square)
 {
     uint64_t attacks = 0ULL;
     uint64_t bitboard = 0ULL;
-    bitboard = set_bit(bitboard, square);
+    set_bit(bitboard, square);
 
     if (bitboard>>8)
         attacks |= (bitboard>>8);
@@ -466,5 +444,63 @@ void Bitboard::init_piece_attacks()
         knight_attacks[square] = get_knight_attack_from_sq(square);
         king_attacks[square] = get_king_attack_from_sq(square);
     }
+}
+
+void Bitboard::init_white_pieces()
+{
+    // set white pawns
+    set_bit(piece_bitboards[P], a2);
+    set_bit(piece_bitboards[P], b2);
+    set_bit(piece_bitboards[P], c2);
+    set_bit(piece_bitboards[P], d2);
+    set_bit(piece_bitboards[P], e2);
+    set_bit(piece_bitboards[P], f2);
+    set_bit(piece_bitboards[P], g2);
+    set_bit(piece_bitboards[P], h2);
+    
+    // set white knights
+    set_bit(piece_bitboards[N], b1);
+    set_bit(piece_bitboards[N], g1);
+    
+    // set white bishops
+    set_bit(piece_bitboards[B], c1);
+    set_bit(piece_bitboards[B], f1);
+    
+    // set white rooks
+    set_bit(piece_bitboards[R], a1);
+    set_bit(piece_bitboards[R], h1);
+    
+    // set white queen & king
+    set_bit(piece_bitboards[Q], d1);
+    set_bit(piece_bitboards[K], e1);
+}
+
+void Bitboard::init_black_pieces()
+{
+    // set black pawns
+    set_bit(piece_bitboards[p], a7);
+    set_bit(piece_bitboards[p], b7);
+    set_bit(piece_bitboards[p], c7);
+    set_bit(piece_bitboards[p], d7);
+    set_bit(piece_bitboards[p], e7);
+    set_bit(piece_bitboards[p], f7);
+    set_bit(piece_bitboards[p], g7);
+    set_bit(piece_bitboards[p], h7);
+    
+    // set black knights
+    set_bit(piece_bitboards[n], b8);
+    set_bit(piece_bitboards[n], g8);
+    
+    // set black bishops
+    set_bit(piece_bitboards[b], c8);
+    set_bit(piece_bitboards[b], f8);
+    
+    // set black rooks
+    set_bit(piece_bitboards[r], a8);
+    set_bit(piece_bitboards[r], h8);
+    
+    // set black queen & king
+    set_bit(piece_bitboards[q], d8);
+    set_bit(piece_bitboards[k], e8);
 }
 
