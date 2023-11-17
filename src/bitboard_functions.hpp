@@ -15,15 +15,15 @@ extern unsigned int random_state;
 
 void set_bit(uint64_t& bitboard, int bit);
 
-uint64_t clear_bit(uint64_t bitboard, int bit);
+void clear_bit(uint64_t& bitboard, int bit);
 
-uint64_t pop_bit(uint64_t bitboard, int bit);
+void pop_bit(uint64_t& bitboard, int bit);
 
 uint64_t get_bit(uint64_t bitboard, int bit);
 
 bool is_bit_set(uint64_t bitboard, int bit);
 
-uint64_t toggle_bit(uint64_t bitboard, int bit);
+void toggle_bit(uint64_t& bitboard, int bit);
 
 vector<int> get_squares_from_bb(uint16_t bitboard);  
 

@@ -16,12 +16,12 @@ void set_bit(uint64_t& bitboard, int bit) {
     bitboard |= (1ULL << bit);
 }
 
-uint64_t clear_bit(uint64_t bitboard, int bit) {
-    return bitboard & ~(1ULL << bit);
+void clear_bit(uint64_t& bitboard, int bit) {
+    bitboard &= ~(1ULL << bit);
 }
 
-uint64_t pop_bit(uint64_t bitboard, int square) {
-    return bitboard ^= (1ULL << square);
+void pop_bit(uint64_t& bitboard, int square) {
+    bitboard ^= (1ULL << square);
 }
 
 uint64_t get_bit(uint64_t bitboard, int bit){
@@ -32,8 +32,8 @@ bool is_bit_set(uint64_t bitboard, int bit) {
     return (bitboard & (1ULL << bit)) != 0;
 }
 
-uint64_t toggle_bit(uint64_t bitboard, int bit) {
-    return bitboard ^ (1ULL << bit);
+void toggle_bit(uint64_t& bitboard, int bit) {
+    bitboard ^= (1ULL << bit);
 }
 
 vector<int> get_squares_from_bb(uint16_t bitboard)

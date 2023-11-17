@@ -17,3 +17,8 @@ chess
 ## Features
 - Implements UCI protocol
 - Uses bitboard data structure for fast move generation
+
+## TODO
+- fen parsing
+- queen moves
+- move generation
