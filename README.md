@@ -20,6 +20,5 @@ chess.exe
 - Uses bitboard data structure for fast move generation
 
 ## TODO
-- fen parsing
-- queen moves
 - move generation
+- allow user input to make move
