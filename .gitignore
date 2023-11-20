@@ -34,3 +34,6 @@
 # Code Editors
 *.vscode
 *.idea
+
+# Text
+*.vscode

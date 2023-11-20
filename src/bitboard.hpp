@@ -88,8 +88,6 @@ private:
     // init all piece attacks
     void init_leaping_attacks();
     void init_sliding_attacks(int isBishop);
-    void init_white_pieces();
-    void init_black_pieces();
         
 };
 

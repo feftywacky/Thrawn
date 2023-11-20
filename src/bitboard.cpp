@@ -14,20 +14,19 @@ using namespace std;
 Bitboard::Bitboard()
 {
     // init start game pieces
-    init_white_pieces();
-    init_black_pieces();
 
-    occupancies[0] = get_white_occupancy();
-    occupancies[1] = get_black_occupancy();
-    occupancies[2] = get_both_occupancy();
+    // occupancies[0] = get_white_occupancy();
+    // occupancies[1] = get_black_occupancy();
+    // occupancies[2] = get_both_occupancy();
 
     colour_to_move = white;
     enpassant = null_sq;
+    castle_rights = 0;
 
-    castle_rights |= wks;
-    castle_rights |= wqs;
-    castle_rights |= bks;
-    castle_rights |= bqs;
+    // castle_rights |= wks;
+    // castle_rights |= wqs;
+    // castle_rights |= bks;
+    // castle_rights |= bqs;
 
     // resize attack rook table since it's a vector
     rook_attacks.resize(64, std::vector<uint64_t>(4096, 0));
@@ -35,7 +34,7 @@ Bitboard::Bitboard()
     init_leaping_attacks();
     init_sliding_attacks(bishop);
     init_sliding_attacks(rook);
-    // init_magic_nums();
+    // init_magic_nums(); // used to help generate magic bitboards
 }
 
 // GET OCCUPANCY BITBOARDS
@@ -444,65 +443,5 @@ void Bitboard::init_leaping_attacks()
         knight_attacks[square] = get_knight_attacks(square);
         king_attacks[square] = get_king_attacks(square);
     }
-}
-
-
-
-void Bitboard::init_white_pieces()
-{
-    // set white pawns
-    set_bit(piece_bitboards[P], a2);
-    set_bit(piece_bitboards[P], b2);
-    set_bit(piece_bitboards[P], c2);
-    set_bit(piece_bitboards[P], d2);
-    set_bit(piece_bitboards[P], e2);
-    set_bit(piece_bitboards[P], f2);
-    set_bit(piece_bitboards[P], g2);
-    set_bit(piece_bitboards[P], h2);
-    
-    // set white knights
-    set_bit(piece_bitboards[N], b1);
-    set_bit(piece_bitboards[N], g1);
-    
-    // set white bishops
-    set_bit(piece_bitboards[B], c1);
-    set_bit(piece_bitboards[B], f1);
-    
-    // set white rooks
-    set_bit(piece_bitboards[R], a1);
-    set_bit(piece_bitboards[R], h1);
-    
-    // set white queen & king
-    set_bit(piece_bitboards[Q], d1);
-    set_bit(piece_bitboards[K], e1);
-}
-
-void Bitboard::init_black_pieces()
-{
-    // set black pawns
-    set_bit(piece_bitboards[p], a7);
-    set_bit(piece_bitboards[p], b7);
-    set_bit(piece_bitboards[p], c7);
-    set_bit(piece_bitboards[p], d7);
-    set_bit(piece_bitboards[p], e7);
-    set_bit(piece_bitboards[p], f7);
-    set_bit(piece_bitboards[p], g7);
-    set_bit(piece_bitboards[p], h7);
-    
-    // set black knights
-    set_bit(piece_bitboards[n], b8);
-    set_bit(piece_bitboards[n], g8);
-    
-    // set black bishops
-    set_bit(piece_bitboards[b], c8);
-    set_bit(piece_bitboards[b], f8);
-    
-    // set black rooks
-    set_bit(piece_bitboards[r], a8);
-    set_bit(piece_bitboards[r], h8);
-    
-    // set black queen & king
-    set_bit(piece_bitboards[q], d8);
-    set_bit(piece_bitboards[k], e8);
 }
 
