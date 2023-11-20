@@ -401,6 +401,11 @@ uint64_t Bitboard::get_rook_attacks(int square, uint64_t occupancy)
     return rook_attacks[square][occupancy];
 }
 
+uint64_t Bitboard::get_queen_attacks(int square, uint64_t occupancy)
+{
+    return get_bishop_attacks(square, occupancy) | get_rook_attacks(square, occupancy);
+}
+
 void Bitboard::init_sliding_attacks(int isBishop)
 {
     for (int square = 0;square<64;square++)

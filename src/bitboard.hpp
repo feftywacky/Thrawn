@@ -77,6 +77,9 @@ public:
     uint64_t rook_attack_runtime_gen(int square, uint64_t& blockers);
     uint64_t get_rook_attacks(int square, uint64_t occupancy);
 
+    // queen
+    uint64_t get_queen_attacks(int square, uint64_t occupancy);
+
     // set occupancy
     uint64_t set_occupancy(const int& index, const int& bits_in_mask, uint64_t attack_mask);
 
