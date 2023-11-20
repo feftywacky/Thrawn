@@ -163,3 +163,16 @@ BOARD REPRESENATION
 
                               a b c d e f g h
 
+
+
+**************************
+C++ NOTES
+**************************
+
+if i have 
+char*x = "123"
+char* x = "123" declares x as a pointer to the first character of a string literal "123"
+The string literal is an array of characters, and x holds the address (memory location) of the first character of that array
+
+x: This represents the address of the first character in the string literal. It's the pointer itself.
+*x: This dereferences the pointer, giving you the value at the memory location pointed to by x. In the case of a char*, it retrieves the first character of the string literal.
