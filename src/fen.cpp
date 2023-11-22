@@ -75,7 +75,7 @@ void parse_fen(Bitboard& board, const char* fen)
 
     // go to parse castling rights value in fen string
     fen += 2;
-    std::cout << "fen: '" << fen << "'\n";
+
     // parsing castle rights
     while(*fen != ' ')
     {
@@ -98,7 +98,6 @@ void parse_fen(Bitboard& board, const char* fen)
     if (*fen == ' ')
         fen++;
     
-    std::cout << "fen: '" << fen << "'\n";
     // parsing enpassant square
     if (*fen != '-')
     {

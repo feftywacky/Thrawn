@@ -13,13 +13,13 @@ using namespace std;
 
 class Engine
 {
-    public: 
+public: 
 
-        //constructor
-        Engine();
-        Bitboard board;
+    //constructor
+    Engine();
+    Bitboard board;
 
-    private:
+private:
         
 
 };

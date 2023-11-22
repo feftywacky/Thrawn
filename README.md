@@ -21,4 +21,8 @@ chess.exe
 
 ## TODO
 - move generation
+- add inline keyword in header files
 - allow user input to make move
+
+## BUGS/POTENTIAL ISSUES
+- is_square_under_attack() in bitboards.cpp also checks squares attacked by own colour, but might not be an issue because this method is only used to check if king is under check?

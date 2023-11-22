@@ -14,23 +14,13 @@ int main() {
 
     Bitboard board;
 
-    // parse_fen(board, tricky_position);
-    // print_board(board, board.colour_to_move);
-    // print_bitboard(board.occupancies[2]);
-    // parse_fen(board, start_position);
-    // print_board(board, board.colour_to_move);
-    // print_bitboard(board.occupancies[2]);
-
-    uint64_t occupancy = 0ULL;
-    
-    // set occupancy
-    set_bit(occupancy, b6);
-    set_bit(occupancy, d6);
-    set_bit(occupancy, f6);
-    set_bit(occupancy, b4);
-    set_bit(occupancy, g4);
-    print_bitboard(occupancy);
-    print_bitboard(board.get_queen_attacks(d4, occupancy));
+    parse_fen(board, tricky_position);
+    print_board(board, white);
+    for(int i=0;i<64;i++)
+    {
+        if (board.is_square_under_attack(i, white))
+            cout<<"square: "<<i<<" is attacked"<<endl;
+    }   
 
     return 0;
 }

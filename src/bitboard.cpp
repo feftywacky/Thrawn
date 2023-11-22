@@ -406,6 +406,34 @@ uint64_t Bitboard::get_queen_attacks(int square, uint64_t occupancy)
     return get_bishop_attacks(square, occupancy) | get_rook_attacks(square, occupancy);
 }
 
+bool Bitboard::is_square_under_attack(int square, Side side)
+{
+    // Attacked by white pawns
+    if (side == white && (pawn_attacks[black][square] & piece_bitboards[P])) 
+        return true;
+
+    // Attacked by black pawns
+    if ((side == black) && (pawn_attacks[white][square] & piece_bitboards[p])) 
+        return true;
+
+    if (knight_attacks[square] & ((side == white) ? piece_bitboards[N] : piece_bitboards[n])) 
+        return true;
+
+    if (get_bishop_attacks(square, occupancies[both]) & ((side == white) ? piece_bitboards[B] : piece_bitboards[b])) 
+        return true;
+
+    if (get_rook_attacks(square, occupancies[both]) & ((side == white) ? piece_bitboards[R] : piece_bitboards[r])) 
+        return true;
+
+    if (get_queen_attacks(square, occupancies[both]) & ((side == white) ? piece_bitboards[Q] : piece_bitboards[q])) 
+        return true;
+
+    if (king_attacks[square] & ((side == white) ? piece_bitboards[K] : piece_bitboards[k])) 
+        return true;
+
+    return false;
+}
+
 void Bitboard::init_sliding_attacks(int isBishop)
 {
     for (int square = 0;square<64;square++)

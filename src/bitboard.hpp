@@ -83,6 +83,9 @@ public:
     // set occupancy
     uint64_t set_occupancy(const int& index, const int& bits_in_mask, uint64_t attack_mask);
 
+    bool is_square_under_attack(int square, Side side);
+    
+
 private:
     // MAGIC NUMBERS AND BITBOARDS
     uint64_t find_magic_num(const int& square, int relevant_bits, int bishop);
