@@ -19,6 +19,8 @@ public:
     Engine();
     Bitboard board;
 
+    void generate_moves();
+
 private:
         
 

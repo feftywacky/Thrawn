@@ -406,6 +406,7 @@ uint64_t Bitboard::get_queen_attacks(int square, uint64_t occupancy)
     return get_bishop_attacks(square, occupancy) | get_rook_attacks(square, occupancy);
 }
 
+// is <square> under attacked by <side> pieces
 bool Bitboard::is_square_under_attack(int square, Side side)
 {
     // Attacked by white pawns
