@@ -345,3 +345,55 @@ void Engine::generate_moves()
 
 }
 
+/* 
+ * METHODS BELOW ENCODE AND DECODED MOVE NUMBER 
+*/
+
+// parses move into a single int
+int Engine::parse_move(int source, int target, int piece, int promoted_piece, int capture, int double_pawn_move, int enpassant, int castling)
+{
+    return source | (target<<6) | (piece<<12) | (promoted_piece<<16) | (capture<<20) | (double_pawn_move<<21) | (enpassant<<22) | (castling<<23);
+}
+
+// following methods unpacks and retrives specific information from move
+
+int Engine::get_move_source(int move)
+{
+    return move & 0x3f;
+}
+
+int Engine::get_move_target(int move)
+{
+    return (move & 0xfc0) >> 6;
+}
+
+int Engine::get_move_piece(int move)
+{
+    return (move & 0xf000) >> 12;
+}
+
+int Engine::get_promoted_piece(int move)
+{
+    return (move & 0xf0000) >> 16;
+}
+
+int Engine::get_is_cpature_move(int move)
+{
+    return move && 0x100000;
+}
+
+int Engine::get_is_double_pawn_move(int move)
+{
+    return 0x200000;
+}
+
+int Engine::get_is_move_enpassant(int move)
+{
+    return 0x400000;
+}
+
+int Engine::get_is_move_castling(int move)
+{
+    return 0x800000;
+}
+
