@@ -45,6 +45,8 @@ extern const array<string, 12> unicode_pieces;
 
 extern const unordered_map<char, int> char_pieces;
 
+extern const unordered_map<int, char> promoted_pieces;
+
 
 
 extern const uint64_t not_a_file;

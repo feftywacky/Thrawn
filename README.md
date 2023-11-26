@@ -10,8 +10,8 @@ g++ --version
 
 ### Build and Run:
 ```bash
-g++ -std=c++17 -c main.cpp engine.cpp bitboard.cpp bitboard_functions.cpp constants.cpp fen.cpp
-g++ -o chess main.o engine.o bitboard.o bitboard_functions.o constants.o fen.o
+g++ -std=c++17 -c main.cpp engine.cpp bitboard.cpp bitboard_functions.cpp constants.cpp fen.cpp move_helpers.cpp
+g++ -o chess main.o engine.o bitboard.o bitboard_functions.o constants.o fen.o move_helpers.o 
 chess.exe
 ```
 
@@ -20,7 +20,8 @@ chess.exe
 - Uses bitboard data structure for fast move generation
 
 ## TODO
-- move generation
+- move generation (seperate into methods)
+- pass perft test
 - add inline keyword in header files
 - allow user input to make move
 

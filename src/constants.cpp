@@ -200,3 +200,14 @@ const unordered_map<char, int> char_pieces = {
     {'k', k}
 };
 
+const unordered_map<int, char> promoted_pieces = {
+    {Q, 'q'},
+    {R, 'r'},
+    {N, 'n'},
+    {B, 'b'},
+    {q, 'q'},
+    {r, 'r'},
+    {n, 'n'},
+    {b, 'b'},
+};
+
