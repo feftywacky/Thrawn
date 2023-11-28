@@ -13,17 +13,12 @@ int main() {
     Engine engine = Engine();
     Bitboard& board = engine.board;
 
-    // parse_fen(board, start_position);
-    // print_board(board, board.colour_to_move);
-
-    int move = parse_move(d7, d8, k, Q, 0, 1, 1, 0);
-    int move2 = parse_move(e4, e3, P, Q, 1, 0, 0, 1);
-
-    vector<int> x;
-    x.push_back(move);
-    x.push_back(move2);
+    parse_fen(board, start_position);
+    print_board(board, board.colour_to_move);
+    engine.generate_moves();
     
-    print_move_list(x);
+    print_move_list(engine.moves);
+    cout<<"size: "<<engine.moves.size()<<endl;
 
     return 0;
 }

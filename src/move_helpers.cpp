@@ -66,7 +66,11 @@ void print_move(const int& move)
               << promoted_pieces.at(get_promoted_piece(move)) << std::endl;
 }
 
-void print_move_list(const std::vector<int>& move_list) {
+void print_move_list(const std::vector<int>& move_list) 
+{
+    if (move_list.size()==0)
+        std::cout<<"NO MOVES AVAILABLE"<<std::endl;
+
     for (int move : move_list) {
         std::cout << square_to_coordinates[get_move_source(move)]
                   << square_to_coordinates[get_move_target(move)]

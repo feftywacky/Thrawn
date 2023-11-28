@@ -209,5 +209,6 @@ const unordered_map<int, char> promoted_pieces = {
     {r, 'r'},
     {n, 'n'},
     {b, 'b'},
+    {0, '\0'},
 };
 

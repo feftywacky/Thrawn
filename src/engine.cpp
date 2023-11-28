@@ -2,6 +2,7 @@
 #include "bitboard.hpp"
 #include "constants.hpp"
 #include "bitboard_functions.hpp"
+#include "move_helpers.hpp"
 #include <iostream>
 #include <vector>
 #include <string>
@@ -19,6 +20,9 @@ Engine::Engine() : board()
 
 void Engine::generate_moves()
 {
+    // clear previous moves
+    moves.clear();
+
     // the squares where the pieces started from, and where it will go
     int source;
     int target;
@@ -49,18 +53,23 @@ void Engine::generate_moves()
                         // pawn promotion by going up one square (NOT TAKING A PIECE)
                         if (source>=a7 && source<=h7)
                         {
-                            cout<<"do pawn promotion here"<<endl;
+                            moves.push_back(parse_move(source, target, piece, Q, 0, 0, 0, 0));
+                            moves.push_back(parse_move(source, target, piece, R, 0, 0, 0, 0));
+                            moves.push_back(parse_move(source, target, piece, N, 0, 0, 0, 0));
+                            moves.push_back(parse_move(source, target, piece, B, 0, 0, 0, 0));
                         }
 
                         // one square and two square pawn moves
                         else
                         {
                             // one square
-                            cout<<"one square"<<endl;
+                            moves.push_back(parse_move(source, target, piece, 0, 0, 0, 0, 0));
 
                             // two square
                             if (source>=a2 && source<=h2 && !get_bit(board.occupancies[both], target-8))
-                                cout<<"two squares"<<endl;
+                            {
+                                moves.push_back(parse_move(source, target-8, piece, 0, 1, 0, 0, 0));
+                            }
                         }
                     }
 
@@ -70,13 +79,18 @@ void Engine::generate_moves()
                     {   
                         target = get_lsb_index(attacks);
 
-                        if (source>=a7 && source<=h7) // pawn promotinos for piece captures
+                        if (source>=a7 && source<=h7) // pawn promotions by capturing a piece
                         {
-                            cout<<"pawn piece capture promotion"<<endl;
+                            moves.push_back(parse_move(source, target, piece, Q, 1, 0, 0, 0));
+                            moves.push_back(parse_move(source, target, piece, R, 1, 0, 0, 0));
+                            moves.push_back(parse_move(source, target, piece, N, 1, 0, 0, 0));
+                            moves.push_back(parse_move(source, target, piece, B, 1, 0, 0, 0));
                         }
+
+                        // diagonal pawn capture
                         else
                         {
-                            cout<<"pawn diagonal capture"<<endl;
+                            moves.push_back(parse_move(source, target, piece, 0, 1, 0, 0, 0));
                         }
 
                         pop_bit(attacks, target);
@@ -89,7 +103,7 @@ void Engine::generate_moves()
                         if (enpassant_attacks)
                         {
                             int enpassant_target = get_lsb_index(enpassant_attacks);
-                            cout<<"do enpassant capture here"<<endl;
+                            moves.push_back(parse_move(source, enpassant_target, piece, 0, 1, 0, 1, 0));
                         }
                     }
 
@@ -105,16 +119,18 @@ void Engine::generate_moves()
                 {
                     if (!get_bit(board.occupancies[both], f1) && !get_bit(board.occupancies[both], g1))
                     {
+                        // make sure can't castle through check
                         if (!board.is_square_under_attack(f1, black) && !board.is_square_under_attack(g1, black))
-                            cout<<"white castle king side"<<endl;
+                            moves.push_back(parse_move(e1, g1, piece, 0, 0, 0, 0, 1));
                     }
                 }
                 if (board.castle_rights & wqs)
                 {
                     if (!get_bit(board.occupancies[both], b1) && !get_bit(board.occupancies[both], c1) && !get_bit(board.occupancies[both], d1))
                     {
+                        // make sure can't castle through check
                         if (!board.is_square_under_attack(b1, black) && !board.is_square_under_attack(c1, black) && !board.is_square_under_attack(d1, black))
-                            cout<<"white castle queen side"<<endl;
+                            moves.push_back(parse_move(e1, c1, piece, 0, 0, 0, 0, 1));
                     }
                 }
             }
@@ -132,21 +148,24 @@ void Engine::generate_moves()
 
                     if (target<=h1 && !get_bit(board.occupancies[both], target))
                     {
-                        // pawn promotion by going up one square (NOT TAKING A PIECE)
+                        // pawn promotion by going down one square (NOT TAKING A PIECE)
                         if (source>=a2 && source<=h2)
                         {
-                            cout<<"do pawn promotion here"<<endl;
+                            moves.push_back(parse_move(source, target, piece, Q, 0, 0, 0, 0));
+                            moves.push_back(parse_move(source, target, piece, R, 0, 0, 0, 0));
+                            moves.push_back(parse_move(source, target, piece, N, 0, 0, 0, 0));
+                            moves.push_back(parse_move(source, target, piece, B, 0, 0, 0, 0));
                         }
 
                         // one square and two square pawn moves
                         else
                         {
                             // one square
-                            cout<<"one square"<<endl;
+                            moves.push_back(parse_move(source, target, piece, 0, 0, 0, 0, 0));
 
                             // two square
                             if (source>=a7 && source<=h7 && !get_bit(board.occupancies[both], target+8))
-                                cout<<"two squares"<<endl;
+                                moves.push_back(parse_move(source, target+8, piece, 0, 0, 0, 0, 0));
                         }
                     }
 
@@ -156,13 +175,18 @@ void Engine::generate_moves()
                     {   
                         target = get_lsb_index(attacks);
 
-                        if (source>=a2 && source<=h2) // pawn promotinos for piece captures
+                        if (source>=a2 && source<=h2) // pawn promotion by capturing piece
                         {
-                            cout<<"pawn piece capture promotion"<<endl;
+                            moves.push_back(parse_move(source, target, piece, Q, 1, 0, 0, 0));
+                            moves.push_back(parse_move(source, target, piece, R, 1, 0, 0, 0));
+                            moves.push_back(parse_move(source, target, piece, N, 1, 0, 0, 0));
+                            moves.push_back(parse_move(source, target, piece, B, 1, 0, 0, 0));
                         }
+
+                        // diagonal pawn capture
                         else
                         {
-                            cout<<"pawn diagonal capture"<<endl;
+                            moves.push_back(parse_move(source, target, piece, 0, 1, 0, 0, 0));
                         }
 
                         pop_bit(attacks, target);
@@ -175,7 +199,7 @@ void Engine::generate_moves()
                         if (enpassant_attacks)
                         {
                             int enpassant_target = get_lsb_index(enpassant_attacks);
-                            cout<<"do enpassant capture here"<<endl;
+                            moves.push_back(parse_move(source, enpassant_target, piece, 0, 1, 0, 1, 0));
                         }
                     }
 
@@ -183,159 +207,181 @@ void Engine::generate_moves()
                     pop_bit(curr, source);
                 }
             }
-        }
 
-        // castling
-        if (piece == k)
-        {
-            if (board.castle_rights & bks)
+            // castling
+            if (piece == k)
             {
-                if (!get_bit(board.occupancies[both], f8) && !get_bit(board.occupancies[both], g8))
+                if (board.castle_rights & bks)
                 {
-                    if (!board.is_square_under_attack(f8, white) && !board.is_square_under_attack(g8, white))
-                        cout<<"black castle king side"<<endl;
+                    if (!get_bit(board.occupancies[both], f8) && !get_bit(board.occupancies[both], g8))
+                    {
+                        if (!board.is_square_under_attack(f8, white) && !board.is_square_under_attack(g8, white))
+                            moves.push_back(parse_move(e8, g8, piece, 0, 0, 0, 0, 1));
+                    }
+                }
+                if (board.castle_rights & bqs)
+                {
+                    if (!get_bit(board.occupancies[both], b8) && !get_bit(board.occupancies[both], c8) && !get_bit(board.occupancies[both], d8))
+                    {
+                        if (!board.is_square_under_attack(b8, white) && !board.is_square_under_attack(c8, white) && !board.is_square_under_attack(d8, white))
+                            moves.push_back(parse_move(e8, c8, piece, 0, 0, 0, 0, 1));
+                    }
                 }
             }
-            if (board.castle_rights & bqs)
-            {
-                if (!get_bit(board.occupancies[both], b8) && !get_bit(board.occupancies[both], c8) && !get_bit(board.occupancies[both], d8))
-                {
-                    if (!board.is_square_under_attack(b8, white) && !board.is_square_under_attack(c8, white) && !board.is_square_under_attack(d8, white))
-                        cout<<"black castle queen side"<<endl;
-                }
-            }
         }
 
-
+        
         // generate for the rest of the pieces that are not colour specific
-
+        
         // knight
-        if ( (board.colour_to_move == white) ? piece = N : piece = n )
+        if ( (board.colour_to_move == white) ? piece == N : piece == n )
         {
-            source = get_lsb_index(curr);
 
-            attacks = board.knight_attacks[source] & ( (board.colour_to_move==white) ? ~board.occupancies[white] : ~board.occupancies[black]);
-
-            while (attacks)
+            while (curr)
             {
-                target = get_lsb_index(attacks);
-                
-                // non-capture move
-                if ( !get_bit( (board.colour_to_move==white) ? board.occupancies[black] : board.occupancies[white], target ) )
-                {
-                    cout<<"knight non capture move"<<endl;
-                }
+                source = get_lsb_index(curr);
 
-                else
-                {
-                    cout<<"knight capture move"<<endl;
-                }
+                attacks = board.knight_attacks[source] & ( (board.colour_to_move==white) ? ~board.occupancies[white] : ~board.occupancies[black]);
 
-                pop_bit(attacks, target);
+                while (attacks)
+                {
+                    target = get_lsb_index(attacks);
+                    
+                    // non-capture move
+                    if ( !get_bit( (board.colour_to_move==white) ? board.occupancies[black] : board.occupancies[white], target ) )
+                    {
+                        moves.push_back(parse_move(source, target, piece, 0, 0, 0, 0, 0));
+                    }
+
+                    else
+                    {
+                        moves.push_back(parse_move(source, target, piece, 0, 1, 0, 0, 0));
+                    }
+
+                    pop_bit(attacks, target);
+                }
+                pop_bit(curr, source);
             }
         }
 
         // bishop
-        if ( (board.colour_to_move == white) ? piece = B : piece = b )
+        if ( (board.colour_to_move == white) ? piece == B : piece == b )
         {
-            source = get_lsb_index(curr);
-
-            attacks = board.get_bishop_attacks(source, board.occupancies[both]) & ( (board.colour_to_move==white) ? ~board.occupancies[white] : ~board.occupancies[black]);
-
-            while (attacks)
+            while(curr)
             {
-                target = get_lsb_index(attacks);
-                
-                // non-capture move
-                if ( !get_bit( (board.colour_to_move==white) ? board.occupancies[black] : board.occupancies[white], target ) )
-                {
-                    cout<<"bishop non capture move"<<endl;
-                }
+                source = get_lsb_index(curr);
 
-                else
+                attacks = board.get_bishop_attacks(source, board.occupancies[both]) & ( (board.colour_to_move==white) ? ~board.occupancies[white] : ~board.occupancies[black]);
+                while (attacks)
                 {
-                    cout<<"bishop capture move"<<endl;
-                }
+                    
+                    target = get_lsb_index(attacks);
+                    
+                    // non-capture move
+                    if ( !get_bit( (board.colour_to_move==white) ? board.occupancies[black] : board.occupancies[white], target ) )
+                    {
+                        moves.push_back(parse_move(source, target, piece, 0, 0, 0, 0, 0));
+                    }
 
-                pop_bit(attacks, target);
-            }
+                    else
+                    {
+                        moves.push_back(parse_move(source, target, piece, 0, 1, 0, 0, 0));
+                    }
+
+                    pop_bit(attacks, target);
+                    
+                }
+                pop_bit(curr, source);
+            } 
         }
-
+        
         // rook
-        if ( (board.colour_to_move == white) ? piece = R : piece = r )
+        if ( (board.colour_to_move == white) ? piece == R : piece == r )
         {
-            source = get_lsb_index(curr);
-
-            attacks = board.get_rook_attacks(source, board.occupancies[both]) & ( (board.colour_to_move==white) ? ~board.occupancies[white] : ~board.occupancies[black]);
-
-            while (attacks)
+            while(curr)
             {
-                target = get_lsb_index(attacks);
-                
-                // non-capture move
-                if ( !get_bit( (board.colour_to_move==white) ? board.occupancies[black] : board.occupancies[white], target ) )
-                {
-                    cout<<"rook non capture move"<<endl;
-                }
+                source = get_lsb_index(curr);
 
-                else
-                {
-                    cout<<"rook capture move"<<endl;
-                }
+                attacks = board.get_rook_attacks(source, board.occupancies[both]) & ( (board.colour_to_move==white) ? ~board.occupancies[white] : ~board.occupancies[black]);
 
-                pop_bit(attacks, target);
+                while (attacks)
+                {
+                    target = get_lsb_index(attacks);
+                    
+                    // non-capture move
+                    if ( !get_bit( (board.colour_to_move==white) ? board.occupancies[black] : board.occupancies[white], target ) )
+                    {
+                        moves.push_back(parse_move(source, target, piece, 0, 0, 0, 0, 0));
+                    }
+
+                    else
+                    {
+                        moves.push_back(parse_move(source, target, piece, 0, 1, 0, 0, 0));
+                    }
+
+                    pop_bit(attacks, target);
+                }
+                pop_bit(curr, source);
             }
         }
 
         // queen
-        if ( (board.colour_to_move == white) ? piece = Q : piece = q )
+        if ( (board.colour_to_move == white) ? piece == Q : piece == q )
         {
-            source = get_lsb_index(curr);
-
-            attacks = board.get_queen_attacks(source, board.occupancies[both]) & ( (board.colour_to_move==white) ? ~board.occupancies[white] : ~board.occupancies[black]);
-
-            while (attacks)
+            while (curr)
             {
-                target = get_lsb_index(attacks);
-                
-                // non-capture move
-                if ( !get_bit( (board.colour_to_move==white) ? board.occupancies[black] : board.occupancies[white], target ) )
-                {
-                    cout<<"queen non capture move"<<endl;
-                }
+                source = get_lsb_index(curr);
 
-                else
-                {
-                    cout<<"queen capture move"<<endl;
-                }
+                attacks = board.get_queen_attacks(source, board.occupancies[both]) & ( (board.colour_to_move==white) ? ~board.occupancies[white] : ~board.occupancies[black]);
 
-                pop_bit(attacks, target);
+                while (attacks)
+                {
+                    target = get_lsb_index(attacks);
+                    
+                    // non-capture move
+                    if ( !get_bit( (board.colour_to_move==white) ? board.occupancies[black] : board.occupancies[white], target ) )
+                    {
+                        moves.push_back(parse_move(source, target, piece, 0, 0, 0, 0, 0));
+                    }
+
+                    else
+                    {
+                        moves.push_back(parse_move(source, target, piece, 0, 1, 0, 0, 0));
+                    }
+
+                    pop_bit(attacks, target);
+                }
+                pop_bit(curr, source);
             }
         }
 
         // king
-        if ( (board.colour_to_move == white) ? piece = K : piece = k )
+        if ( (board.colour_to_move == white) ? piece == K : piece == k )
         {
-            source = get_lsb_index(curr);
-
-            attacks = board.king_attacks[source] & ( (board.colour_to_move==white) ? ~board.occupancies[white] : ~board.occupancies[black]);
-
-            while (attacks)
+            while (curr)
             {
-                target = get_lsb_index(attacks);
-                
-                // non-capture move
-                if ( !get_bit( (board.colour_to_move==white) ? board.occupancies[black] : board.occupancies[white], target ) )
-                {
-                    cout<<"king non capture move"<<endl;
-                }
+                source = get_lsb_index(curr);
 
-                else
-                {
-                    cout<<"king capture move"<<endl;
-                }
+                attacks = board.king_attacks[source] & ( (board.colour_to_move==white) ? ~board.occupancies[white] : ~board.occupancies[black]);
 
-                pop_bit(attacks, target);
+                while (attacks)
+                {
+                    target = get_lsb_index(attacks);
+                    
+                    // non-capture move
+                    if ( !get_bit( (board.colour_to_move==white) ? board.occupancies[black] : board.occupancies[white], target ) )
+                    {
+                        moves.push_back(parse_move(source, target, piece, 0, 1, 0, 0, 0));
+                    }
+
+                    else
+                    {
+                        moves.push_back(parse_move(source, target, piece, 0, 1, 0, 0, 0));
+                    }
+
+                    pop_bit(attacks, target);
+                }
+                pop_bit(curr, source);
             }
         }
 
