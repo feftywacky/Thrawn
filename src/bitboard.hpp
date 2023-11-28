@@ -84,9 +84,22 @@ public:
     uint64_t set_occupancy(const int& index, const int& bits_in_mask, uint64_t attack_mask);
 
     bool is_square_under_attack(int square, Side side);
+
+    // copying and restoring board
+    inline void copyBoard();
+    inline void restoreBoard();
     
 
 private:
+
+    // copy variables for board restoration
+    array<uint64_t, 12> piece_bitboards_copy;
+    array<uint64_t, 3> occupancies_copy;
+    Side colour_to_move_copy;
+    int enpassant_copy;
+    int castle_rights_copy;
+
+
     // MAGIC NUMBERS AND BITBOARDS
     uint64_t find_magic_num(const int& square, int relevant_bits, int bishop);
     void init_magic_nums();

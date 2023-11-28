@@ -13,20 +13,9 @@ using namespace std;
 // contructor
 Bitboard::Bitboard()
 {
-    // init start game pieces
-
-    // occupancies[0] = get_white_occupancy();
-    // occupancies[1] = get_black_occupancy();
-    // occupancies[2] = get_both_occupancy();
-
     colour_to_move = white;
     enpassant = null_sq;
     castle_rights = 0;
-
-    // castle_rights |= wks;
-    // castle_rights |= wqs;
-    // castle_rights |= bks;
-    // castle_rights |= bqs;
 
     // resize attack rook table since it's a vector
     rook_attacks.resize(64, std::vector<uint64_t>(4096, 0));
@@ -477,5 +466,22 @@ void Bitboard::init_leaping_attacks()
         knight_attacks[square] = get_knight_attacks(square);
         king_attacks[square] = get_king_attacks(square);
     }
+}
+
+inline void Bitboard::copyBoard()
+{
+    std::memcpy(piece_bitboards_copy.data(), piece_bitboards.data(), 96);
+    std::memcpy(occupancies_copy.data(), occupancies.data(), 24);
+    colour_to_move_copy = colour_to_move;
+    enpassant_copy = enpassant;
+    castle_rights_copy = castle_rights;
+}
+
+inline void Bitboard::restoreBoard() {
+    std::memcpy(piece_bitboards.data(), piece_bitboards_copy.data(), 96);
+    std::memcpy(occupancies.data(), occupancies_copy.data(), 24);
+    colour_to_move = colour_to_move_copy;
+    enpassant = enpassant_copy;
+    castle_rights = castle_rights_copy;
 }
 

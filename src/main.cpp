@@ -15,10 +15,6 @@ int main() {
 
     parse_fen(board, start_position);
     print_board(board, board.colour_to_move);
-    engine.generate_moves();
-    
-    print_move_list(engine.moves);
-    cout<<"size: "<<engine.moves.size()<<endl;
 
     return 0;
 }
