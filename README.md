@@ -1,5 +1,5 @@
 # bitboard-nnue-chess-engine
-~ONGOING/INCOMPLETE~
+ONGOING/INCOMPLETE
 chess engine in c++ that uses a bitboard data structure and a nnue for evaluation
 
 ## Development Environment
