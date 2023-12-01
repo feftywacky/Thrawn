@@ -54,7 +54,6 @@ uint64_t Bitboard::get_both_occupancy()
 
 // PRE-COMPUTE PIECE ATTACK BITBOARDS
 
-
 // pawns
 uint64_t Bitboard::get_pawn_attacks(int side, const int& square)
 {
