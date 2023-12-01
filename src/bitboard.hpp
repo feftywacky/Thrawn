@@ -22,7 +22,7 @@ public:
     array<uint64_t, 3> occupancies; // white, black, both
 
     // colour to move first
-    Side colour_to_move;
+    int colour_to_move;
 
     // enpassant square
     int enpassant;
@@ -59,7 +59,7 @@ public:
     // pre-compute all attacks from a square methods
 
     // pawns
-    uint64_t get_pawn_attacks(Side side,const int& square);
+    uint64_t get_pawn_attacks(int side,const int& square);
     
     // knights
     uint64_t get_knight_attacks(const int& sqaure);
@@ -83,11 +83,11 @@ public:
     // set occupancy
     uint64_t set_occupancy(const int& index, const int& bits_in_mask, uint64_t attack_mask);
 
-    bool is_square_under_attack(int square, Side side);
+    bool is_square_under_attack(int square, int side);
 
     // copying and restoring board
-    inline void copyBoard();
-    inline void restoreBoard();
+    void copyBoard();
+    void restoreBoard();
     
 
 private:
@@ -95,7 +95,7 @@ private:
     // copy variables for board restoration
     array<uint64_t, 12> piece_bitboards_copy;
     array<uint64_t, 3> occupancies_copy;
-    Side colour_to_move_copy;
+    int colour_to_move_copy;
     int enpassant_copy;
     int castle_rights_copy;
 

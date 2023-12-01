@@ -391,5 +391,121 @@ void Engine::generate_moves()
 
 }
 
+int Engine::make_move(int move, int move_type)
+{
+    if (move_type == all_moves)
+    {
+        board.copyBoard();
 
+        // move parsing
+        int source = get_move_source(move);
+        int target = get_move_target(move);
+        int piece = get_move_piece(move);
+        int promoted_piece = get_promoted_piece(move);
+        int is_capture_move = get_is_capture_move(move);
+        int double_pawn_move = get_is_double_pawn_move(move);
+        int enpassant = get_is_move_enpassant(move);
+        int castling = get_is_move_castling(move);
+
+        // move piece
+        pop_bit(board.piece_bitboards[piece], source);
+        set_bit(board.piece_bitboards[piece], target);
+
+        // if capture move, remove the piece being captured from its corresponding bitboard
+        // ie. if white pawn captures black kngiht, remove black knight from black knight bitboard
+        if (is_capture_move)
+        {
+            int start_piece, end_piece;
+            
+            (board.colour_to_move==white) ? start_piece = p : start_piece = P;
+            (board.colour_to_move==white) ? end_piece = k : end_piece = K;
+
+            for(int i=start_piece; i<=end_piece;i++)
+            {
+                if (get_bit(board.piece_bitboards[i], target))
+                {
+                    pop_bit(board.piece_bitboards[i], target);
+                    break;
+                }
+            }
+        }
+
+        // handle pawn promotions
+        if (promoted_piece)
+        {
+            // erase the pawn from the target square
+            pop_bit(board.piece_bitboards[(board.colour_to_move == white) ? P : p], target);
+            
+            set_bit(board.piece_bitboards[promoted_piece], target);
+        }
+
+        // handle enpassant capture
+        if (enpassant)
+        {
+            // target + 8 is going down the board, and vice versa
+            (board.colour_to_move) ? pop_bit(board.piece_bitboards[p], target + 8) : pop_bit(board.piece_bitboards[P], target - 8);
+        }
+        board.enpassant = null_sq;
+
+        // set enpassant square when pawn double moves
+        if (double_pawn_move)
+        {
+            (board.colour_to_move) ? board.enpassant = target + 8 : board.enpassant = target + 8;
+        }
+
+        // handle castling
+        if (castling)
+        {
+            if (target == g1)
+            {
+                pop_bit(board.piece_bitboards[R], h1);
+                set_bit(board.piece_bitboards[R], f1);
+            }
+            else if (target == c1)
+            {
+                pop_bit(board.piece_bitboards[R], a1);
+                set_bit(board.piece_bitboards[R], d1);
+            }
+            else if (target == g8)
+            {
+                pop_bit(board.piece_bitboards[r], h8);
+                set_bit(board.piece_bitboards[r], f8);
+            }
+            else if (target == c8)
+            {
+                pop_bit(board.piece_bitboards[r], a8);
+                set_bit(board.piece_bitboards[r], d8);
+            }         
+        }
+
+        // updating castling rights after every move
+        board.castle_rights &= update_castling_right_values[source];
+        board.castle_rights &= update_castling_right_values[target];
+
+        // update colour occupancies
+        board.occupancies[white] = board.get_white_occupancy();
+        board.occupancies[black] = board.get_black_occupancy();
+        board.occupancies[both] = board.get_both_occupancy();
+
+        // change sides
+        board.colour_to_move ^= 1;
+
+        // handle illegal moves. if move causes king to check, restore previous position and return illegal move
+        if (board.is_square_under_attack((board.colour_to_move==white) ? get_lsb_index(board.piece_bitboards[k]) : get_lsb_index(board.piece_bitboards[K]), board.colour_to_move))
+        {
+            board.restoreBoard();
+            return 0;
+
+        }
+        return 1;
+    }
+    
+    else if (move_type == only_captures)
+    {
+        if (get_is_capture_move(move))
+            make_move(move, all_moves);
+        else    
+            return 0;
+    }
+}
 

@@ -175,7 +175,7 @@ void print_bitboard(uint64_t bitboard)
     std::cout << "     Bitboard as unsigned decimal: " << bitboard << std::endl;
 }
 
-void print_board(Bitboard& board, Side side) 
+void print_board(Bitboard& board, int side) 
 {
     // print offset
     std::cout << "\n";

@@ -8,7 +8,7 @@
 
 using namespace std;
 
-enum Side {
+enum{
     white,
     black,
     both
@@ -19,6 +19,8 @@ enum Side {
 enum {P, N, B, R, Q, K, p, n, b, r, q, k};
 
 enum {rook, bishop};
+
+enum {all_moves, only_captures, only_checks};
 
 enum {wks=1, wqs=2, bks=4, bqs=8};
 
@@ -57,6 +59,8 @@ extern const std::array<const char*, 64> square_to_coordinates;
 
 extern const std::array<int, 64> bishop_relevant_bits;
 extern const std::array<int, 64> rook_relevant_bits;
+
+extern const std::array<int, 64> update_castling_right_values;
 
 extern std::array<uint64_t, 64> rook_magic_nums;
 extern std::array<uint64_t, 64> bishop_magic_nums;

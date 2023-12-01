@@ -8,7 +8,7 @@ int get_move_source(int move);
 int get_move_target(int move);
 int get_move_piece(int move);
 int get_promoted_piece(int move);
-int get_is_cpature_move(int move);
+int get_is_capture_move(int move);
 int get_is_double_pawn_move(int move);
 int get_is_move_enpassant(int move);
 int get_is_move_castling(int move);

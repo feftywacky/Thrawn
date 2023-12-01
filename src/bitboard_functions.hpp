@@ -45,7 +45,7 @@ void pprint_bb(uint64_t bitboard);
 
 void print_bitboard(uint64_t bitboard);
 
-void print_board(Bitboard& board, Side side);
+void print_board(Bitboard& board, int side);
 
 void print_bits(uint64_t num);
 

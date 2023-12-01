@@ -56,7 +56,7 @@ uint64_t Bitboard::get_both_occupancy()
 
 
 // pawns
-uint64_t Bitboard::get_pawn_attacks(Side side, const int& square)
+uint64_t Bitboard::get_pawn_attacks(int side, const int& square)
 {
     uint64_t attacks = 0ULL;
     uint64_t bitboard = 0ULL;
@@ -396,7 +396,7 @@ uint64_t Bitboard::get_queen_attacks(int square, uint64_t occupancy)
 }
 
 // is <square> under attacked by <side> pieces
-bool Bitboard::is_square_under_attack(int square, Side side)
+bool Bitboard::is_square_under_attack(int square, int side)
 {
     // Attacked by white pawns
     if (side == white && (pawn_attacks[black][square] & piece_bitboards[P])) 
@@ -468,7 +468,7 @@ void Bitboard::init_leaping_attacks()
     }
 }
 
-inline void Bitboard::copyBoard()
+void Bitboard::copyBoard()
 {
     std::memcpy(piece_bitboards_copy.data(), piece_bitboards.data(), 96);
     std::memcpy(occupancies_copy.data(), occupancies.data(), 24);
@@ -477,7 +477,7 @@ inline void Bitboard::copyBoard()
     castle_rights_copy = castle_rights;
 }
 
-inline void Bitboard::restoreBoard() {
+void Bitboard::restoreBoard() {
     std::memcpy(piece_bitboards.data(), piece_bitboards_copy.data(), 96);
     std::memcpy(occupancies.data(), occupancies_copy.data(), 24);
     colour_to_move = colour_to_move_copy;

@@ -24,6 +24,7 @@ public:
     std::vector<int> moves;
 
     void generate_moves();
+    int make_move(int move, int move_type);
     
 
 private:
