@@ -1,4 +1,4 @@
-#include "bitboard.hpp"
+#include "bitboard.h"
 #include <iostream>
 #include <vector>
 #include <string>

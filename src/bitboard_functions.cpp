@@ -4,8 +4,8 @@
 #include <iostream>
 #include <map>
 #include <set>
-#include "constants.hpp"
-#include "bitboard.hpp"
+#include "constants.h"
+#include "bitboard.h"
 
 using namespace std;
 

@@ -1,8 +1,8 @@
-#include "engine.hpp"
-#include "bitboard.hpp"
-#include "constants.hpp"
-#include "bitboard_functions.hpp"
-#include "move_helpers.hpp"
+#include "engine.h"
+#include "bitboard.h"
+#include "constants.h"
+#include "bitboard_functions.h"
+#include "move_helpers.h"
 #include <iostream>
 #include <vector>
 #include <string>

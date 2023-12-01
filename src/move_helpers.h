@@ -1,5 +1,5 @@
-#ifndef MOVE_HELPERS_HPP
-#define MOVE_HELPERS_HPP
+#ifndef MOVE_HELPERS_H
+#define MOVE_HELPERS_H
 
 #include <vector>
   

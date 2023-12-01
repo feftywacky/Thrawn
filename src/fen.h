@@ -1,8 +1,8 @@
-#ifndef FEN_HPP
-#define FEN_HPP
+#ifndef FEN_H
+#define FEN_H
 
 #include <string>
-#include "bitboard.hpp"
+#include "bitboard.h"
 
 using namespace std;
 

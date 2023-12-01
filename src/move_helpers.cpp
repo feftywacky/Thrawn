@@ -1,6 +1,6 @@
 #include <iostream>
 #include <vector>
-#include "constants.hpp"
+#include "constants.h"
 
 /* 
  * METHODS BELOW ENCODE AND DECODED MOVE NUMBER 

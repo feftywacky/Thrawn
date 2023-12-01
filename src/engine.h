@@ -1,12 +1,12 @@
-#ifndef ENGINE_HPP
-#define ENGINE_HPP
+#ifndef ENGINE_H
+#define ENGINE_H
 
 #include <cstdint>
 #include <iostream>
 #include <map>
 #include <set>
 #include <vector>
-#include "bitboard.hpp"
+#include "bitboard.h"
 
 using namespace std;
 

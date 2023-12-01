@@ -1,11 +1,11 @@
-#ifndef BITBOARD_FUNCTIONS_HPP
-#define BITBOARD_FUNCTIONS_HPP
+#ifndef BITBOARD_FUNCTIONS_H
+#define BITBOARD_FUNCTIONS_H
 
 #include <vector>
 #include <bitset>
 #include <map>
 #include <set>
-#include "constants.hpp"
+#include "constants.h"
 
 using namespace std;
 

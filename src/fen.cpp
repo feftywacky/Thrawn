@@ -1,7 +1,7 @@
-#include "fen.hpp"
-#include "bitboard.hpp"
-#include "bitboard_functions.hpp"
-#include "constants.hpp"
+#include "fen.h"
+#include "bitboard.h"
+#include "bitboard_functions.h"
+#include "constants.h"
 #include <string>
 
 using namespace std;

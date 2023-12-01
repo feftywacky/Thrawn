@@ -1,13 +1,13 @@
-#ifndef BITBOARD_HPP
-#define BITBOARD_HPP
+#ifndef BITBOARD_H
+#define BITBOARD_H
 
 #include <cstdint>
 #include <iostream>
 #include <map>
 #include <set>
 #include <vector>
-#include "bitboard_functions.hpp"
-#include "constants.hpp"
+#include "bitboard_functions.h"
+#include "constants.h"
 #include <array>
 
 using namespace std;

@@ -1,9 +1,9 @@
-#include "bitboard.hpp"
-#include "engine.hpp"
-#include "bitboard_functions.hpp"
-#include "constants.hpp"
-#include "fen.hpp"
-#include "move_helpers.hpp"
+#include "bitboard.h"
+#include "engine.h"
+#include "bitboard_functions.h"
+#include "constants.h"
+#include "fen.h"
+#include "move_helpers.h"
 #include <cstdint>
 #include <iostream>
 

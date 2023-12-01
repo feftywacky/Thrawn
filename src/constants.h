@@ -1,5 +1,5 @@
-#ifndef CONSTANTS_HPP
-#define CONSTANTS_HPP
+#ifndef CONSTANTS_H
+#define CONSTANTS_H
 
 #include <cstdint>
 #include <array>
