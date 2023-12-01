@@ -1,5 +1,5 @@
-#ifndef BITBOARD_FUNCTIONS_H
-#define BITBOARD_FUNCTIONS_H
+#ifndef BITBOARD_HELPERS_H
+#define BITBOARD_HELPERS_H
 
 #include <vector>
 #include <bitset>

@@ -6,7 +6,7 @@
 #include <map>
 #include <set>
 #include <vector>
-#include "bitboard_functions.h"
+#include "bitboard_helpers.h"
 #include "constants.h"
 #include <array>
 

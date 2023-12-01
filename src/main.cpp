@@ -1,6 +1,6 @@
 #include "bitboard.h"
 #include "engine.h"
-#include "bitboard_functions.h"
+#include "bitboard_helpers.h"
 #include "constants.h"
 #include "fen.h"
 #include "move_helpers.h"
