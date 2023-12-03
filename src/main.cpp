@@ -19,27 +19,16 @@ int main() {
     parse_fen(board, start_position);
     print_board(board, board.colour_to_move);
     
-    auto start = std::chrono::high_resolution_clock::now();
-    perft_search(2, engine, board);
-    cout<<"leaf nodes: "<<leaf_nodes<<"\n";
-    auto stop = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
-    std::cout << "Time taken by function: " << duration.count() << " milliseconds" << std::endl;
+    // vector<int> moves = engine.generate_moves();
+    // engine.make_move(parse_move(b1,c3,N,0,0,0,0,0), all_moves);
 
-    // for(int i=0;i<10;i++)
-    // {
-    //     vector<int> moves = engine.generate_moves();
-    //     std::random_device rd;
-    //     std::mt19937 gen(rd());
+    // print_board(board, board.colour_to_move);
 
-    //     // Choose a random index
-    //     std::uniform_int_distribution<> dis(0, moves.size() - 1);
-    //     int randomIndex = dis(gen);
+    // moves = engine.generate_moves();
+    // print_move_list(moves);
 
-    //     engine.make_move(moves[randomIndex], all_moves);
-    //     print_board(board, board.colour_to_move);
-    // }
 
+    perft_test(2, engine, board);
 
     return 0;
 }

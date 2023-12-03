@@ -469,16 +469,17 @@ void Bitboard::init_leaping_attacks()
 
 void Bitboard::copyBoard()
 {
-    std::memcpy(piece_bitboards_copy.data(), piece_bitboards.data(), 96);
-    std::memcpy(occupancies_copy.data(), occupancies.data(), 24);
+    piece_bitboards_copy = piece_bitboards;
+    occupancies_copy = occupancies;
     colour_to_move_copy = colour_to_move;
     enpassant_copy = enpassant;
     castle_rights_copy = castle_rights;
 }
 
-void Bitboard::restoreBoard() {
-    std::memcpy(piece_bitboards.data(), piece_bitboards_copy.data(), 96);
-    std::memcpy(occupancies.data(), occupancies_copy.data(), 24);
+void Bitboard::restoreBoard()
+{
+    piece_bitboards = piece_bitboards_copy;
+    occupancies = occupancies_copy;
     colour_to_move = colour_to_move_copy;
     enpassant = enpassant_copy;
     castle_rights = castle_rights_copy;
