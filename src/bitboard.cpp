@@ -466,22 +466,3 @@ void Bitboard::init_leaping_attacks()
         king_attacks[square] = get_king_attacks(square);
     }
 }
-
-void Bitboard::copyBoard()
-{
-    piece_bitboards_copy = piece_bitboards;
-    occupancies_copy = occupancies;
-    colour_to_move_copy = colour_to_move;
-    enpassant_copy = enpassant;
-    castle_rights_copy = castle_rights;
-}
-
-void Bitboard::restoreBoard()
-{
-    piece_bitboards = piece_bitboards_copy;
-    occupancies = occupancies_copy;
-    colour_to_move = colour_to_move_copy;
-    enpassant = enpassant_copy;
-    castle_rights = castle_rights_copy;
-}
-

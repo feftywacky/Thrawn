@@ -438,7 +438,7 @@ int Engine::make_move(int move, int move_type)
 {
     if (move_type == all_moves)
     {
-        board.copyBoard();
+        copyBoard();
 
         // move parsing
         int source = get_move_source(move);
@@ -536,7 +536,7 @@ int Engine::make_move(int move, int move_type)
         // handle illegal moves. if move causes king to check, restore previous position and return illegal move
         if (board.is_square_under_attack((board.colour_to_move==white) ? get_lsb_index(board.piece_bitboards[k]) : get_lsb_index(board.piece_bitboards[K]), board.colour_to_move))
         {
-            board.restoreBoard();
+            restoreBoard();
             return 0;
 
         }
@@ -551,4 +551,3 @@ int Engine::make_move(int move, int move_type)
             return 0;
     }
 }
-

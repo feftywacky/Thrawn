@@ -9,6 +9,7 @@
 #include "bitboard_helpers.h"
 #include "constants.h"
 #include <array>
+#include <stack>
 
 using namespace std;
 
@@ -84,15 +85,10 @@ public:
     uint64_t set_occupancy(const int& index, const int& bits_in_mask, uint64_t attack_mask);
 
     bool is_square_under_attack(int square, int side);
-
-    // copying and restoring board
-    void copyBoard();
-    void restoreBoard();
     
 
 private:
 
-    // copy variables for board restoration
     array<uint64_t, 12> piece_bitboards_copy;
     array<uint64_t, 3> occupancies_copy;
     int colour_to_move_copy;

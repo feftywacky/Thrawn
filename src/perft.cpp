@@ -19,19 +19,16 @@ void perft_search (int depth, Engine &engine, Bitboard& board)
 
     for (int move : moves)
     {
-        board.copyBoard();   
-        // cout<<"driver copy board"<<endl;
-        // print_board(board, board.colour_to_move); 
+        copyBoard();   
+
 
         if (!engine.make_move(move, all_moves))
             continue;
 
-        
         perft_search(depth-1, engine, board);
 
-        board.restoreBoard();
-        // cout<<"driver restore board"<<endl;
-        // print_board(board, board.colour_to_move); 
+        restoreBoard();
+
     }
 
 }
@@ -43,9 +40,8 @@ void perft_test(int depth, Engine& engine, Bitboard& board)
     auto start = std::chrono::high_resolution_clock::now();
     for (int move : moves)
     {
-        board.copyBoard();
-        cout<<"test copy board"<<endl;
-        print_board(board, board.colour_to_move); 
+        copyBoard();
+
 
         if (!engine.make_move(move, all_moves))
             continue;
@@ -56,18 +52,13 @@ void perft_test(int depth, Engine& engine, Bitboard& board)
 
         long old_nodes = leaf_nodes - cumulative_nodes;
 
-
-        // cout<<"____________________"<<endl;
-        // print_board(board, board.colour_to_move); 
-        board.restoreBoard();
-        cout<<"test restore board"<<endl;
-        print_board(board, board.colour_to_move);
+        restoreBoard();
 
         // Print move
         std::cout << "     move: " << square_to_coordinates[get_move_source(move)]
                   << square_to_coordinates[get_move_target(move)]
                   << (get_promoted_piece(move) ? promoted_pieces.at(get_promoted_piece(move)) : ' ')
-                  << "  nodes: " << old_nodes << std::endl;
+                  << "  nodes: " << old_nodes <<"\n";
     }
 
     // Print results
@@ -77,4 +68,3 @@ void perft_test(int depth, Engine& engine, Bitboard& board)
     std::cout << "     Time: " << std::chrono::duration_cast<std::chrono::milliseconds>(duration).count() << "\n\n";
      
 }
-

@@ -49,4 +49,25 @@ void print_board(Bitboard& board, int side);
 
 void print_bits(uint64_t num);
 
+// copying and restoring for move take backs
+#define copyBoard() \
+    array<uint64_t, 12> piece_bitboards_copy; \
+    array<uint64_t, 3> occupancies_copy; \
+    int colour_to_move_copy; \
+    int enpassant_copy; \
+    int castle_rights_copy;                      \
+    piece_bitboards_copy = board.piece_bitboards; \
+    occupancies_copy = board.occupancies; \
+    colour_to_move_copy = board.colour_to_move; \
+    enpassant_copy = board.enpassant; \
+    castle_rights_copy = board.castle_rights; \
+
+// Restore board state
+#define restoreBoard() \
+    board.piece_bitboards = piece_bitboards_copy; \
+    board.occupancies = occupancies_copy; \
+    board.colour_to_move = colour_to_move_copy; \
+    board.enpassant = enpassant_copy; \
+    board.castle_rights = castle_rights_copy; \
+
 #endif
