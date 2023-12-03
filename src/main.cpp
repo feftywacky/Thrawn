@@ -4,8 +4,11 @@
 #include "constants.h"
 #include "fen.h"
 #include "move_helpers.h"
+#include "perft.h"
 #include <cstdint>
 #include <iostream>
+#include <chrono>
+#include <random>
 
 using namespace std;
 
@@ -13,22 +16,30 @@ int main() {
     Engine engine = Engine();
     Bitboard& board = engine.board;
 
-    parse_fen(board, "r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1");
+    parse_fen(board, start_position);
     print_board(board, board.colour_to_move);
+    
+    auto start = std::chrono::high_resolution_clock::now();
+    perft_search(2, engine, board);
+    cout<<"leaf nodes: "<<leaf_nodes<<"\n";
+    auto stop = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+    std::cout << "Time taken by function: " << duration.count() << " milliseconds" << std::endl;
 
-    engine.generate_moves();
-    vector<int> moves = engine.moves;
+    // for(int i=0;i<10;i++)
+    // {
+    //     vector<int> moves = engine.generate_moves();
+    //     std::random_device rd;
+    //     std::mt19937 gen(rd());
 
-    cout<<"***********************************"<<endl;
-    for(int move : moves)
-    {
-        board.copyBoard();
-        engine.make_move(move, all_moves);
+    //     // Choose a random index
+    //     std::uniform_int_distribution<> dis(0, moves.size() - 1);
+    //     int randomIndex = dis(gen);
 
-        print_board(board, board.colour_to_move);
+    //     engine.make_move(moves[randomIndex], all_moves);
+    //     print_board(board, board.colour_to_move);
+    // }
 
-        board.restoreBoard();
-    }
 
     return 0;
 }

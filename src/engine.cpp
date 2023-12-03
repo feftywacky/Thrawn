@@ -15,13 +15,12 @@ using namespace std;
 // contructor
 Engine::Engine() : board()
 {
-    moves = {};
+
 }
 
-void Engine::generate_moves()
+vector<int> Engine::generate_moves()
 {
-    // clear previous moves
-    moves.clear();
+    vector<int> moves;
 
     // the squares where the pieces started from, and where it will go
     int source;
@@ -44,13 +43,13 @@ void Engine::generate_moves()
             if (piece==P)
             {
                 // double pawn moves, pawn promotion, enpassant
-                parse_white_pawn_moves(curr);
+                parse_white_pawn_moves(curr, moves);
             }
 
             // castling
             if (piece == K)
             {
-                parse_white_castle_moves();
+                parse_white_castle_moves(moves);
             }
         }
 
@@ -59,56 +58,55 @@ void Engine::generate_moves()
         {
             if (piece==p)
             {
-                parse_black_pawn_moves(curr);
+                parse_black_pawn_moves(curr, moves);
             }
 
             // castling
             if (piece == k)
             {
-               parse_black_castle_moves();
+               parse_black_castle_moves(moves);
             }
         }
 
-        
         // generate for the rest of the pieces that are not colour specific
-        
         // knight
         if ( (board.colour_to_move == white) ? piece == N : piece == n )
         {
-            parse_knight_moves(curr, piece);
+            parse_knight_moves(curr, piece, moves);
         }
 
         // bishop
         if ( (board.colour_to_move == white) ? piece == B : piece == b )
         {
-            parse_bishop_moves(curr, piece);
+            parse_bishop_moves(curr, piece, moves);
         }
         
         // rook
         if ( (board.colour_to_move == white) ? piece == R : piece == r )
         {
-           parse_rook_moves(curr, piece);
+           parse_rook_moves(curr, piece, moves);
         }
 
         // queen
         if ( (board.colour_to_move == white) ? piece == Q : piece == q )
         {
-            parse_queen_moves(curr, piece);
+            parse_queen_moves(curr, piece, moves);
         }
 
         // king
         if ( (board.colour_to_move == white) ? piece == K : piece == k )
         {
-            parse_king_moves(curr, piece);
+            parse_king_moves(curr, piece, moves);
         }
 
-        
     } // end of looping through all pieces
+
+    return moves;
 
 
 }
 
-void Engine::parse_white_pawn_moves(uint64_t& curr)
+void Engine::parse_white_pawn_moves(uint64_t& curr, vector<int>& moves)
 {
     while (curr)
     {
@@ -179,7 +177,7 @@ void Engine::parse_white_pawn_moves(uint64_t& curr)
     }
 }
 
-void Engine::parse_white_castle_moves()
+void Engine::parse_white_castle_moves(vector<int>& moves)
 {
     if (board.castle_rights & wks)
     {
@@ -201,7 +199,7 @@ void Engine::parse_white_castle_moves()
     }
 }
 
-void Engine::parse_black_pawn_moves(uint64_t& curr)
+void Engine::parse_black_pawn_moves(uint64_t& curr, vector<int>& moves)
 {
     while(curr) // while white pawns are present on the board
     {
@@ -270,7 +268,7 @@ void Engine::parse_black_pawn_moves(uint64_t& curr)
     }
 }
 
-void Engine::parse_black_castle_moves()
+void Engine::parse_black_castle_moves(vector<int>& moves)
 {
     if (board.castle_rights & bks)
     {
@@ -290,7 +288,7 @@ void Engine::parse_black_castle_moves()
     }
 }
 
-void Engine::parse_knight_moves(uint64_t& curr, const int& piece)
+void Engine::parse_knight_moves(uint64_t& curr, const int& piece, vector<int>& moves)
 {
     while (curr)
     {
@@ -319,7 +317,7 @@ void Engine::parse_knight_moves(uint64_t& curr, const int& piece)
     }
 }
 
-void Engine::parse_bishop_moves(uint64_t& curr, const int& piece)
+void Engine::parse_bishop_moves(uint64_t& curr, const int& piece, vector<int>& moves)
 {
     while(curr)
     {
@@ -349,7 +347,7 @@ void Engine::parse_bishop_moves(uint64_t& curr, const int& piece)
     } 
 }
 
-void Engine::parse_rook_moves(uint64_t& curr, const int& piece)
+void Engine::parse_rook_moves(uint64_t& curr, const int& piece, vector<int>& moves)
 {
     while(curr)
     {
@@ -378,7 +376,7 @@ void Engine::parse_rook_moves(uint64_t& curr, const int& piece)
     }
 }
 
-void Engine::parse_queen_moves(uint64_t& curr, const int& piece)
+void Engine::parse_queen_moves(uint64_t& curr, const int& piece, vector<int>& moves)
 {
     while (curr)
     {
@@ -407,7 +405,7 @@ void Engine::parse_queen_moves(uint64_t& curr, const int& piece)
     }
 }
 
-void Engine::parse_king_moves(uint64_t& curr, const int& piece)
+void Engine::parse_king_moves(uint64_t& curr, const int& piece, vector<int>& moves)
 {
     while (curr)
     {
