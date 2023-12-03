@@ -11,10 +11,17 @@ g++ --version
 
 ### Build and Run:
 ```bash
-g++ -std=c++17 -c main.cpp engine.cpp bitboard.cpp bitboard_functions.cpp constants.cpp fen.cpp move_helpers.cpp
-g++ -o chess main.o engine.o bitboard.o bitboard_functions.o constants.o fen.o move_helpers.o 
+g++ -std=c++17 -c main.cpp engine.cpp bitboard.cpp bitboard_helpers.cpp constants.cpp fen.cpp move_helpers.cpp perft.cpp
+g++ -o chess main.o engine.o bitboard.o bitboard_helpers.o constants.o fen.o move_helpers.o perft.o
 chess.exe
 ```
+
+compiler opimtizations (note that it takes longer to compile):
+```bash
+g++ -std=c++17 -Ofast -c main.cpp engine.cpp bitboard.cpp bitboard_helpers.cpp constants.cpp fen.cpp move_helpers.cpp perft.cpp
+g++ -o chess main.o engine.o bitboard.o bitboard_helpers.o constants.o fen.o move_helpers.o perft.o
+chess.exe
+``` 
 
 ## Features
 - Implements UCI protocol
