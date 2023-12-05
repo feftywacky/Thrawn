@@ -13,6 +13,7 @@ g++ --version
 > g++ (x86_64-posix-seh-rev0, Built by MinGW-W64 project) 7.3.0
 
 ### Build and Run:
+standard compilation commands:
 ```bash
 g++ -std=c++17 -c main.cpp engine.cpp bitboard.cpp bitboard_helpers.cpp constants.cpp fen.cpp move_helpers.cpp perft.cpp
 g++ -o chess main.o engine.o bitboard.o bitboard_helpers.o constants.o fen.o move_helpers.o perft.o
