@@ -2,6 +2,9 @@
 ONGOING/INCOMPLETE
 chess engine in c++ that uses a bitboard data structure and a nnue for evaluation
 
+## Updates
+- passes perft test! <3
+
 ## Development Environment
 ### Compiler:
 ```bash
@@ -16,7 +19,8 @@ g++ -o chess main.o engine.o bitboard.o bitboard_helpers.o constants.o fen.o mov
 chess.exe
 ```
 
-compiler opimtizations (note that it takes longer to compile):
+RECOMMENDED
+run with compiler opimtizations (~4x faster):
 ```bash
 g++ -std=c++17 -Ofast -c main.cpp engine.cpp bitboard.cpp bitboard_helpers.cpp constants.cpp fen.cpp move_helpers.cpp perft.cpp
 g++ -o chess main.o engine.o bitboard.o bitboard_helpers.o constants.o fen.o move_helpers.o perft.o
@@ -26,9 +30,13 @@ chess.exe
 ## Features
 - Implements UCI protocol
 - Uses bitboard data structure for fast move generation
+- Parses any fen notation to setup board
 
 ## TODO
-- move generation (seperate into methods)
+- static evaluation function
+- minimax/negamax with alpha beta pruning
+- quiescience search
+- move ordering
 - pass perft test
 - add inline keyword in header files
 

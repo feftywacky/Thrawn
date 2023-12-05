@@ -5,7 +5,7 @@
 #include "bitboard_helpers.h"
 #include <chrono>
 
-long leaf_nodes = 0;
+long leaf_nodes;
 
 void perft_search (int depth, Engine &engine, Bitboard& board)
 {
@@ -16,7 +16,7 @@ void perft_search (int depth, Engine &engine, Bitboard& board)
     }  
 
     vector<int> moves = engine.generate_moves();
-
+    // print_move_list(moves);
     for (int move : moves)
     {
         copyBoard();   
@@ -65,6 +65,7 @@ void perft_test(int depth, Engine& engine, Bitboard& board)
     auto duration = std::chrono::high_resolution_clock::now() - start;
     std::cout << "\n    Depth: " << depth << "\n";
     std::cout << "    Nodes: " << leaf_nodes << "\n";
-    std::cout << "     Time: " << std::chrono::duration_cast<std::chrono::milliseconds>(duration).count() << "\n\n";
-     
+    std::cout << "    Time: " << std::chrono::duration_cast<std::chrono::milliseconds>(duration).count()<< " ms" << "\n\n";
+    
+    leaf_nodes = 0;
 }

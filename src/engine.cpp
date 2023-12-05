@@ -133,7 +133,7 @@ void Engine::parse_white_pawn_moves(uint64_t& curr, vector<int>& moves)
                 // two square
                 if (source>=a2 && source<=h2 && !get_bit(board.occupancies[both], target-8))
                 {
-                    moves.push_back(parse_move(source, target-8, P, 0, 1, 0, 0, 0));
+                    moves.push_back(parse_move(source, target-8, P, 0, 0, 1, 0, 0));
                 }
             }
         }
@@ -164,6 +164,7 @@ void Engine::parse_white_pawn_moves(uint64_t& curr, vector<int>& moves)
         // enpassant
         if (board.enpassant!=null_sq)
         {
+            
             uint64_t enpassant_attacks = board.pawn_attacks[board.colour_to_move][source] & (1ULL << board.enpassant);
             if (enpassant_attacks)
             {
@@ -184,7 +185,8 @@ void Engine::parse_white_castle_moves(vector<int>& moves)
         if (!get_bit(board.occupancies[both], f1) && !get_bit(board.occupancies[both], g1))
         {
             // make sure can't castle through check
-            if (!board.is_square_under_attack(f1, black) && !board.is_square_under_attack(g1, black))
+            // if (!board.is_square_under_attack(e8, white) && !board.is_square_under_attack(f1, black) && !board.is_square_under_attack(g1, black))
+            if (!board.is_square_under_attack(e1, black) && !board.is_square_under_attack(f1, black))
                 moves.push_back(parse_move(e1, g1, K, 0, 0, 0, 0, 1));
         }
     }
@@ -193,7 +195,8 @@ void Engine::parse_white_castle_moves(vector<int>& moves)
         if (!get_bit(board.occupancies[both], b1) && !get_bit(board.occupancies[both], c1) && !get_bit(board.occupancies[both], d1))
         {
             // make sure can't castle through check
-            if (!board.is_square_under_attack(b1, black) && !board.is_square_under_attack(c1, black) && !board.is_square_under_attack(d1, black))
+            // if (!board.is_square_under_attack(e1, black) && !board.is_square_under_attack(c1, black) && !board.is_square_under_attack(d1, black))
+            if (!board.is_square_under_attack(e1, black) && !board.is_square_under_attack(d1, black))
                 moves.push_back(parse_move(e1, c1, K, 0, 0, 0, 0, 1));
         }
     }
@@ -211,10 +214,10 @@ void Engine::parse_black_pawn_moves(uint64_t& curr, vector<int>& moves)
             // pawn promotion by going down one square (NOT TAKING A PIECE)
             if (source>=a2 && source<=h2)
             {
-                moves.push_back(parse_move(source, target, p, Q, 0, 0, 0, 0));
-                moves.push_back(parse_move(source, target, p, R, 0, 0, 0, 0));
-                moves.push_back(parse_move(source, target, p, N, 0, 0, 0, 0));
-                moves.push_back(parse_move(source, target, p, B, 0, 0, 0, 0));
+                moves.push_back(parse_move(source, target, p, q, 0, 0, 0, 0));
+                moves.push_back(parse_move(source, target, p, r, 0, 0, 0, 0));
+                moves.push_back(parse_move(source, target, p, n, 0, 0, 0, 0));
+                moves.push_back(parse_move(source, target, p, b, 0, 0, 0, 0));
             }
 
             // one square and two square pawn moves
@@ -225,7 +228,7 @@ void Engine::parse_black_pawn_moves(uint64_t& curr, vector<int>& moves)
 
                 // two square
                 if (source>=a7 && source<=h7 && !get_bit(board.occupancies[both], target+8))
-                    moves.push_back(parse_move(source, target+8, p, 0, 0, 0, 0, 0));
+                    moves.push_back(parse_move(source, target+8, p, 0, 0, 1, 0, 0));
             }
         }
 
@@ -237,10 +240,10 @@ void Engine::parse_black_pawn_moves(uint64_t& curr, vector<int>& moves)
 
             if (source>=a2 && source<=h2) // pawn promotion by capturing piece
             {
-                moves.push_back(parse_move(source, target, p, Q, 1, 0, 0, 0));
-                moves.push_back(parse_move(source, target, p, R, 1, 0, 0, 0));
-                moves.push_back(parse_move(source, target, p, N, 1, 0, 0, 0));
-                moves.push_back(parse_move(source, target, p, B, 1, 0, 0, 0));
+                moves.push_back(parse_move(source, target, p, q, 1, 0, 0, 0));
+                moves.push_back(parse_move(source, target, p, r, 1, 0, 0, 0));
+                moves.push_back(parse_move(source, target, p, n, 1, 0, 0, 0));
+                moves.push_back(parse_move(source, target, p, b, 1, 0, 0, 0));
             }
 
             // diagonal pawn capture
@@ -254,7 +257,7 @@ void Engine::parse_black_pawn_moves(uint64_t& curr, vector<int>& moves)
 
         // enpassant
         if (board.enpassant!=null_sq)
-        {
+        {   
             uint64_t enpassant_attacks = board.pawn_attacks[board.colour_to_move][source] & (1ULL << board.enpassant);
             if (enpassant_attacks)
             {
@@ -274,7 +277,9 @@ void Engine::parse_black_castle_moves(vector<int>& moves)
     {
         if (!get_bit(board.occupancies[both], f8) && !get_bit(board.occupancies[both], g8))
         {
-            if (!board.is_square_under_attack(f8, white) && !board.is_square_under_attack(g8, white))
+            // pruend by make_move() for g8
+            // if (!board.is_square_under_attack(e8, white) && !board.is_square_under_attack(f8, white) && !board.is_square_under_attack(g8, white))
+            if (!board.is_square_under_attack(e8, white) && !board.is_square_under_attack(f8, white))
                 moves.push_back(parse_move(e8, g8, k, 0, 0, 0, 0, 1));
         }
     }
@@ -282,7 +287,9 @@ void Engine::parse_black_castle_moves(vector<int>& moves)
     {
         if (!get_bit(board.occupancies[both], b8) && !get_bit(board.occupancies[both], c8) && !get_bit(board.occupancies[both], d8))
         {
-            if (!board.is_square_under_attack(b8, white) && !board.is_square_under_attack(c8, white) && !board.is_square_under_attack(d8, white))
+            // pruend by make_move() 
+            // if (!board.is_square_under_attack(e8, white) && !board.is_square_under_attack(c8, white) && !board.is_square_under_attack(d8, white))
+            if (!board.is_square_under_attack(e8, white) && !board.is_square_under_attack(d8, white))
                 moves.push_back(parse_move(e8, c8, k, 0, 0, 0, 0, 1));
         }
     }
@@ -420,7 +427,7 @@ void Engine::parse_king_moves(uint64_t& curr, const int& piece, vector<int>& mov
             // non-capture move
             if ( !get_bit( (board.colour_to_move==white) ? board.occupancies[black] : board.occupancies[white], target ) )
             {
-                moves.push_back(parse_move(source, target, piece, 0, 1, 0, 0, 0));
+                moves.push_back(parse_move(source, target, piece, 0, 0, 0, 0, 0));
             }
 
             else
@@ -458,7 +465,8 @@ int Engine::make_move(int move, int move_type)
         // ie. if white pawn captures black kngiht, remove black knight from black knight bitboard
         if (is_capture_move)
         {
-            int start_piece, end_piece;
+            int start_piece;
+            int end_piece;
             
             (board.colour_to_move==white) ? start_piece = p : start_piece = P;
             (board.colour_to_move==white) ? end_piece = k : end_piece = K;
@@ -486,14 +494,14 @@ int Engine::make_move(int move, int move_type)
         if (enpassant)
         {
             // target + 8 is going down the board, and vice versa
-            (board.colour_to_move) ? pop_bit(board.piece_bitboards[p], target + 8) : pop_bit(board.piece_bitboards[P], target - 8);
+            (board.colour_to_move==white) ? pop_bit(board.piece_bitboards[p], target + 8) : pop_bit(board.piece_bitboards[P], target - 8);
         }
         board.enpassant = null_sq;
 
         // set enpassant square when pawn double moves
         if (double_pawn_move)
         {
-            (board.colour_to_move) ? board.enpassant = target + 8 : board.enpassant = target + 8;
+            (board.colour_to_move==white) ? board.enpassant = target + 8 : board.enpassant = target - 8;
         }
 
         // handle castling
@@ -538,9 +546,9 @@ int Engine::make_move(int move, int move_type)
         {
             restoreBoard();
             return 0;
-
         }
-        return 1;
+        else 
+            return 1;
     }
     
     else if (move_type == only_captures)

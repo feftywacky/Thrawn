@@ -398,7 +398,7 @@ uint64_t Bitboard::get_queen_attacks(int square, uint64_t occupancy)
 bool Bitboard::is_square_under_attack(int square, int side)
 {
     // Attacked by white pawns
-    if (side == white && (pawn_attacks[black][square] & piece_bitboards[P])) 
+    if ((side == white) && (pawn_attacks[black][square] & piece_bitboards[P])) 
         return true;
 
     // Attacked by black pawns
