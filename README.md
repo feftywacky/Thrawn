@@ -38,7 +38,6 @@ chess.exe
 - minimax/negamax with alpha beta pruning
 - quiescience search
 - move ordering
-- change to procedural isntead of oop
 - add inline keyword in header files
 
 ## BUGS/POTENTIAL ISSUES

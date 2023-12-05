@@ -110,41 +110,6 @@ uint64_t gen_magic_num()
     return get_random_U64() & get_random_U64() & get_random_U64();
 }
 
-
-void pprint_bb(uint64_t bitboard) 
-{
-    std::string bitboardStr = "";
-    for (int i = 0; i < 64; i++) {
-        bitboardStr += (bitboard & (1ULL << i)) ? '1' : '0';
-    }
-    
-    int displayRank = 8;
-    std::vector<std::string> board;
-    for (int i = 0; i < 64; i += 8) {
-        board.push_back(bitboardStr.substr(i, 8));
-    }
-
-    for (int i = board.size() - 1; i >= 0; i--) {
-        std::cout << displayRank << " ";
-        displayRank--;
-        for (char square : board[i]) {
-            if (square == '1') {
-                std::cout << " 1";
-            } else {
-                std::cout << " 0";
-            }
-        }
-        std::cout << std::endl;
-    }
-
-    std::cout << "  ";
-    for (char c = 'A'; c < 'A' + 8; c++) {
-        std::cout << " " << c;
-    }
-    std::cout << std::endl;
-    std::cout << std::endl;
-}
-
 void print_bitboard(uint64_t bitboard) 
 {
     std::cout << std::endl;
@@ -175,7 +140,7 @@ void print_bitboard(uint64_t bitboard)
     std::cout << "     Bitboard as unsigned decimal: " << bitboard << std::endl;
 }
 
-void print_board(Bitboard& board, int side) 
+void print_board(int side) 
 {
     // print offset
     std::cout << "\n";
@@ -195,7 +160,7 @@ void print_board(Bitboard& board, int side)
 
             // loop over all piece bitboards
             for (int bb_piece = P; bb_piece <= k; bb_piece++) {
-                if (get_bit(board.piece_bitboards[bb_piece], square))
+                if (get_bit(piece_bitboards[bb_piece], square))
                     piece = bb_piece;
             }
 
@@ -214,11 +179,11 @@ void print_board(Bitboard& board, int side)
     std::cout << "     Side:     " << (!side ? "white" : "black") << "\n";
 
     // print enpassant square
-    std::cout << "     Enpassant:   " << ((board.enpassant != null_sq) ? square_to_coordinates[board.enpassant] : "no") << "\n";
+    std::cout << "     Enpassant:   " << ((enpassant != null_sq) ? square_to_coordinates[enpassant] : "no") << "\n";
 
     // print castling rights
-    std::cout << "     Castling:  " << ((board.castle_rights & wks) ? 'K' : '-') << ((board.castle_rights & wqs) ? 'Q' : '-')
-              << ((board.castle_rights & bks) ? 'k' : '-') << ((board.castle_rights & bqs) ? 'q' : '-') << "\n\n";
+    std::cout << "     Castling:  " << ((castle_rights & wks) ? 'K' : '-') << ((castle_rights & wqs) ? 'Q' : '-')
+              << ((castle_rights & bks) ? 'k' : '-') << ((castle_rights & bqs) ? 'q' : '-') << "\n\n";
 }
 
 void print_bits(uint64_t num)

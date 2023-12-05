@@ -7,7 +7,7 @@
 
 long leaf_nodes;
 
-void perft_search (int depth, Engine &engine, Bitboard& board)
+void perft_search (int depth)
 {
     if (depth == 0)
     {
@@ -15,17 +15,17 @@ void perft_search (int depth, Engine &engine, Bitboard& board)
         return;
     }  
 
-    vector<int> moves = engine.generate_moves();
+    vector<int> moves = generate_moves();
     // print_move_list(moves);
     for (int move : moves)
     {
         copyBoard();   
 
 
-        if (!engine.make_move(move, all_moves))
+        if (!make_move(move, all_moves))
             continue;
 
-        perft_search(depth-1, engine, board);
+        perft_search(depth-1);
 
         restoreBoard();
 
@@ -33,22 +33,22 @@ void perft_search (int depth, Engine &engine, Bitboard& board)
 
 }
 
-void perft_test(int depth, Engine& engine, Bitboard& board)
+void perft_test(int depth)
 {
 
-    vector<int> moves = engine.generate_moves();
+    vector<int> moves = generate_moves();
     auto start = std::chrono::high_resolution_clock::now();
     for (int move : moves)
     {
         copyBoard();
 
 
-        if (!engine.make_move(move, all_moves))
+        if (!make_move(move, all_moves))
             continue;
 
         long cumulative_nodes = leaf_nodes;
 
-        perft_search(depth-1, engine, board);
+        perft_search(depth-1);
 
         long old_nodes = leaf_nodes - cumulative_nodes;
 

@@ -12,19 +12,19 @@ const char* empty_board = "8/8/8/8/8/8/8/8 w - - ";
 const char* start_position = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 ";
 const char* position_2 = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1 ";
 
-void parse_fen(Bitboard& board, const char* fen)
+void parse_fen(const char* fen)
 {
     // reset piece bitboards and occupancies
-    for (int i = 0; i < board.piece_bitboards.size(); i++)
-        board.piece_bitboards[i] = 0ULL;
+    for (int i = 0; i < piece_bitboards.size(); i++)
+        piece_bitboards[i] = 0ULL;
 
-    for (int i = 0; i < board.occupancies.size(); i++)
-        board.occupancies[i] = 0ULL;
+    for (int i = 0; i < occupancies.size(); i++)
+        occupancies[i] = 0ULL;
     
     // reset gameState variables
-    board.colour_to_move = white;
-    board.enpassant = null_sq;
-    board.castle_rights = 0;
+    colour_to_move = white;
+    enpassant = null_sq;
+    castle_rights = 0;
 
     // loop to parse pieces and empty squares from fen
     for (int r=0;r<8;r++)
@@ -37,7 +37,7 @@ void parse_fen(Bitboard& board, const char* fen)
             if ( (*fen >= 'a' && *fen<='z') || (*fen>='A' && *fen<='Z') )
             {
                 int piece = char_pieces.at(*fen);
-                set_bit(board.piece_bitboards[piece], square);
+                set_bit(piece_bitboards[piece], square);
                 *fen++;
             }
 
@@ -50,7 +50,7 @@ void parse_fen(Bitboard& board, const char* fen)
                 // loops over all the pieces (white pawn -> black king)
                 for (int i=P;i<=k;i++)
                 {
-                    if (get_bit(board.piece_bitboards[i], square))
+                    if (get_bit(piece_bitboards[i], square))
                         piece = i;
                 }
                 
@@ -71,7 +71,7 @@ void parse_fen(Bitboard& board, const char* fen)
     fen++;
 
     // parsing colour_to_move
-    *fen == 'w' ? (board.colour_to_move = white) : (board.colour_to_move = black);
+    *fen == 'w' ? (colour_to_move = white) : (colour_to_move = black);
 
     // go to parse castling rights value in fen string
     fen += 2;
@@ -80,13 +80,13 @@ void parse_fen(Bitboard& board, const char* fen)
     while(*fen != ' ')
     {
         if (*fen == 'K')
-            board.castle_rights |= wks;
+            castle_rights |= wks;
         else if (*fen == 'Q')
-            board.castle_rights |= wqs;
+            castle_rights |= wqs;
         else if (*fen == 'k')  
-            board.castle_rights |= bks;
+            castle_rights |= bks;
         else if (*fen == 'q')
-            board.castle_rights |= bqs;
+            castle_rights |= bqs;
         else if (*fen == '-')
             break;
         
@@ -108,14 +108,14 @@ void parse_fen(Bitboard& board, const char* fen)
         cout<<"fen2: "<<*fen<<endl;
         int row = 8- (*fen -'0');
 
-        board.enpassant = row*8+col;
+        enpassant = row*8+col;
 
     }
     else 
-        board.enpassant = null_sq;
+        enpassant = null_sq;
     
     // setting white, black, and both occupancies
-    board.occupancies[0] = board.get_white_occupancy();
-    board.occupancies[1] = board.get_black_occupancy();
-    board.occupancies[2] = board.get_both_occupancy();
+    occupancies[0] = get_white_occupancy();
+    occupancies[1] = get_black_occupancy();
+    occupancies[2] = get_both_occupancy();
 }

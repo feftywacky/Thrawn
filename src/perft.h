@@ -5,8 +5,8 @@
 
 extern long leaf_nodes;
 
-void perft_search(int depth, Engine& engine, Bitboard& board);
+void perft_search(int depth);
 
-void perft_test(int depth, Engine& engine, Bitboard& board);
+void perft_test(int depth);
 
 #endif

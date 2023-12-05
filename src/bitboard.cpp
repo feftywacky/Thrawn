@@ -9,25 +9,45 @@
 
 using namespace std;
 
+// init variables
+// ALl piece bitboards -> 12 in total -> one for each piece type and colour
+array<uint64_t, 12> piece_bitboards;
 
-// contructor
-Bitboard::Bitboard()
-{
-    colour_to_move = white;
-    enpassant = null_sq;
-    castle_rights = 0;
+// Bitboard occupancies
+array<uint64_t, 3> occupancies; // white, black, both
 
-    // resize attack rook table since it's a vector
-    rook_attacks.resize(64, std::vector<uint64_t>(4096, 0));
+// colour to move first
+int colour_to_move;
 
-    init_leaping_attacks();
-    init_sliding_attacks(bishop);
-    init_sliding_attacks(rook);
-    // init_magic_nums(); // used to help generate magic bitboards
-}
+// enpassant square
+int enpassant;
+
+// castle rights
+int castle_rights;
+
+// for copying and restoring board
+array<uint64_t, 12> piece_bitboards_copy;
+array<uint64_t, 3> occupancies_copy;
+int colour_to_move_copy;
+int enpassant_copy;
+int castle_rights_copy;
+
+
+// leaping
+std::array<std::array<uint64_t, BOARD_SIZE>, 2> pawn_attacks;
+std::array<uint64_t, BOARD_SIZE> knight_attacks;
+std::array<uint64_t, BOARD_SIZE> king_attacks;
+
+// sliding
+// [square][occupancy]
+array<uint64_t, 64> bishop_masks;
+array<array<uint64_t, 512>, 64> bishop_attacks;
+array<uint64_t, 64> rook_masks;
+vector<vector<uint64_t>> rook_attacks(64, vector<uint64_t>(4096, 0));
+
 
 // GET OCCUPANCY BITBOARDS
-uint64_t Bitboard::get_white_occupancy()
+uint64_t get_white_occupancy()
 {
     uint64_t res = 0ULL;
     for(int i=0;i<6;i++)
@@ -35,7 +55,7 @@ uint64_t Bitboard::get_white_occupancy()
     return res;
 }
 
-uint64_t Bitboard::get_black_occupancy()
+uint64_t get_black_occupancy()
 {
     uint64_t res = 0ULL;
     for(int i=6;i<12;i++)
@@ -43,7 +63,7 @@ uint64_t Bitboard::get_black_occupancy()
     return res;
 }
 
-uint64_t Bitboard::get_both_occupancy()
+uint64_t get_both_occupancy()
 {
     uint64_t res = 0ULL;
     res |= get_white_occupancy();
@@ -55,7 +75,7 @@ uint64_t Bitboard::get_both_occupancy()
 // PRE-COMPUTE PIECE ATTACK BITBOARDS
 
 // pawns
-uint64_t Bitboard::get_pawn_attacks(int side, const int& square)
+uint64_t get_pawn_attacks(int side, const int& square)
 {
     uint64_t attacks = 0ULL;
     uint64_t bitboard = 0ULL;
@@ -81,7 +101,7 @@ uint64_t Bitboard::get_pawn_attacks(int side, const int& square)
 }
 
 // knights
-uint64_t Bitboard::get_knight_attacks(const int& square)
+uint64_t get_knight_attacks(const int& square)
 {
     uint64_t attacks = 0ULL;
     uint64_t bitboard = 0ULL;
@@ -108,7 +128,7 @@ uint64_t Bitboard::get_knight_attacks(const int& square)
     return attacks;
 }
 
-uint64_t Bitboard::get_king_attacks(const int& square)
+uint64_t get_king_attacks(const int& square)
 {
     uint64_t attacks = 0ULL;
     uint64_t bitboard = 0ULL;
@@ -136,7 +156,7 @@ uint64_t Bitboard::get_king_attacks(const int& square)
 }
 
 // does not include squares on the edge of the board
-uint64_t Bitboard::get_bishop_mask(const int& square)
+uint64_t get_bishop_mask(const int& square)
 {
     uint64_t attacks = 0ULL;
 
@@ -166,7 +186,7 @@ uint64_t Bitboard::get_bishop_mask(const int& square)
 }
 
 // does not distinguish the colour of the blocker
-uint64_t Bitboard::bishop_attack_runtime_gen(int square, const uint64_t& blockers)
+uint64_t bishop_attack_runtime_gen(int square, const uint64_t& blockers)
 {
     uint64_t attacks = 0ULL;
 
@@ -211,7 +231,7 @@ uint64_t Bitboard::bishop_attack_runtime_gen(int square, const uint64_t& blocker
     return attacks; 
 }
 
-uint64_t Bitboard::get_rook_mask(const int& square)
+uint64_t get_rook_mask(const int& square)
 {
     uint64_t attacks = 0ULL;
 
@@ -239,7 +259,7 @@ uint64_t Bitboard::get_rook_mask(const int& square)
 }
 
 // does not distinguish the colour of the blocker
-uint64_t Bitboard::rook_attack_runtime_gen(int square, uint64_t& blockers)
+uint64_t rook_attack_runtime_gen(int square, uint64_t& blockers)
 {
     uint64_t attacks = 0ULL;
 
@@ -282,7 +302,7 @@ uint64_t Bitboard::rook_attack_runtime_gen(int square, uint64_t& blockers)
     return attacks;
 }
 
-uint64_t Bitboard::set_occupancy(const int& index, const int& bits_in_mask, uint64_t attack_mask)
+uint64_t set_occupancy(const int& index, const int& bits_in_mask, uint64_t attack_mask)
 {
     uint64_t occupancy = 0ULL;
 
@@ -300,7 +320,7 @@ uint64_t Bitboard::set_occupancy(const int& index, const int& bits_in_mask, uint
 }
 
 // MAGIC BITBOARD
-uint64_t Bitboard::find_magic_num(const int& square, int relevant_bits, int bishop)
+uint64_t find_magic_num(const int& square, int relevant_bits, int bishop)
 {
     array<uint64_t, 4096> occupancies;
     array<uint64_t, 4096> attacks;
@@ -358,7 +378,7 @@ uint64_t Bitboard::find_magic_num(const int& square, int relevant_bits, int bish
 }
 
 
-void Bitboard::init_magic_nums()
+void init_magic_nums()
 {
     for (int square = 0; square < 64; square++)
         // init rook magic numbers
@@ -369,7 +389,7 @@ void Bitboard::init_magic_nums()
         bishop_magic_nums[square] = find_magic_num(square, bishop_relevant_bits[square], bishop);
 }
 
-uint64_t Bitboard::get_bishop_attacks(int square, uint64_t occupancy)
+uint64_t get_bishop_attacks(int square, uint64_t occupancy)
 {
     // generate bishop attacks given current board occupancy
     occupancy &= bishop_masks[square];
@@ -379,7 +399,7 @@ uint64_t Bitboard::get_bishop_attacks(int square, uint64_t occupancy)
     return bishop_attacks[square][occupancy];
 }
 
-uint64_t Bitboard::get_rook_attacks(int square, uint64_t occupancy)
+uint64_t get_rook_attacks(int square, uint64_t occupancy)
 {
     // generate rook attacks given current board occupancy
     occupancy &= rook_masks[square];
@@ -389,13 +409,13 @@ uint64_t Bitboard::get_rook_attacks(int square, uint64_t occupancy)
     return rook_attacks[square][occupancy];
 }
 
-uint64_t Bitboard::get_queen_attacks(int square, uint64_t occupancy)
+uint64_t get_queen_attacks(int square, uint64_t occupancy)
 {
     return get_bishop_attacks(square, occupancy) | get_rook_attacks(square, occupancy);
 }
 
 // is <square> under attacked by <side> pieces
-bool Bitboard::is_square_under_attack(int square, int side)
+bool is_square_under_attack(int square, int side)
 {
     // Attacked by white pawns
     if ((side == white) && (pawn_attacks[black][square] & piece_bitboards[P])) 
@@ -423,7 +443,7 @@ bool Bitboard::is_square_under_attack(int square, int side)
     return false;
 }
 
-void Bitboard::init_sliding_attacks(int isBishop)
+void init_sliding_attacks(int isBishop)
 {
     for (int square = 0;square<64;square++)
     {
@@ -456,7 +476,7 @@ void Bitboard::init_sliding_attacks(int isBishop)
     }
 }
 
-void Bitboard::init_leaping_attacks()
+void init_leaping_attacks()
 {
     for (int square = 0; square < BOARD_SIZE; square++) 
     {
@@ -465,4 +485,12 @@ void Bitboard::init_leaping_attacks()
         knight_attacks[square] = get_knight_attacks(square);
         king_attacks[square] = get_king_attacks(square);
     }
+}
+
+void init_all()
+{
+    // init_magic_nums(); // used to help generate magic bitboards
+    init_leaping_attacks();
+    init_sliding_attacks(bishop);
+    init_sliding_attacks(rook);
 }

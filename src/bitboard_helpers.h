@@ -41,11 +41,9 @@ uint64_t get_random_U64();
 
 uint64_t gen_magic_num();
 
-void pprint_bb(uint64_t bitboard);
-
 void print_bitboard(uint64_t bitboard);
 
-void print_board(Bitboard& board, int side);
+void print_board(int side);
 
 void print_bits(uint64_t num);
 
@@ -56,18 +54,18 @@ void print_bits(uint64_t num);
     int colour_to_move_copy; \
     int enpassant_copy; \
     int castle_rights_copy;                      \
-    piece_bitboards_copy = board.piece_bitboards; \
-    occupancies_copy = board.occupancies; \
-    colour_to_move_copy = board.colour_to_move; \
-    enpassant_copy = board.enpassant; \
-    castle_rights_copy = board.castle_rights; \
+    piece_bitboards_copy = piece_bitboards; \
+    occupancies_copy = occupancies; \
+    colour_to_move_copy = colour_to_move; \
+    enpassant_copy = enpassant; \
+    castle_rights_copy = castle_rights; \
 
 // Restore board state
 #define restoreBoard() \
-    board.piece_bitboards = piece_bitboards_copy; \
-    board.occupancies = occupancies_copy; \
-    board.colour_to_move = colour_to_move_copy; \
-    board.enpassant = enpassant_copy; \
-    board.castle_rights = castle_rights_copy; \
+    piece_bitboards = piece_bitboards_copy; \
+    occupancies = occupancies_copy; \
+    colour_to_move = colour_to_move_copy; \
+    enpassant = enpassant_copy; \
+    castle_rights = castle_rights_copy; \
 
 #endif
