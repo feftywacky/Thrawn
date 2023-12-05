@@ -1,5 +1,5 @@
 # bitboard-nnue-chess-engine
-ONGOING/INCOMPLETE
+ONGOING/INCOMPLETE <br>
 chess engine in c++ that uses a bitboard data structure and a nnue for evaluation
 
 ## Updates
@@ -19,8 +19,8 @@ g++ -o chess main.o engine.o bitboard.o bitboard_helpers.o constants.o fen.o mov
 chess.exe
 ```
 
-RECOMMENDED
-run with compiler opimtizations (~4x faster):
+RECOMMENDED <br>
+run with compiler opimtizations (~8x faster):
 ```bash
 g++ -std=c++17 -Ofast -c main.cpp engine.cpp bitboard.cpp bitboard_helpers.cpp constants.cpp fen.cpp move_helpers.cpp perft.cpp
 g++ -o chess main.o engine.o bitboard.o bitboard_helpers.o constants.o fen.o move_helpers.o perft.o
