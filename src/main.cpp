@@ -7,6 +7,7 @@
 #include "perft.h"
 #include "uci.h"
 #include "evaluation.h"
+#include "search.h"
 #include <cstdint>
 #include <iostream>
 #include <chrono>
@@ -17,14 +18,14 @@ int main() {
 
     init_all();
 
-    bool dev_mode = true;
+    bool dev_mode = false;
 
     if (dev_mode)
     {
         cout<<"developer mode"<<endl;
         parse_fen(start_position);
         print_board(colour_to_move);
-        cout<<"score: "<<evaluate()<<endl;
+        search_position(6);
     }
     else
         uci_loop();

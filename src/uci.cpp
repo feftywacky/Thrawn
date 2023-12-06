@@ -120,6 +120,7 @@ void uci_parse_go(const char* command)
         depth = 6;
     
     // negamax alpha beta pruning search
+    cout<<"search depth: "<<depth<<endl;
     search_position(depth);
 }
 
