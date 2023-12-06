@@ -9,7 +9,7 @@ using namespace std;
 // FEN position test cases
 extern const char* empty_board;
 extern const char* start_position;
-extern const char* tricky_position;
+extern const char* position_2;
 
 void parse_fen(const char* fen);
 

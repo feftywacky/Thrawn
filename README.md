@@ -15,16 +15,16 @@ g++ --version
 ### Build and Run:
 standard compilation commands:
 ```bash
-g++ -std=c++17 -c main.cpp engine.cpp bitboard.cpp bitboard_helpers.cpp constants.cpp fen.cpp move_helpers.cpp perft.cpp
-g++ -o chess main.o engine.o bitboard.o bitboard_helpers.o constants.o fen.o move_helpers.o perft.o
+g++ -std=c++17 -c main.cpp engine.cpp bitboard.cpp bitboard_helpers.cpp constants.cpp fen.cpp move_helpers.cpp perft.cpp uci.cpp search.cpp
+g++ -o chess main.o engine.o bitboard.o bitboard_helpers.o constants.o fen.o move_helpers.o perft.o uci.o search.o
 chess.exe
 ```
 
 RECOMMENDED <br>
-run with compiler opimtizations (~9x faster):
+run with compiler opimtizations (~10x faster):
 ```bash
-g++ -std=c++17 -Ofast -flto -c main.cpp engine.cpp bitboard.cpp bitboard_helpers.cpp constants.cpp fen.cpp move_helpers.cpp perft.cpp
-g++ -o chess main.o engine.o bitboard.o bitboard_helpers.o constants.o fen.o move_helpers.o perft.o
+g++ -std=c++17 -Ofast -flto -c main.cpp engine.cpp bitboard.cpp bitboard_helpers.cpp constants.cpp fen.cpp move_helpers.cpp perft.cpp uci.cpp search.cpp
+g++ -o chess main.o engine.o bitboard.o bitboard_helpers.o constants.o fen.o move_helpers.o perft.o uci.o search.o
 chess.exe
 ``` 
 
