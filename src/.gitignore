@@ -27,9 +27,16 @@
 *.lib
 
 # Executables
+*.exe
 *.out
 *.app
 
 # Code Editors
 *.vscode
 *.idea
+
+# Text
+*.txt
+
+# Chess Engine
+*.uci_options
