@@ -3,7 +3,7 @@ v0.2
 new updates
 - quiescence search
 
-------------------------------------------
+old updates
 - negamax alpha beta search
 - fixed depth 6 if not specified
 - checkmate and stalemate
