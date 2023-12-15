@@ -19,6 +19,9 @@ int negamax(int depth, int alpha, int beta)
     }
 
     nodes++;
+    int valid_moves = 0;
+    bool inCheck = is_square_under_attack((colour_to_move==white ? get_lsb_index(piece_bitboards[K]) : get_lsb_index(piece_bitboards[k])), colour_to_move^1);
+
 
     int best_move_for_now;
 
@@ -37,6 +40,7 @@ int negamax(int depth, int alpha, int beta)
             ply--;
             continue;
         }
+        valid_moves++;
 
         int score = -negamax(depth-1, -beta, -alpha);
 
@@ -57,6 +61,19 @@ int negamax(int depth, int alpha, int beta)
         
     }
 
+    if (valid_moves == 0)
+    {
+        if (inCheck)
+        {
+            return -19999 + ply; // +ply allows engine to find the smallest depth mate
+            // penalizing longer mates less than shorter ones
+            
+        }
+        else
+            return 0; // stalemate
+    }
+
+
     if (old_alpha != alpha)
         best_move = best_move_for_now;
 
@@ -66,9 +83,12 @@ int negamax(int depth, int alpha, int beta)
 
 void search_position(int depth)
 {
-    int score = negamax(depth, -500000, 500000);
+    int score = negamax(depth, -20000, 20000);
 
-    cout<<"bestmove ";
-    print_move(best_move);
+    if (best_move)
+    {
+        cout<<"bestmove ";
+        print_move(best_move);
+    }
 }
 
