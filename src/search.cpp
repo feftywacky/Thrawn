@@ -15,7 +15,8 @@ int negamax(int depth, int alpha, int beta)
 {
     if (depth == 0)
     {
-        return evaluate();
+        return quiescence(alpha, beta);
+        // return evaluate();
     }
 
     nodes++;
@@ -81,12 +82,63 @@ int negamax(int depth, int alpha, int beta)
     return alpha;
 }
 
+int quiescence(int alpha, int beta)
+{
+    int evaluation = evaluate();
+
+    // fail-hard beta cutoff
+    if (evaluation>=beta)
+        return beta; // fails high
+
+    // found better move 
+    if (evaluation > alpha)
+    {
+        alpha = evaluation; // principal variation PV node (best move)
+    }
+
+    vector<int> moves = generate_moves();
+
+    for (int move : moves)
+    {
+        copyBoard();
+
+        ply++;
+
+        if (!make_move(move, only_captures))
+        {
+            ply--;
+            continue;
+        }
+
+        int score = -quiescence(-beta, -alpha);
+
+        ply--;
+        restoreBoard();
+        
+        
+        // fail-hard beta cutoff
+        if (score>=beta)
+            return beta; // fails high
+
+        // found better move 
+        if (score > alpha)
+        {
+            alpha = score; // principal variation PV node (best move)
+        }
+        
+    }
+
+    // move fails low (<= alpha)
+    return alpha;
+}
+
 void search_position(int depth)
 {
     int score = negamax(depth, -20000, 20000);
 
     if (best_move)
     {
+        cout<< "info score cp " << score << " depth " << depth << " nodes " << nodes <<endl;
         cout<<"bestmove ";
         print_move(best_move);
     }

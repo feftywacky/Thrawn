@@ -11,6 +11,8 @@ extern int nodes;
 // negamax with alpha beta pruning
 int negamax(int depth, int alpha, int beta);
 
+int quiescence(int alpha, int beta);
+
 void search_position(int depth);
 
 #endif
