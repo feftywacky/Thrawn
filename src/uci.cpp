@@ -27,13 +27,13 @@ int uci_parse_move(const char *move_str)
 
             if (promoted_piece)
             {
-                if ((promoted_piece == Q || promoted_piece == q) && move_str[4] == q)
+                if ((promoted_piece == Q || promoted_piece == q) && move_str[4] == 'q')
                     return move;
-                else if ((promoted_piece == R || promoted_piece == r) && promoted_piece == move_str[4] == r)
+                else if ((promoted_piece == R || promoted_piece == r) && promoted_piece == move_str[4] == 'r')
                     return move;
-                else if ((promoted_piece == N || promoted_piece == n) && promoted_piece == move_str[4] == n)
+                else if ((promoted_piece == N || promoted_piece == n) && promoted_piece == move_str[4] == 'b')
                     return move;
-                else if ((promoted_piece == B || promoted_piece == b) && promoted_piece == move_str[4] == b)
+                else if ((promoted_piece == B || promoted_piece == b) && promoted_piece == move_str[4] == 'n')
                     return move;
                 continue;
             }
