@@ -37,3 +37,6 @@
 
 # Text
 *.txt
+
+# Chess Engine
+*.uci_options
