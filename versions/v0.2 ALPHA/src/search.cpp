@@ -45,8 +45,9 @@ int negamax(int depth, int alpha, int beta)
 
         int score = -negamax(depth-1, -beta, -alpha);
 
-        restoreBoard();
         ply--;
+        restoreBoard();
+        
         
         // fail-hard beta cutoff
         if (score>=beta)
