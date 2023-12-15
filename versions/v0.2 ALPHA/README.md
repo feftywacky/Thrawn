@@ -1,6 +1,6 @@
 v0.2
 
-new updates
+new changes
 - quiescence search
 
 old updates
