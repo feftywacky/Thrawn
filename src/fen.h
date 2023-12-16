@@ -10,6 +10,7 @@ using namespace std;
 extern const char* empty_board;
 extern const char* start_position;
 extern const char* position_2;
+extern const char* position_3;
 
 void parse_fen(const char* fen);
 

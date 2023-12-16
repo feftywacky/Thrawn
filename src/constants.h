@@ -65,4 +65,8 @@ extern const std::array<int, 64> update_castling_right_values;
 extern std::array<uint64_t, 64> rook_magic_nums;
 extern std::array<uint64_t, 64> bishop_magic_nums;
 
+// move ordering
+// [attacker][victim]
+extern const std::array<std::array<int, 12>, 12> mvv_lva;
+
 #endif
