@@ -7,6 +7,7 @@ using namespace std;
 
 // material
 extern const std::array<int, 12> material_score;
+extern const std::array<int, 12> material_score_eg;
 
 // position
 extern const std::array<int, 64> wKnight_mg;

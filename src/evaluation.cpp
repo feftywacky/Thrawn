@@ -2,96 +2,6 @@
 #include "constants.h"
 #include "bitboard.h"
 
-// const std::array<int, 12> material_score = 
-// {
-//     100,      // white pawn
-//     300,      // white knight
-//     350,      // white bishop
-//     500,      // white rook64
-//     1000,      // white queen
-//     10000,      // white king
-//     -100,      // black pawn
-//     -300,      // black knight
-//     -350,      // black bishop 
-//     -500,      // black rook 
-//     -1000,      // black queen 
-//     -10000,      // black king
-// };
-
-
-
-// const std::array<int, 64> wKnight_mg = {
-//     -5,   0,   0,   0,   0,   0,   0,  -5,
-//     -5,   0,   0,  10,  10,   0,   0,  -5,
-//     -5,   5,  20,  20,  20,  20,   5,  -5,
-//     -5,  10,  20,  30,  30,  20,  10,  -5,
-//     -5,  10,  20,  30,  30,  20,  10,  -5,
-//     -5,   5,  20,  10,  10,  20,   5,  -5,
-//     -5,   0,   0,   0,   0,   0,   0,  -5,
-//     -5, -10,   0,   0,   0,   0, -10,  -5
-// };
-
-
-
-// const std::array<int, 64> wBishop_mg = {
-//      0,   0,   0,   0,   0,   0,   0,   0,
-//      0,   0,   0,   0,   0,   0,   0,   0,
-//      0,   0,   0,  10,  10,   0,   0,   0,
-//      0,   0,  10,  20,  20,  10,   0,   0,
-//      0,   0,  10,  20,  20,  10,   0,   0,
-//      0,  10,   0,   0,   0,   0,  10,   0,
-//      0,  30,   0,   0,   0,   0,  30,   0,
-//      0,   0, -10,   0,   0, -10,   0,   0
-// };
-
-
-
-// const std::array<int, 64> wRook_mg = {
-//     50,  50,  50,  50,  50,  50,  50,  50,
-//     50,  50,  50,  50,  50,  50,  50,  50,
-//      0,   0,  10,  20,  20,  10,   0,   0,
-//      0,   0,  10,  20,  20,  10,   0,   0,
-//      0,   0,  10,  20,  20,  10,   0,   0,
-//      0,   0,  10,  20,  20,  10,   0,   0,
-//      0,   0,  10,  20,  20,  10,   0,   0,
-//      0,   0,   0,  20,  20,   0,   0,   0
-// };
-
-
-
-// const std::array<int, 64> wQueen_mg = {0};
-
-
-// const std::array<int, 64> wKing_mg = {
-//     0,   0,   0,   0,   0,   0,   0,   0,
-//      0,   0,   5,   5,   5,   5,   0,   0,
-//      0,   5,   5,  10,  10,   5,   5,   0,
-//      0,   5,  10,  20,  20,  10,   5,   0,
-//      0,   5,  10,  20,  20,  10,   5,   0,
-//      0,   0,   5,  10,  10,   5,   0,   0,
-//      0,   5,   5,  -5,  -5,   0,   5,   0,
-//      0,   0,   5,   0, -15,   0,  10,   0
-// };
-
-
-
-// const std::array<int, 64> wPawn_mg = {
-//     90,  90,  90,  90,  90,  90,  90,  90,
-//     30,  30,  30,  40,  40,  30,  30,  30,
-//     20,  20,  20,  30,  30,  30,  20,  20,
-//     10,  10,  10,  20,  20,  10,  10,  10,
-//      5,   5,  10,  20,  20,   5,   5,   5,
-//      0,   0,   0,   5,   5,   0,   0,   0,
-//      0,   0,   0, -10, -10,   0,   0,   0,
-//      0,   0,   0,   0,   0,   0,   0,   0
-// };
-
-
-
-//**************************
-// EVAL #2
-//**************************
-
 const std::array<int, 12> material_score = 
 {
     82,      // white pawn
@@ -99,13 +9,30 @@ const std::array<int, 12> material_score =
     365,      // white bishop
     477,      // white rook
     1025,      // white queen
-    10000,      // white king
+    0,      // white king
     -82,      // black pawn
     -337,      // black knight
     -365,      // black bishop 
     -477,      // black rook 
     -1025,      // black queen 
-    -10000,      // black king
+    0      // black king
+};
+
+const std::array<int, 12> material_score_eg = 
+{
+    94,
+    281,
+    297,
+    512,
+    936,
+    0,
+    -94,
+    -281,
+    -297,
+    -512,
+    -936,
+    0
+
 };
 
 const std::array<int, 64> wPawn_mg = {
@@ -174,6 +101,75 @@ const std::array<int, 64> wKnight_mg = {
     -105, -21, -58, -33, -17, -28, -19,  -23
 };
 
+// ENDGAME 
+
+const std::array<int, 64> wKnight_eg = {
+    -58, -38, -13, -28, -31, -27, -63, -99,
+    -25,  -8, -25,  -2,  -9, -25, -24, -52,
+    -24, -20,  10,   9,  -1,  -9, -19, -41,
+    -17,   3,  22,  22,  22,  11,   8, -18,
+    -18,  -6,  16,  25,  16,  17,   4, -18,
+    -23,  -3,  -1,  15,  10,  -3, -20, -22,
+    -42, -20, -10,  -5,  -2, -20, -23, -44,
+    -29, -51, -23, -15, -22, -18, -50, -64
+};
+
+const std::array<int, 64> wBishop_eg = {
+    -14, -21, -11,  -8, -7,  -9, -17, -24,
+     -8,  -4,   7, -12, -3, -13,  -4, -14,
+      2,  -8,   0,  -1, -2,   6,   0,   4,
+     -3,   9,  12,   9, 14,  10,   3,   2,
+     -6,   3,  13,  19,  7,  10,  -3,  -9,
+    -12,  -3,   8,  10, 13,   3,  -7, -15,
+    -14, -18,  -7,  -1,  4,  -9, -15, -27,
+    -23,  -9, -23,  -5, -9, -16,  -5, -17
+};
+
+const std::array<int, 64> wRook_eg = {
+    13, 10, 18, 15, 12,  12,   8,   5,
+    11, 13, 13, 11, -3,   3,   8,   3,
+    7,   7,  7,  5,  4,  -3,  -5,  -3,
+    4,   3, 13,  1,  2,   1,  -1,   2,
+    3,   5,  8,  4, -5,  -6,  -8, -11,
+    -4,  0, -5, -1, -7, -12,  -8, -16,
+    -6, -6,  0,  2, -9,  -9, -11,  -3,
+    -9,  2,  3, -1, -5, -13,   4, -20
+};
+
+const std::array<int, 64> wQueen_eg = {
+    -9,  22,  22,  27,  27,  19,  10,  20,
+   -17,  20,  32,  41,  58,  25,  30,   0,
+   -20,   6,   9,  49,  47,  35,  19,   9,
+     3,  22,  24,  45,  57,  40,  57,  36,
+   -18,  28,  19,  47,  31,  34,  39,  23,
+   -16, -27,  15,   6,   9,  17,  10,   5,
+   -22, -23, -30, -16, -16, -23, -36, -32,
+   -33, -28, -22, -43,  -5, -32, -20, -41
+};
+
+const std::array<int, 64> wKing_eg = {
+    -74, -35, -18, -18, -11,  15,   4, -17,
+    -12,  17,  14,  17,  17,  38,  23,  11,
+     10,  17,  23,  15,  20,  45,  44,  13,
+     -8,  22,  24,  27,  26,  33,  26,   3,
+    -18,  -4,  21,  24,  27,  23,   9, -11,
+    -19,  -3,  11,  21,  23,  16,   7,  -9,
+    -27, -11,   4,  13,  14,   4,  -5, -17,
+    -53, -34, -21, -11, -28, -14, -24, -43
+};
+
+const std::array<int, 64> wPawn_eg = {
+    0,   0,   0,   0,   0,   0,   0,   0,
+   178, 173, 158, 134, 147, 132, 165, 187,
+    94, 100,  85,  67,  56,  53,  82,  84,
+    32,  24,  13,   5,  -2,   4,  17,  17,
+    13,   9,  -3,  -7,  -7,  -8,   3,  -1,
+     4,   7,  -6,   1,   0,  -5,  -1,  -8,
+    13,   8,   8,  10,  13,   0,   2,  -7,
+     0,   0,   0,   0,   0,   0,   0,   0
+};
+
+
 const std::array<int, 128> mirror_score =
 {
 	a1, b1, c1, d1, e1, f1, g1, h1,
@@ -187,56 +183,136 @@ const std::array<int, 128> mirror_score =
 };
 
 
+
+
 int evaluate()
 {
     int score = 0;
     int piece;
     int square;
     uint64_t curr_piece_bb;
+    bool isEndgame = false;
+
+    if (count_bits(occupancies[white] ^ piece_bitboards[P])<=4 && count_bits(occupancies[black] ^ piece_bitboards[p])<=4)
+        isEndgame = true;
 
     for (int i=P;i<=k;i++)
     {
         curr_piece_bb = piece_bitboards[i];
 
-        while(curr_piece_bb)
+        if (!isEndgame)
         {
-            piece = i;
-            square = get_lsb_index(curr_piece_bb);
+            while(curr_piece_bb)
+            {
+                piece = i;
+                square = get_lsb_index(curr_piece_bb);
 
-            // material scores
-            score += material_score[piece];
+                // material scores
+                score += material_score[piece];
 
-            // positional scores
-            if (piece == P)
-                score += wPawn_mg[square];
-            else if (piece == N)
-                score += wKnight_mg[square];
-            else if (piece == B)
-                score += wBishop_mg[square];
-            else if (piece == R)
-                score += wRook_mg[square];
-            else if (piece == Q)
-                score += wQueen_mg[square];
-            else if (piece == K)
-                score += wKing_mg[square];
+                // Positional scores
+                switch (piece)
+                {
+                    case P:
+                        score += wPawn_mg[square];
+                        break;
+                    case N:
+                        score += wKnight_mg[square];
+                        break;
+                    case B:
+                        score += wBishop_mg[square];
+                        break;
+                    case R:
+                        score += wRook_mg[square];
+                        break;
+                    case Q:
+                        score += wQueen_mg[square];
+                        break;
+                    case K:
+                        score += wKing_mg[square];
+                        break;
+                    case p:
+                        score -= wPawn_mg[mirror_score[square]];
+                        break;
+                    case n:
+                        score -= wKnight_mg[mirror_score[square]];
+                        break;
+                    case b:
+                        score -= wBishop_mg[mirror_score[square]];
+                        break;
+                    case r:
+                        score -= wRook_mg[mirror_score[square]];
+                        break;
+                    case q:
+                        score -= wQueen_mg[mirror_score[square]];
+                        break;
+                    case k:
+                        score -= wKing_mg[mirror_score[square]];
+                        break;
+                }
 
-            else if (piece == p)
-                score -= wPawn_mg[mirror_score[square]];
-            else if (piece == n)
-                score -= wKnight_mg[mirror_score[square]];
-            else if (piece == b)
-                score -= wBishop_mg[mirror_score[square]];
-            else if (piece == r)
-                score -= wRook_mg[mirror_score[square]];
-            else if (piece == q)
-                score -= wQueen_mg[mirror_score[square]];
-            else if (piece == k)
-                score -= wKing_mg[mirror_score[square]];
+                pop_bit(curr_piece_bb, square);
+            }
+        }
 
-            pop_bit(curr_piece_bb, square);
+        else
+        {
+            while(curr_piece_bb)
+            {
+                piece = i;
+                square = get_lsb_index(curr_piece_bb);
+
+                // material scores
+                score += material_score_eg[piece];
+
+                // Positional scores
+                switch (piece)
+                {
+                    case P:
+                        score += wPawn_eg[square];
+                        break;
+                    case N:
+                        score += wKnight_eg[square];
+                        break;
+                    case B:
+                        score += wBishop_eg[square];
+                        break;
+                    case R:
+                        score += wRook_eg[square];
+                        break;
+                    case Q:
+                        score += wQueen_eg[square];
+                        break;
+                    case K:
+                        score += wKing_eg[square];
+                        break;
+                    case p:
+                        score -= wPawn_eg[mirror_score[square]];
+                        break;
+                    case n:
+                        score -= wKnight_eg[mirror_score[square]];
+                        break;
+                    case b:
+                        score -= wBishop_eg[mirror_score[square]];
+                        break;
+                    case r:
+                        score -= wRook_eg[mirror_score[square]];
+                        break;
+                    case q:
+                        score -= wQueen_eg[mirror_score[square]];
+                        break;
+                    case k:
+                        score -= wKing_eg[mirror_score[square]];
+                        break;
+                }
+
+                pop_bit(curr_piece_bb, square);
+            }
         }
 
     }
 
     return (colour_to_move==white) ? score : -score;
 }
+
+
