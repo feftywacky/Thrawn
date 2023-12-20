@@ -2,6 +2,13 @@
 IN DEVELOPMENT <br>
 chess engine in c++ that uses a bitboard data structure and a piece square tables evaluation (nnue in the future)
 
+## Features
+- ~1500 ELO?
+- Plays relatively fast with search depth 10
+- Implements UCI protocol
+- Uses bitboard data structure for fast move generation
+- Various search optimizations
+
 ## Updates
 - null move pruning
 - late move reduction
@@ -13,11 +20,6 @@ chess engine in c++ that uses a bitboard data structure and a piece square table
 - piece table evaluation
 - uci compliant
 - passes perft test! <3
-
-## Features
-- ~1500 ELO?
-- Implements UCI protocol
-- Uses bitboard data structure for fast move generation
 
 ## Compiling ThrawnEngine
 currently only supports windows machines with 64-bit CPUs
