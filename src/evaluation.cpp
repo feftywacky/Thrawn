@@ -193,8 +193,8 @@ int evaluate()
     uint64_t curr_piece_bb;
     bool isEndgame = false;
 
-    // if (count_bits(occupancies[white] ^ piece_bitboards[P])<=4 && count_bits(occupancies[black] ^ piece_bitboards[p])<=4)
-    //     isEndgame = true;
+    if (count_bits(occupancies[white] ^ piece_bitboards[P])<=4 && count_bits(occupancies[black] ^ piece_bitboards[p])<=4)
+        isEndgame = true;
 
     for (int i=P;i<=k;i++)
     {
