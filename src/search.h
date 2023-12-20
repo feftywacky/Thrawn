@@ -18,6 +18,8 @@ extern std::vector<std::vector<int>> pv_table;
 extern bool follow_pv_flag;
 extern bool score_pv_flag;
 
+extern const int full_depth_moves;
+extern const int reduction_limit;
 
 // negamax with alpha beta pruning
 int negamax(int depth, int alpha, int beta);

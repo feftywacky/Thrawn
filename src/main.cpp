@@ -27,7 +27,7 @@ int main() {
         print_board(colour_to_move);
 
         auto start_time = std::chrono::high_resolution_clock::now();
-        search_position(7);
+        search_position(8);
         auto end_time = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
 
