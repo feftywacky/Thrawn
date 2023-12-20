@@ -8,6 +8,7 @@
 #include <vector>
 #include <cstring>
 #include <string>
+#include <chrono>
 
 using namespace std;
 
@@ -121,7 +122,15 @@ void uci_parse_go(const char* command)
     
     // negamax alpha beta pruning search
     cout<<"search depth: "<<depth<<endl;
+    auto start_time = std::chrono::high_resolution_clock::now();
     search_position(depth);
+    auto end_time = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
+
+    // Convert microseconds to seconds
+    double seconds = duration.count() / 1e6;
+
+    std::cout << "search_position execution time: " << seconds << " seconds" << std::endl;
 }
 
 void uci_loop() {

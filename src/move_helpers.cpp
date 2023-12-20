@@ -61,9 +61,17 @@ int get_is_move_castling(int move)
 
 void print_move(const int& move)
 {
+    if (get_promoted_piece(move))
+    {
     std::cout << square_to_coordinates[get_move_source(move)]
               << square_to_coordinates[get_move_target(move)]
-              << promoted_pieces.at(get_promoted_piece(move)) << std::endl;
+              << promoted_pieces.at(get_promoted_piece(move));
+    }
+    else
+    {
+        std::cout << square_to_coordinates[get_move_source(move)]
+              << square_to_coordinates[get_move_target(move)];
+    }
 }
 
 void print_move_list(const std::vector<int>& move_list) 

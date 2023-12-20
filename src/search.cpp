@@ -6,20 +6,42 @@
 #include <vector>
 #include <algorithm>
 #include <numeric>
+#include <cstring>
 
 using namespace std;
 
+const int MAX_DEPTH = 64;
 int ply;
-int best_move;
-int nodes;
+long nodes;
+
+std::vector<int> pv_depth(MAX_DEPTH); // [ply]
+std::vector<std::vector<int>> pv_table(MAX_DEPTH, std::vector<int>(MAX_DEPTH)); // [ply][ply]
+std::vector<std::vector<int>> killer_moves(2, std::vector<int>(MAX_DEPTH)); // [killer 1 or 2][ply]
+std::vector<std::vector<int>> history_moves(12, std::vector<int>(64)); // [piece][sq]
+
+// pv sorting
+bool follow_pv_flag = false;
+bool score_pv_flag = false;
 
 int negamax(int depth, int alpha, int beta)
 {
+    // init pv 
+    pv_depth[ply] = ply;
+
+    // init pvs
+    bool found_pv_flag = false;
+    
     if (depth == 0)
     {
         return quiescence(alpha, beta);
-        // return evaluate();
     }
+
+    if (ply>=MAX_DEPTH) // array overflow at max depth
+    {
+        cout<<"array overflow at max depth: "<<ply<<endl;
+        return evaluate();
+    }
+
 
     nodes++;
     int valid_moves = 0;
@@ -27,12 +49,12 @@ int negamax(int depth, int alpha, int beta)
     
     if(inCheck)
         depth++;
-
-    int best_move_for_now;
-
-    int old_alpha = alpha;
-
+    
     vector<int> moves = generate_moves();
+    if (follow_pv_flag)
+    {
+        score_pv(moves);
+    }
     sort_moves(moves);
 
     for (int move : moves)
@@ -48,22 +70,52 @@ int negamax(int depth, int alpha, int beta)
         }
         valid_moves++;
 
-        int score = -negamax(depth-1, -beta, -alpha);
+        // pvs
+        int score = 0;
+        if (found_pv_flag)
+        {
+            score = -negamax(depth-1, -alpha-1, -alpha);
+            if (score>alpha && score<beta) // research failed bad move
+                score = -negamax(depth-1, -beta, -alpha);
+        }
+        else
+        {
+            score = -negamax(depth-1, -beta, -alpha);
+        }
+
 
         ply--;
         restoreBoard();
         
-        
         // fail-hard beta cutoff
         if (score>=beta)
-            return beta; // fails high
-
-        // found better move 
-        if (score > alpha)
         {
+            if (get_is_capture_move(move)==0)
+            {
+                killer_moves[1][ply] = killer_moves[0][ply];
+                killer_moves[0][ply] = move;
+            }
+            return beta; // fails high
+        }
+
+        // found better move, pv
+        if (score> alpha)
+        {
+            if (get_is_capture_move(move)==0)
+                history_moves[get_move_piece(move)][get_move_target(move)] += depth;
+
             alpha = score; // principal variation PV node (best move)
-            if (ply==0) // at root move
-                best_move_for_now = move;
+
+            found_pv_flag = true;
+
+            pv_table[ply][ply] = move;
+            // store deeper ply move into current ply
+            for (int nextPly=ply+1;nextPly<pv_depth[ply+1];nextPly++)
+            {
+                pv_table[ply][nextPly] = pv_table[ply+1][nextPly];
+            }
+
+            pv_depth[ply] = pv_depth[ply+1];
         }
         
     }
@@ -72,17 +124,13 @@ int negamax(int depth, int alpha, int beta)
     {
         if (inCheck)
         {
-            return -19999 + ply; // +ply allows engine to find the smallest depth mate
+            return -29000 + ply; // +ply allows engine to find the smallest depth mate
             // penalizing longer mates less than shorter ones
             
         }
         else
             return 0; // stalemate
     }
-
-
-    if (old_alpha != alpha)
-        best_move = best_move_for_now;
 
     // move fails low (<= alpha)
     return alpha;
@@ -143,18 +191,59 @@ int quiescence(int alpha, int beta)
 
 void search_position(int depth)
 {
-    int score = negamax(depth, -20000, 20000);
+    
+    // RESET VARIABLES
+    int score = 0;
+    nodes = 0;
+    pv_depth.clear();
+    pv_depth.resize(64);
 
-    if (best_move)
+    pv_table.clear();
+    pv_table.resize(64, std::vector<int>(64));
+
+    killer_moves.clear();
+    killer_moves.resize(2, std::vector<int>(64));
+
+    history_moves.clear();
+    history_moves.resize(12, std::vector<int>(64));
+
+    follow_pv_flag = false;
+    score_pv_flag = false;
+
+    // iterative deepening
+    for (int curr_depth = 1;curr_depth<=depth;curr_depth++)
     {
-        cout<< "info score cp " << score << " depth " << depth << " nodes " << nodes <<endl;
-        cout<<"bestmove ";
-        print_move(best_move);
+        follow_pv_flag = true;
+        score = negamax(curr_depth, -30000, 30000);
+    
+        cout<< "info score cp " << score << " depth " << curr_depth << " nodes " << nodes << " pv ";
+
+        for (int i=0;i<pv_depth[0];i++)
+        { 
+            print_move(pv_table[0][i]);
+            cout<<" ";
+        }
+        cout<<"\n";
     }
+
+    cout<<"bestmove ";
+    print_move(pv_table[0][0]);
+    cout<<"\n";
+
 }
 
 int score_move(int move)
 {
+    // scoring pv
+    if (score_pv_flag)
+    {
+        if (pv_table[0][ply] == move)
+        {
+            score_pv_flag = false;
+            return 20000; // give pv move priority
+        }
+    }
+
     if (get_is_capture_move(move))
     {
         int target = P;
@@ -172,9 +261,35 @@ int score_move(int move)
                 break;
             }
         }
-        return mvv_lva[get_move_piece(move)][target];
+        return mvv_lva[get_move_piece(move)][target] + 10000;
     }
+    
+    // quiet moves
+    else
+    {   
+        if (killer_moves[0][ply] == move)
+            return 9000;
+        else if (killer_moves[1][ply] == move)
+            return 8000;
+        else 
+            return history_moves[get_move_piece(move)][get_move_target(move)];
+    }
+
     return 0;
+}
+
+void score_pv(vector<int> &moves)
+{
+    follow_pv_flag = false;
+
+    for (int move: moves)
+    {
+        if (pv_table[0][ply] == move)
+        {
+            score_pv_flag = true;
+            follow_pv_flag = true;
+        }
+    }
 }
 
 void sort_moves(vector<int> &moves)
