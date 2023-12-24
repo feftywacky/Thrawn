@@ -9,8 +9,134 @@
 #include <cstring>
 #include <string>
 #include <chrono>
+#include <unistd.h>
+#include <windows.h>
+#include <stdio.h>
 
 using namespace std;
+
+/*
+TIMING CONTROL AND UCI
+CODE REFERENCES TO VICE CHESS ENGINE BY RICHARD ALBERT
+*/
+
+// exit from engine flag
+int quit = 0;
+
+// UCI "movestogo" command moves counter
+int movestogo = 30;
+
+// UCI "movetime" command time counter
+int movetime = -1;
+
+// UCI "time" command holder (ms)
+int uci_time = -1;
+
+// UCI "inc" command's time increment holder
+int inc = 0;
+
+// UCI "starttime" command time holder
+int starttime = 0;
+
+// UCI "stoptime" command time holder
+int stoptime = 0;
+
+// variable to flag time control availability
+int timeset = 0;
+
+// variable to flag when the time is up
+int stopped = 0;
+
+int get_time_ms() {
+    auto currentTime = std::chrono::high_resolution_clock::now();
+    auto currentTimeMs = std::chrono::time_point_cast<std::chrono::milliseconds>(currentTime);
+    std::chrono::milliseconds duration = currentTimeMs.time_since_epoch();
+    return static_cast<int>(duration.count());
+}
+
+int input_waiting() {
+    static int init = 0;
+    static HANDLE inh;
+    static DWORD dw;
+
+    if (!init) {
+        init = 1;
+        inh = GetStdHandle(STD_INPUT_HANDLE);
+        int pipe = !GetConsoleMode(inh, &dw);
+
+        if (!pipe) {
+            SetConsoleMode(inh, dw & ~(ENABLE_MOUSE_INPUT | ENABLE_WINDOW_INPUT));
+            FlushConsoleInputBuffer(inh);
+        }
+    }
+
+    if (PeekNamedPipe(inh, NULL, 0, NULL, &dw, NULL)) {
+        return dw;
+    } 
+    else {
+        GetNumberOfConsoleInputEvents(inh, &dw);
+        return dw <= 1 ? 0 : dw;
+    }
+    
+}
+
+void read_input() {
+    // Bytes to read holder
+    int bytes;
+
+    // GUI/user input
+    char input[256] = "", *endc;
+
+    // "Listen" to STDIN
+    if (input_waiting()) {
+        stopped = 1;
+
+        // Loop to read bytes from STDIN
+        do {
+            bytes = read(fileno(stdin), input, 256);
+        }
+
+        // Until bytes are available
+        while (bytes < 0);
+
+        // Searches for the first occurrence of '\n'
+        endc = strchr(input, '\n');
+
+        // If a newline character is found, set its value at the pointer to 0
+        if (endc)
+            *endc = 0;
+
+        // If input is available
+        if (strlen(input) > 0) {
+            // Match UCI "quit" command
+            if (!strncmp(input, "quit", 4)) {
+                // Tell the engine to terminate execution
+                quit = 1;
+            }
+
+            // Match UCI "stop" command
+            else if (!strncmp(input, "stop", 4)) {
+                // Tell the engine to terminate execution
+                quit = 1;
+            }
+        }
+    }
+}
+
+// a bridge function to interact between search and GUI input
+void communicate() {
+	// if time is up break here
+    if(timeset == 1 && get_time_ms() > stoptime) {
+		stopped = 1;
+	}
+	
+    // read GUI input
+	read_input();
+}
+
+/*
+UCI PROTOCOL
+*/
 
 int uci_parse_move(const char *move_str)
 {
@@ -112,25 +238,82 @@ void uci_parse_go(const char* command)
 {
     int depth = -1;
 
-    char *curr_depth = nullptr;
+    // Infinite search
+    if (strstr(command, "infinite") != nullptr) {}
 
-    // fixed depth search
-    if (curr_depth = strstr(command, "depth"))
-        depth = atoi(curr_depth+6);
-    else
-        depth = 6;
-    
-    // negamax alpha beta pruning search
-    cout<<"search depth: "<<depth<<endl;
-    auto start_time = std::chrono::high_resolution_clock::now();
+    // Match UCI "binc" command
+    if (strstr(command, "binc") != nullptr && colour_to_move == 1) {
+        // Parse black time increment
+        inc = atoi(strstr(command, "binc") + 5);
+    }
+
+    // Match UCI "winc" command
+    if (strstr(command, "winc") != nullptr && colour_to_move == 0) {
+        // Parse white time increment
+        inc = atoi(strstr(command, "winc") + 5);
+    }
+
+    // Match UCI "wtime" command
+    if (strstr(command, "wtime") != nullptr && colour_to_move == 0) {
+        // Parse white time limit
+        uci_time = atoi(strstr(command, "wtime") + 6);
+    }
+
+    // Match UCI "btime" command
+    if (strstr(command, "btime") != nullptr && colour_to_move == 1) {
+        // Parse black time limit
+        uci_time = atoi(strstr(command, "btime") + 6);
+    }
+
+    // Match UCI "movestogo" command
+    if (strstr(command, "movestogo") != nullptr) {
+        // Parse number of moves to go
+        movestogo = atoi(strstr(command, "movestogo") + 10);
+    }
+
+    // Match UCI "movetime" command
+    if (strstr(command, "movetime") != nullptr) {
+        // Parse amount of time allowed to spend to make a move
+        movetime = atoi(strstr(command, "movetime") + 9);
+    }
+
+    // Match UCI "depth" command
+    if (strstr(command, "depth") != nullptr) {
+        // Parse search depth
+        depth = atoi(strstr(command, "depth") + 6);
+    }
+
+    // If move time is available, set time and moves to go
+    if (movetime != -1) {
+        uci_time = movetime;
+        movestogo = 1;
+    }
+
+    // Initialize start time
+    starttime = get_time_ms();
+
+    // If time control is available
+    if (uci_time != -1) {
+        // Set the timeset flag
+        timeset = 1;
+
+        // Set up timing
+        uci_time /= movestogo;
+        uci_time -= 50;
+        stoptime = starttime + uci_time + inc;
+    }
+
+    // If depth is not available, set depth to 64 plies
+    if (depth == -1) {
+        depth = 64;
+    }
+
+    // Print debug info
+    std::cout << "time:" << uci_time << " start:" << starttime << " stop:" << stoptime
+              << " depth:" << depth << " timeset:" << timeset << std::endl;
+
+    // Search position
     search_position(depth);
-    auto end_time = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
-
-    // Convert microseconds to seconds
-    double seconds = duration.count() / 1e6;
-
-    std::cout << "search_position execution time: " << seconds << " seconds" << std::endl;
 }
 
 void uci_loop() {

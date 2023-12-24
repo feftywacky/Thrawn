@@ -2,6 +2,7 @@
 #include "evaluation.h"
 #include "engine.h"
 #include "move_helpers.h"
+#include "uci.h"
 #include <iostream>
 #include <vector>
 #include <algorithm>
@@ -28,6 +29,9 @@ const int reduction_limit = 3;
 
 int negamax(int depth, int alpha, int beta)
 {
+    if ((nodes & 2047)==0)
+        communicate();
+
     // init pv 
     pv_depth[ply] = ply;
 
@@ -61,6 +65,8 @@ int negamax(int depth, int alpha, int beta)
         // depth - 1 - R, R is reduction constant
         int score = -negamax(depth-1-2, -beta, -beta+1);
         restoreBoard();
+        // time is up
+        if(stopped == 1) return 0;
         // fail hard beta cut-off
         if (score>=beta)
             return beta;
@@ -122,6 +128,10 @@ int negamax(int depth, int alpha, int beta)
 
         ply--;
         restoreBoard();
+
+        // time is up
+        if(stopped == 1) return 0;
+
         moves_searched++;
         
         // fail-hard beta cutoff
@@ -173,6 +183,9 @@ int negamax(int depth, int alpha, int beta)
 
 int quiescence(int alpha, int beta)
 {
+    if ((nodes & 2047)==0)
+        communicate();
+
     nodes++;
 
     int evaluation = evaluate();
@@ -206,6 +219,9 @@ int quiescence(int alpha, int beta)
 
         ply--;
         restoreBoard();
+
+        // time is up
+        if(stopped == 1) return 0;
         
         
         // fail-hard beta cutoff
@@ -248,9 +264,15 @@ void search_position(int depth)
     int alpha = -60000;
     int beta = 60000;
 
+    // time control
+    stopped = 0;
+
     // iterative deepening
     for (int curr_depth = 1;curr_depth<=depth;curr_depth++)
     {
+        // time is up
+        if (stopped == 1) break;
+        
         follow_pv_flag = true;
         score = negamax(curr_depth, alpha, beta);
 
