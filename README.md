@@ -1,13 +1,16 @@
 # ThrawnEngine
 IN DEVELOPMENT <br>
+ThrawnEngine is UCI Compliant (does NOT contain its own GUI)
+
 chess engine in c++ that uses a bitboard data structure and a piece square tables evaluation (nnue in the future)
 
 ## Features
-- ~1500 ELO?
-- Plays relatively fast with search depth 10
-- Implements UCI protocol
-- Uses bitboard data structure for fast move generation
+- ~1900 ELO
+- Time control
 - Various search optimizations
+- Uses bitboard data structure for fast move generation
+- Piece-square tables for evaluation
+- Implements UCI protocol
 
 ## Updates
 - null move pruning
@@ -30,17 +33,16 @@ g++ --version
 > g++ (x86_64-posix-seh-rev0, Built by MinGW-W64 project) 7.3.0
 
 ### Build and Run:
+for gcc: 
 ```bash
 cd src
-g++ -std=c++17 -Ofast -flto -c main.cpp engine.cpp bitboard.cpp bitboard_helpers.cpp constants.cpp fen.cpp move_helpers.cpp perft.cpp uci.cpp search.cpp evaluation.cpp
-g++ -o chess main.o engine.o bitboard.o bitboard_helpers.o constants.o fen.o move_helpers.o perft.o uci.o search.o evaluation.o
-chess.exe
+g++ -std=c++17 -Ofast -flto -o thrawn *.cpp
+thrawn.exe
 ``` 
 
 ## TODO
-- time control
 - improve evaluation function
-- tansposition tables
+- tansposition tables/zobrist hashing, implement 3 move repitition
 - nnue
 
 ## BUGS/POTENTIAL ISSUES
