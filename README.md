@@ -45,5 +45,9 @@ thrawn.exe
 - tansposition tables/zobrist hashing, implement 3 move repitition
 - nnue
 
-## BUGS/POTENTIAL ISSUES
-- none for now 
+## REFERENCES
+- https://www.chessprogramming.org/Main_Page
+- https://web.archive.org/web/20071006042845/http://www.brucemo.com/compchess/programming/index.htm
+- https://github.com/bluefeversoft/vice
+- https://github.com/official-stockfish/Stockfish
+
