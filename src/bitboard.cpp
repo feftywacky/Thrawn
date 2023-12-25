@@ -1,6 +1,7 @@
 #include "bitboard.h"
 #include "zobrist_hashing.h"
 #include "transposition_table.h"
+#include "search.h"
 #include <iostream>
 #include <vector>
 #include <string>
@@ -46,7 +47,6 @@ array<uint64_t, 64> bishop_masks;
 array<array<uint64_t, 512>, 64> bishop_attacks;
 array<uint64_t, 64> rook_masks;
 vector<vector<uint64_t>> rook_attacks(64, vector<uint64_t>(4096, 0));
-
 
 // GET OCCUPANCY BITBOARDS
 uint64_t get_white_occupancy()

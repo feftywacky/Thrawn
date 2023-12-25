@@ -41,11 +41,18 @@ const int INFINITY = 60000;
 const int mateVal = 59000;
 const int mateScore = 58000;
 
+// repetition
+uint64_t repetition_table[128];
+int repetition_index;
+
 int negamax(int depth, int alpha, int beta)
 {
     int score = 0;
 
     int hashFlag = hashFlagALPHA;
+
+    if (ply && isRepetition())
+        return 0;
 
     int pv_node = (beta-alpha > 1); // IMPORTANT FIXES TRANPOSITION TABLE PV BUG
 
@@ -87,6 +94,8 @@ int negamax(int depth, int alpha, int beta)
         copyBoard();
 
         ply++;
+        repetition_index++;
+        repetition_table[repetition_index] = zobristKey;
 
         if (enpassant!=null_sq) 
             zobristKey ^= enpassant_hashkey[enpassant];
@@ -99,6 +108,8 @@ int negamax(int depth, int alpha, int beta)
         score = -negamax(depth-1-2, -beta, -beta+1);
 
         ply--;
+        repetition_index--;
+
         restoreBoard();
 
         // time is up
@@ -124,10 +135,13 @@ int negamax(int depth, int alpha, int beta)
         copyBoard();
 
         ply++;
+        repetition_index++;
+        repetition_table[repetition_index] = zobristKey;
 
         if (!make_move(move, all_moves))
         {
             ply--;
+            repetition_index--;
             continue;
         }
         valid_moves++;
@@ -160,6 +174,8 @@ int negamax(int depth, int alpha, int beta)
 
 
         ply--;
+        repetition_index--;
+
         restoreBoard();
 
         // time is up
@@ -250,16 +266,21 @@ int quiescence(int alpha, int beta)
         copyBoard();
 
         ply++;
+        repetition_index++;
+        repetition_table[repetition_index] = zobristKey;
 
         if (!make_move(move, only_captures))
         {
             ply--;
+            repetition_index--;
             continue;
         }
 
         int score = -quiescence(-beta, -alpha);
 
         ply--;
+        repetition_index--;
+
         restoreBoard();
 
         // time is up
@@ -282,6 +303,16 @@ int quiescence(int alpha, int beta)
 
     // move fails low (<= alpha)
     return alpha;
+}
+
+int isRepetition()
+{
+    for (int i = 0; i < repetition_index; i++)
+    {
+        if (repetition_table[i] == zobristKey)
+            return 1;
+    }
+    return 0;
 }
 
 void search_position(int depth)

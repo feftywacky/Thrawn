@@ -28,13 +28,6 @@ int main() {
         parse_fen(start_position);
         print_board(colour_to_move);
 
-        search_position(11);
-
-        make_move(pv_table[0][0], all_moves);
-
-        search_position(11);
-
-
     }
     else
         uci_loop();

@@ -24,6 +24,12 @@ extern const int reduction_limit;
 extern const int INFINITY;
 extern const int mateVal;
 extern const int mateScore;
+
+// repetition
+extern uint64_t repetition_table[128];
+extern int repetition_index;
+
+
 // negamax with alpha beta pruning
 int negamax(int depth, int alpha, int beta);
 
@@ -38,5 +44,7 @@ void sort_moves(vector<int>& moves);
 void score_pv(vector<int>& moves);
 
 void print_move_scores(const vector<int>& moves);
+
+int isRepetition();
 
 #endif

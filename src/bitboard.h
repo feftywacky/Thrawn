@@ -47,7 +47,6 @@ extern array<array<uint64_t, 512>, 64> bishop_attacks;
 extern array<uint64_t, 64> rook_masks;
 extern vector<vector<uint64_t>> rook_attacks;
 
-
 // METHODS
 
 
