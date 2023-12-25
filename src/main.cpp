@@ -8,6 +8,7 @@
 #include "uci.h"
 #include "evaluation.h"
 #include "search.h"
+#include "zobrist.h"
 #include <cstdint>
 #include <iostream>
 #include <chrono>
@@ -18,23 +19,16 @@ int main() {
 
     init_all();
 
-    bool dev_mode = false;
+    bool dev_mode = true;
 
     if (dev_mode)
     {
         cout<<"developer mode"<<endl;
-        parse_fen("3rr1k1/pb2nppp/1ppq1n2/3pN3/3P1P2/P2B4/1PQ1NPPP/2R2RK1 w - - 0 16");
+        parse_fen("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1");
         print_board(colour_to_move);
 
-        auto start_time = std::chrono::high_resolution_clock::now();
-        search_position(8);
-        auto end_time = std::chrono::high_resolution_clock::now();
-        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
-
-        // Convert microseconds to seconds
-        double seconds = duration.count() / 1e6;
-
-        std::cout << "search_position execution time: " << seconds << " seconds" << std::endl;
+        // perft_search(1);
+        perft_test(5);  
 
     }
     else

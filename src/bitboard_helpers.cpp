@@ -6,6 +6,7 @@
 #include <set>
 #include "constants.h"
 #include "bitboard.h"
+#include "zobrist.h"
 
 using namespace std;
 
@@ -21,7 +22,7 @@ void clear_bit(uint64_t& bitboard, int bit) {
 }
 
 void pop_bit(uint64_t& bitboard, int square) {
-    bitboard ^= (1ULL << square);
+    bitboard &= ~(1ULL << square);
 }
 
 uint64_t get_bit(uint64_t bitboard, int bit){
@@ -183,7 +184,10 @@ void print_board(int side)
 
     // print castling rights
     std::cout << "     Castling:  " << ((castle_rights & wks) ? 'K' : '-') << ((castle_rights & wqs) ? 'Q' : '-')
-              << ((castle_rights & bks) ? 'k' : '-') << ((castle_rights & bqs) ? 'q' : '-') << "\n\n";
+              << ((castle_rights & bks) ? 'k' : '-') << ((castle_rights & bqs) ? 'q' : '-') << "\n";
+    
+    std::cout << "     HashKey:   " << std::hex <<position_hashkey << "\n\n";
+    std::cout<<std::dec;
 }
 
 void print_bits(uint64_t num)

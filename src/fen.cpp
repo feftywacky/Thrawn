@@ -2,6 +2,7 @@
 #include "bitboard.h"
 #include "bitboard_helpers.h"
 #include "constants.h"
+#include "zobrist.h"
 #include <string>
 
 using namespace std;
@@ -119,4 +120,7 @@ void parse_fen(const char* fen)
     occupancies[0] = get_white_occupancy();
     occupancies[1] = get_black_occupancy();
     occupancies[2] = get_both_occupancy();
+    
+    // init hashkeys
+    position_hashkey = gen_hashkey();
 }

@@ -3,12 +3,14 @@
 #include "move_helpers.h"
 #include "constants.h"
 #include "bitboard_helpers.h"
+#include "zobrist.h"
 #include <chrono>
 
 long leaf_nodes;
 
 void perft_search (int depth)
 {
+    
     if (depth == 0)
     {
         leaf_nodes++;
@@ -16,7 +18,7 @@ void perft_search (int depth)
     }  
 
     vector<int> moves = generate_moves();
-    // print_move_list(moves);
+    
     for (int move : moves)
     {
         copyBoard();   
@@ -26,8 +28,21 @@ void perft_search (int depth)
             continue;
 
         perft_search(depth-1);
-
+        
         restoreBoard();
+
+        // uint64_t curr_hash = gen_hashkey(); // new hashkey after move made
+        // if (curr_hash != position_hashkey)
+        // {
+        //     cout<<"undo_move()"<<"\n";
+        //     cout<<"move: ";
+        //     print_move(move);
+        //     cout<<"\n";
+        //     print_board(colour_to_move);
+        //     cout<<"correct hashkey: "<<std::hex<<curr_hash<<"\n";
+        //     cin.get();
+
+        // }
 
     }
 
@@ -40,14 +55,15 @@ void perft_test(int depth)
     auto start = std::chrono::high_resolution_clock::now();
     for (int move : moves)
     {
+        
         copyBoard();
-
+        
 
         if (!make_move(move, all_moves))
             continue;
 
         long cumulative_nodes = leaf_nodes;
-
+        
         perft_search(depth-1);
 
         long old_nodes = leaf_nodes - cumulative_nodes;

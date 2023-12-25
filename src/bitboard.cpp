@@ -1,4 +1,5 @@
 #include "bitboard.h"
+#include "zobrist.h"
 #include <iostream>
 #include <vector>
 #include <string>
@@ -490,7 +491,11 @@ void init_leaping_attacks()
 void init_all()
 {
     // init_magic_nums(); // used to help generate magic bitboards
+    
     init_leaping_attacks();
     init_sliding_attacks(bishop);
     init_sliding_attacks(rook);
+
+    // init hashkeys
+    init_hashkeys();
 }

@@ -17,7 +17,7 @@ using namespace std;
 
 /*
 TIMING CONTROL AND UCI
-CODE REFERENCES TO VICE CHESS ENGINE BY RICHARD ALBERT
+UCI PROTOCOL CODE REFERENCES TO VICE CHESS ENGINE BY RICHARD ALBERT
 */
 
 // exit from engine flag
@@ -323,7 +323,7 @@ void uci_loop() {
     string input;
     
     // print engine info
-    cout << "fefty engine v1\n";
+    cout << "ThrawnEngine v1\n";
     cout << "Feiyu Lin\n";
     cout << "uciok\n";
     
@@ -367,7 +367,7 @@ void uci_loop() {
         // parse UCI "uci" command
         else if (input.compare(0, 3, "uci") == 0)
         {
-            cout << "fefty engine v1\n";
+            cout << "ThrawnEngine v1\n";
             cout << "Feiyu Lin\n";
             cout << "uciok\n";
         }
