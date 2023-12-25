@@ -42,7 +42,7 @@ const int mateVal = 59000;
 const int mateScore = 58000;
 
 // repetition
-uint64_t repetition_table[128];
+uint64_t repetition_table[1028]; // 1028 plies for a game
 int repetition_index;
 
 int negamax(int depth, int alpha, int beta)

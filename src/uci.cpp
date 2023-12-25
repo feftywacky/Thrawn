@@ -219,6 +219,9 @@ void uci_parse_position(const char *command) {
             if (move == 0)
                 break;
 
+            repetition_index++;
+            repetition_table[repetition_index] = zobristKey;
+
             make_move(move, all_moves);
 
             // Move index to the end of the current move

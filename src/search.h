@@ -26,7 +26,7 @@ extern const int mateVal;
 extern const int mateScore;
 
 // repetition
-extern uint64_t repetition_table[128];
+extern uint64_t repetition_table[1028];
 extern int repetition_index;
 
 
