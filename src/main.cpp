@@ -8,7 +8,7 @@
 #include "uci.h"
 #include "evaluation.h"
 #include "search.h"
-#include "zobrist.h"
+#include "zobrist_hashing.h"
 #include <cstdint>
 #include <iostream>
 #include <chrono>

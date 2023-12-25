@@ -3,7 +3,7 @@
 #include "move_helpers.h"
 #include "constants.h"
 #include "bitboard_helpers.h"
-#include "zobrist.h"
+#include "zobrist_hashing.h"
 #include <chrono>
 
 long leaf_nodes;

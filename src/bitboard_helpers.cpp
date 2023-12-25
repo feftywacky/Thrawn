@@ -6,7 +6,7 @@
 #include <set>
 #include "constants.h"
 #include "bitboard.h"
-#include "zobrist.h"
+#include "zobrist_hashing.h"
 
 using namespace std;
 

@@ -1,5 +1,5 @@
-#ifndef ZOBRIST_H
-#define ZOBRIST_H
+#ifndef ZOBRIST_HASHING_H
+#define ZOBRIST_HASHING_H
 
 #include <cstdint>
 #include <iostream>

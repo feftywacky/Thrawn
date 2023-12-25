@@ -1,4 +1,4 @@
-#include "zobrist.h"
+#include "zobrist_hashing.h"
 #include "bitboard.h"
 #include "bitboard_helpers.h"
 #include <cstdint>

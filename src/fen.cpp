@@ -2,7 +2,7 @@
 #include "bitboard.h"
 #include "bitboard_helpers.h"
 #include "constants.h"
-#include "zobrist.h"
+#include "zobrist_hashing.h"
 #include <string>
 
 using namespace std;

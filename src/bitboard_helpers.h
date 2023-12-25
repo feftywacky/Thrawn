@@ -6,7 +6,7 @@
 #include <map>
 #include <set>
 #include "constants.h"
-#include "zobrist.h"
+#include "zobrist_hashing.h"
 #include <cstdint>
 
 using namespace std;

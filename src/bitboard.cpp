@@ -1,5 +1,5 @@
 #include "bitboard.h"
-#include "zobrist.h"
+#include "zobrist_hashing.h"
 #include <iostream>
 #include <vector>
 #include <string>
