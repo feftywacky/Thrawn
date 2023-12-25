@@ -56,13 +56,13 @@ void print_bits(uint64_t num);
     int colour_to_move_copy; \
     int enpassant_copy; \
     int castle_rights_copy; \
-    uint64_t position_hashkey_copy; \
+    uint64_t zobristKey_copy; \
     piece_bitboards_copy = piece_bitboards; \
     occupancies_copy = occupancies; \
     colour_to_move_copy = colour_to_move; \
     enpassant_copy = enpassant; \
     castle_rights_copy = castle_rights; \
-    position_hashkey_copy = position_hashkey; \
+    zobristKey_copy = zobristKey; \
 
 // Restore board state
 #define restoreBoard() \
@@ -71,6 +71,6 @@ void print_bits(uint64_t num);
     colour_to_move = colour_to_move_copy; \
     enpassant = enpassant_copy; \
     castle_rights = castle_rights_copy; \
-    position_hashkey = position_hashkey_copy; \
+    zobristKey = zobristKey_copy; \
 
 #endif

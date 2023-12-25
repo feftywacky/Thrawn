@@ -1,5 +1,5 @@
 #include "perft.h"
-#include "engine.h"
+#include "move_generator.h"
 #include "move_helpers.h"
 #include "constants.h"
 #include "bitboard_helpers.h"
@@ -32,7 +32,7 @@ void perft_search (int depth)
         restoreBoard();
 
         // uint64_t curr_hash = gen_hashkey(); // new hashkey after move made
-        // if (curr_hash != position_hashkey)
+        // if (curr_hash != zobristKey)
         // {
         //     cout<<"undo_move()"<<"\n";
         //     cout<<"move: ";

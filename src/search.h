@@ -21,6 +21,9 @@ extern bool score_pv_flag;
 extern const int full_depth_moves;
 extern const int reduction_limit;
 
+extern const int INFINITY;
+extern const int mateVal;
+extern const int mateScore;
 // negamax with alpha beta pruning
 int negamax(int depth, int alpha, int beta);
 

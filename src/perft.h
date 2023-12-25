@@ -1,7 +1,7 @@
 #ifndef PERFT_H
 #define PERFT_H
 
-#include "engine.h"
+#include "move_generator.h"
 
 extern long leaf_nodes;
 

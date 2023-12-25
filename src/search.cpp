@@ -1,8 +1,10 @@
 #include "search.h"
 #include "evaluation.h"
-#include "engine.h"
+#include "move_generator.h"
 #include "move_helpers.h"
 #include "uci.h"
+#include "zobrist_hashing.h"
+#include "transposition_table.h"
 #include <iostream>
 #include <vector>
 #include <algorithm>
@@ -10,6 +12,14 @@
 #include <cstring>
 
 using namespace std;
+
+/*
+some notes for negamax 
+3 types
+- fail high: causes beta cut-off
+- fail low: don't increase alpha
+- pv nodes: increase alpha
+*/
 
 const int MAX_DEPTH = 64;
 int ply;
@@ -27,8 +37,23 @@ bool score_pv_flag = false;
 const int full_depth_moves = 4;
 const int reduction_limit = 3;
 
+const int INFINITY = 60000;
+const int mateVal = 59000;
+const int mateScore = 58000;
+
 int negamax(int depth, int alpha, int beta)
 {
+    int score = 0;
+
+    int hashFlag = hashFlagALPHA;
+
+    int pv_node = (beta-alpha > 1); // IMPORTANT FIXES TRANPOSITION TABLE PV BUG
+
+    // retrieve score if not root ply and not pv node and tt key exists
+    // if move has already been searched, return its score instantly
+    if (ply && pv_node==0 && (score = probeHashMap(depth, alpha, beta)) != no_hashmap_entry)
+        return score;
+
     if ((nodes & 2047)==0)
         communicate();
 
@@ -60,11 +85,22 @@ int negamax(int depth, int alpha, int beta)
     {
         // give opponent another move
         copyBoard();
-        colour_to_move ^= 1;
+
+        ply++;
+
+        if (enpassant!=null_sq) 
+            zobristKey ^= enpassant_hashkey[enpassant];
         enpassant = null_sq;
+
+        colour_to_move ^= 1;
+        zobristKey ^= colour_to_move_hashkey;
+        
         // depth - 1 - R, R is reduction constant
-        int score = -negamax(depth-1-2, -beta, -beta+1);
+        score = -negamax(depth-1-2, -beta, -beta+1);
+
+        ply--;
         restoreBoard();
+
         // time is up
         if(stopped == 1) return 0;
         // fail hard beta cut-off
@@ -95,9 +131,6 @@ int negamax(int depth, int alpha, int beta)
             continue;
         }
         valid_moves++;
-
-
-        int score = 0;
 
         // full depth search
         if (moves_searched == 0) 
@@ -133,21 +166,12 @@ int negamax(int depth, int alpha, int beta)
         if(stopped == 1) return 0;
 
         moves_searched++;
-        
-        // fail-hard beta cutoff
-        if (score>=beta)
-        {
-            if (get_is_capture_move(move)==0)
-            {
-                killer_moves[1][ply] = killer_moves[0][ply];
-                killer_moves[0][ply] = move;
-            }
-            return beta; // fails high
-        }
 
         // found better move, pv
         if (score> alpha)
         {
+            hashFlag = hashFlagEXACT; // pv node
+
             if (get_is_capture_move(move)==0)
                 history_moves[get_move_piece(move)][get_move_target(move)] += depth;
 
@@ -161,6 +185,19 @@ int negamax(int depth, int alpha, int beta)
             }
 
             pv_depth[ply] = pv_depth[ply+1];
+
+            // fail-hard beta cutoff
+            if (score>=beta)
+            {
+                writeToHashMap(depth, beta, hashFlagBETA);
+
+                if (get_is_capture_move(move)==0)
+                {
+                    killer_moves[1][ply] = killer_moves[0][ply];
+                    killer_moves[0][ply] = move;
+                }
+                return beta; // fails high
+            }
         }
         
     }
@@ -169,13 +206,15 @@ int negamax(int depth, int alpha, int beta)
     {
         if (inCheck)
         {
-            return -59000 + ply; // +ply allows engine to find the smallest depth mate
+            return -mateVal + ply; // +ply allows engine to find the smallest depth mate
             // penalizing longer mates less than shorter ones
             
         }
         else
             return 0; // stalemate
     }
+
+    writeToHashMap(depth, alpha, hashFlag);
 
     // move fails low (<= alpha)
     return alpha;
@@ -187,6 +226,9 @@ int quiescence(int alpha, int beta)
         communicate();
 
     nodes++;
+
+    if (ply>MAX_DEPTH - 1)
+        return evaluate();
 
     int evaluation = evaluate();
 
@@ -224,14 +266,16 @@ int quiescence(int alpha, int beta)
         if(stopped == 1) return 0;
         
         
-        // fail-hard beta cutoff
-        if (score>=beta)
-            return beta; // fails high
+        
 
         // found better move 
         if (score > alpha)
         {
             alpha = score; // principal variation PV node (best move)
+
+            // fail-hard beta cutoff
+            if (score>=beta)
+                return beta; // fails high
         }
         
     }
@@ -261,8 +305,8 @@ void search_position(int depth)
     follow_pv_flag = false;
     score_pv_flag = false;
 
-    int alpha = -60000;
-    int beta = 60000;
+    int alpha = -INFINITY;
+    int beta = INFINITY;
 
     // time control
     stopped = 0;
@@ -280,15 +324,32 @@ void search_position(int depth)
         // aspiration window
         if (score<=alpha || score>=beta)
         {
-            alpha = -60000;
-            beta = 60000;
+            alpha = -INFINITY;
+            beta = INFINITY;
             continue;
         }
 
         alpha = score - 50;
         beta = score + 50;
     
-        std::cout<< "info score cp " << score << " depth " << curr_depth << " nodes " << nodes << " pv ";
+        if (score > -mateVal && score < -mateScore)
+            std::cout << "info score mate " << -(score + mateVal) / 2 - 1
+                    << " depth " << curr_depth
+                    << " nodes " << nodes
+                    << " time " << get_time_ms() - starttime
+                    << " pv ";
+        else if (score > mateScore && score < mateVal)
+            std::cout << "info score mate " << (mateVal - score) / 2 + 1
+                    << " depth " << curr_depth
+                    << " nodes " << nodes
+                    << " time " << get_time_ms() - starttime
+                    << " pv ";
+        else
+            std::cout << "info score cp " << score
+                    << " depth " << curr_depth
+                    << " nodes " << nodes
+                    << " time " << get_time_ms() - starttime
+                    << " pv ";
 
         for (int i=0;i<pv_depth[0];i++)
         { 

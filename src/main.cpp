@@ -1,5 +1,5 @@
 #include "bitboard.h"
-#include "engine.h"
+#include "move_generator.h"
 #include "bitboard_helpers.h"
 #include "constants.h"
 #include "fen.h"
@@ -9,6 +9,7 @@
 #include "evaluation.h"
 #include "search.h"
 #include "zobrist_hashing.h"
+#include "transposition_table.h"
 #include <cstdint>
 #include <iostream>
 #include <chrono>
@@ -19,16 +20,20 @@ int main() {
 
     init_all();
 
-    bool dev_mode = true;
+    bool dev_mode = false;
 
     if (dev_mode)
     {
         cout<<"developer mode"<<endl;
-        parse_fen("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1");
+        parse_fen(start_position);
         print_board(colour_to_move);
 
-        // perft_search(1);
-        perft_test(5);  
+        search_position(11);
+
+        make_move(pv_table[0][0], all_moves);
+
+        search_position(11);
+
 
     }
     else

@@ -1,4 +1,4 @@
-#include "engine.h"
+#include "move_generator.h"
 #include "bitboard.h"
 #include "constants.h"
 #include "bitboard_helpers.h"
@@ -456,8 +456,8 @@ int make_move(int move, int move_type)
         pop_bit(piece_bitboards[piece], source);
         set_bit(piece_bitboards[piece], target);
 
-        position_hashkey ^= piece_hashkey[piece][source]; // update hash to exclude source 
-        position_hashkey ^= piece_hashkey[piece][target]; // update hash to include target
+        zobristKey ^= piece_hashkey[piece][source]; // update hash to exclude source 
+        zobristKey ^= piece_hashkey[piece][target]; // update hash to include target
 
         // if capture move, remove the piece being captured from its corresponding bitboard
         // ie. if white pawn captures black kngiht, remove black knight from black knight bitboard
@@ -476,7 +476,7 @@ int make_move(int move, int move_type)
                     pop_bit(piece_bitboards[i], target);
                     
                     // update hashkey to exclude captured piece
-                    position_hashkey ^= piece_hashkey[i][target]; 
+                    zobristKey ^= piece_hashkey[i][target]; 
                     break;
                 }
             }
@@ -490,16 +490,16 @@ int make_move(int move, int move_type)
             if (colour_to_move == white)
             {
                 pop_bit(piece_bitboards[P], target);
-                position_hashkey ^= piece_hashkey[P][target];
+                zobristKey ^= piece_hashkey[P][target];
             }
             else
             {
                 pop_bit(piece_bitboards[p], target);
-                position_hashkey ^= piece_hashkey[p][target];
+                zobristKey ^= piece_hashkey[p][target];
             }
             
             set_bit(piece_bitboards[promoted_piece], target);
-            position_hashkey ^= piece_hashkey[promoted_piece][target];
+            zobristKey ^= piece_hashkey[promoted_piece][target];
         }
 
         // handle enpassant capture
@@ -511,18 +511,18 @@ int make_move(int move, int move_type)
             if (colour_to_move==white)
             {
                 pop_bit(piece_bitboards[p], target + 8);
-                position_hashkey ^= piece_hashkey[p][target + 8];
+                zobristKey ^= piece_hashkey[p][target + 8];
             }
             else
             {
                 pop_bit(piece_bitboards[P], target - 8);
-                position_hashkey ^= piece_hashkey[P][target- 8];
+                zobristKey ^= piece_hashkey[P][target- 8];
             }
         }
 
         if (enpassant!=null_sq)
         {
-            position_hashkey ^= enpassant_hashkey[enpassant];
+            zobristKey ^= enpassant_hashkey[enpassant];
         }
         enpassant = null_sq;
 
@@ -534,12 +534,12 @@ int make_move(int move, int move_type)
             if (colour_to_move == white)
             {   
                 enpassant = target + 8;
-                position_hashkey ^= enpassant_hashkey[target+8];
+                zobristKey ^= enpassant_hashkey[target+8];
             }
             else
             {
                 enpassant = target - 8;
-                position_hashkey ^= enpassant_hashkey[target-8];
+                zobristKey ^= enpassant_hashkey[target-8];
             }
         }
 
@@ -551,41 +551,41 @@ int make_move(int move, int move_type)
                 pop_bit(piece_bitboards[R], h1);
                 set_bit(piece_bitboards[R], f1);
 
-                position_hashkey ^= piece_hashkey[R][h1];  // remove rook from h1 from hash key
-                position_hashkey ^= piece_hashkey[R][f1];  // put rook on f1 into a hash key
+                zobristKey ^= piece_hashkey[R][h1];  // remove rook from h1 from hash key
+                zobristKey ^= piece_hashkey[R][f1];  // put rook on f1 into a hash key
             }
             else if (target == c1)
             {
                 pop_bit(piece_bitboards[R], a1);
                 set_bit(piece_bitboards[R], d1);
 
-                position_hashkey ^= piece_hashkey[R][a1];  // remove rook from a1 from hash key
-                position_hashkey ^= piece_hashkey[R][d1];  // put rook on d1 into a hash key
+                zobristKey ^= piece_hashkey[R][a1];  // remove rook from a1 from hash key
+                zobristKey ^= piece_hashkey[R][d1];  // put rook on d1 into a hash key
             }
             else if (target == g8)
             {
                 pop_bit(piece_bitboards[r], h8);
                 set_bit(piece_bitboards[r], f8);
 
-                position_hashkey ^= piece_hashkey[r][h8];  // remove rook from h8 from hash key
-                position_hashkey ^= piece_hashkey[r][f8];  // put rook on f8 into a hash key
+                zobristKey ^= piece_hashkey[r][h8];  // remove rook from h8 from hash key
+                zobristKey ^= piece_hashkey[r][f8];  // put rook on f8 into a hash key
             }
             else if (target == c8)
             {
                 pop_bit(piece_bitboards[r], a8);
                 set_bit(piece_bitboards[r], d8);
 
-                position_hashkey ^= piece_hashkey[r][a8];  // remove rook from a8 from hash key
-                position_hashkey ^= piece_hashkey[r][d8];  // put rook on d8 into a hash key
+                zobristKey ^= piece_hashkey[r][a8];  // remove rook from a8 from hash key
+                zobristKey ^= piece_hashkey[r][d8];  // put rook on d8 into a hash key
             }         
         }
-        position_hashkey ^= castling_hashkey[castle_rights]; // remove castling right hash
+        zobristKey ^= castling_hashkey[castle_rights]; // remove castling right hash
 
         // updating castling rights after every move
         castle_rights &= update_castling_right_values[source];
         castle_rights &= update_castling_right_values[target];
 
-        position_hashkey ^= castling_hashkey[castle_rights]; // update castling right hash
+        zobristKey ^= castling_hashkey[castle_rights]; // update castling right hash
 
         // update colour occupancies
         occupancies[white] = get_white_occupancy();
@@ -595,10 +595,10 @@ int make_move(int move, int move_type)
         // change sides
         colour_to_move ^= 1;
 
-        position_hashkey ^= colour_to_move_hashkey;
+        zobristKey ^= colour_to_move_hashkey;
         
         // uint64_t curr_hash = gen_hashkey(); // new hashkey after move made
-        // if (curr_hash != position_hashkey)
+        // if (curr_hash != zobristKey)
         // {
         //     cout<<"make_move()"<<"\n";
         //     cout<<"move: ";

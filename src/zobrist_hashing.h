@@ -14,7 +14,7 @@ extern uint64_t enpassant_hashkey[64]; // [enpassant square]
 extern uint64_t castling_hashkey[16];  // [castle rights]
 extern uint64_t colour_to_move_hashkey;
 
-extern uint64_t position_hashkey;
+extern uint64_t zobristKey;
 
 void init_hashkeys();
 uint64_t gen_hashkey();

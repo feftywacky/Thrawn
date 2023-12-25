@@ -15,7 +15,7 @@ uint64_t enpassant_hashkey[64]; // [enpassant square]
 uint64_t castling_hashkey[16]; // [castle rights]
 uint64_t colour_to_move_hashkey;
 
-uint64_t position_hashkey;
+uint64_t zobristKey;
 
 void init_hashkeys()
 {

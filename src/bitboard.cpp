@@ -1,5 +1,6 @@
 #include "bitboard.h"
 #include "zobrist_hashing.h"
+#include "transposition_table.h"
 #include <iostream>
 #include <vector>
 #include <string>
@@ -498,4 +499,5 @@ void init_all()
 
     // init hashkeys
     init_hashkeys();
+    reset_hashmap();
 }

@@ -1,7 +1,8 @@
 #include "uci.h"
-#include "engine.h"
+#include "move_generator.h"
 #include "move_helpers.h"
 #include "bitboard_helpers.h"
+#include "transposition_table.h"
 #include "fen.h"
 #include "search.h"
 #include <stdlib.h>
@@ -350,11 +351,17 @@ void uci_loop() {
 
         // parse UCI "position" command
         else if (input.compare(0, 8, "position") == 0)
+        {
             uci_parse_position(input.c_str());
+            reset_hashmap();
+        }
         
         // parse UCI "ucinewgame" command
         else if (input.compare(0, 10, "ucinewgame") == 0) 
+        {
             uci_parse_position("position startpos");
+            reset_hashmap();
+        }
         
         // parse UCI "go" command
         else if (input.compare(0, 2, "go") == 0)

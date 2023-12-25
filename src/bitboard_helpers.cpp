@@ -186,7 +186,7 @@ void print_board(int side)
     std::cout << "     Castling:  " << ((castle_rights & wks) ? 'K' : '-') << ((castle_rights & wqs) ? 'Q' : '-')
               << ((castle_rights & bks) ? 'k' : '-') << ((castle_rights & bqs) ? 'q' : '-') << "\n";
     
-    std::cout << "     HashKey:   " << std::hex <<position_hashkey << "\n\n";
+    std::cout << "     ZobristKey:   " << std::hex <<zobristKey << "\n\n";
     std::cout<<std::dec;
 }
 
