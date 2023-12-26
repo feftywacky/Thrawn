@@ -6,7 +6,7 @@ Requires a GUI engine such as CuteChess, Arena GUI, Scid vs PC etc.
 chess engine in c++ that uses a bitboard data structure and a piece square tables evaluation (nnue in the future)
 
 ## Features
-- ~1900 ELO
+- ~1800 ELO
 - Time control
 - Various search optimizations
 - Uses bitboard data structure for fast move generation

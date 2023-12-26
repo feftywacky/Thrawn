@@ -13,6 +13,7 @@
 #include <unistd.h>
 #include <windows.h>
 #include <stdio.h>
+#include <sys/time.h>
 
 using namespace std;
 
@@ -48,33 +49,42 @@ int timeset = 0;
 // variable to flag when the time is up
 int stopped = 0;
 
+
+/*
+TIME CONTROL
+*/
 int get_time_ms() {
-    auto currentTime = std::chrono::high_resolution_clock::now();
-    auto currentTimeMs = std::chrono::time_point_cast<std::chrono::milliseconds>(currentTime);
-    std::chrono::milliseconds duration = currentTimeMs.time_since_epoch();
-    return static_cast<int>(duration.count());
+    struct timeval time_value;
+    gettimeofday(&time_value, nullptr);
+    return static_cast<long long>(time_value.tv_sec) * 1000 + time_value.tv_usec / 1000;
 }
 
-int input_waiting() {
-    static int init = 0;
+int input_waiting() 
+{
+    static int init = 0, pipe;
     static HANDLE inh;
-    static DWORD dw;
+    DWORD dw;
 
-    if (!init) {
+    if (!init)
+    {
         init = 1;
         inh = GetStdHandle(STD_INPUT_HANDLE);
-        int pipe = !GetConsoleMode(inh, &dw);
-
-        if (!pipe) {
-            SetConsoleMode(inh, dw & ~(ENABLE_MOUSE_INPUT | ENABLE_WINDOW_INPUT));
+        pipe = !GetConsoleMode(inh, &dw);
+        if (!pipe)
+        {
+            SetConsoleMode(inh, dw & ~(ENABLE_MOUSE_INPUT|ENABLE_WINDOW_INPUT));
             FlushConsoleInputBuffer(inh);
         }
     }
-
-    if (PeekNamedPipe(inh, NULL, 0, NULL, &dw, NULL)) {
+    
+    if (pipe)
+    {
+        if (!PeekNamedPipe(inh, NULL, 0, NULL, &dw, NULL)) return 1;
         return dw;
-    } 
-    else {
+    }
+    
+    else
+    {
         GetNumberOfConsoleInputEvents(inh, &dw);
         return dw <= 1 ? 0 : dw;
     }
@@ -240,6 +250,7 @@ void uci_parse_position(const char *command) {
 
 void uci_parse_go(const char* command)
 {
+    reset_time_control();
     int depth = -1;
 
     // Infinite search
@@ -313,7 +324,7 @@ void uci_parse_go(const char* command)
     }
 
     // Print debug info
-    std::cout << "time:" << uci_time << " start:" << starttime << " stop:" << stoptime
+    std::cout << "time:" << uci_time << " start:" << static_cast<unsigned int>(starttime) << " stop:" << static_cast<unsigned int>(stoptime)
               << " depth:" << depth << " timeset:" << timeset << std::endl;
 
     // Search position
@@ -382,6 +393,19 @@ void uci_loop() {
             cout << "uciok\n";
         }
     }
+}
+
+void reset_time_control()
+{
+    quit = 0;
+    movestogo = 30;
+    movetime = -1;
+    uci_time = -1;
+    inc = 0;
+    starttime = 0;
+    stoptime = 0;
+    timeset = 0;
+    stopped = 0;
 }
 
 

@@ -35,4 +35,6 @@ int get_time_ms();
 
 void communicate();
 
+void reset_time_control();
+
 #endif

@@ -360,34 +360,37 @@ void search_position(int depth)
             continue;
         }
 
+        // set up the window for the next iteration
         alpha = score - 50;
         beta = score + 50;
-    
-        if (score > -mateVal && score < -mateScore)
-            std::cout << "info score mate " << -(score + mateVal) / 2 - 1
-                    << " depth " << curr_depth
-                    << " nodes " << nodes
-                    << " time " << get_time_ms() - starttime
-                    << " pv ";
-        else if (score > mateScore && score < mateVal)
-            std::cout << "info score mate " << (mateVal - score) / 2 + 1
-                    << " depth " << curr_depth
-                    << " nodes " << nodes
-                    << " time " << get_time_ms() - starttime
-                    << " pv ";
-        else
-            std::cout << "info score cp " << score
-                    << " depth " << curr_depth
-                    << " nodes " << nodes
-                    << " time " << get_time_ms() - starttime
-                    << " pv ";
+        if (pv_depth[0])
+        {
+            if (score > -mateVal && score < -mateScore)
+                std::cout << "info score mate " << -(score + mateVal) / 2 - 1
+                        << " depth " << curr_depth
+                        << " nodes " << nodes
+                        << " time " << static_cast<unsigned int>(get_time_ms() - starttime)
+                        << " pv ";
+            else if (score > mateScore && score < mateVal)
+                std::cout << "info score mate " << (mateVal - score) / 2 + 1
+                        << " depth " << curr_depth
+                        << " nodes " << nodes
+                        << " time " << static_cast<unsigned int>(get_time_ms() - starttime)
+                        << " pv ";
+            else
+                std::cout << "info score cp " << score
+                        << " depth " << curr_depth
+                        << " nodes " << nodes
+                        << " time " << static_cast<unsigned int>(get_time_ms() - starttime)
+                        << " pv ";
 
-        for (int i=0;i<pv_depth[0];i++)
-        { 
-            print_move(pv_table[0][i]);
-            std::cout<<" ";
+            for (int i=0;i<pv_depth[0];i++)
+            { 
+                print_move(pv_table[0][i]);
+                std::cout<<" ";
+            }
+            std::cout<<"\n";
         }
-        std::cout<<"\n";
     }
 
     std::cout<<"bestmove ";
