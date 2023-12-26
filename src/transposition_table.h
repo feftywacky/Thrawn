@@ -2,7 +2,7 @@
 #define TRANSPOSITION_TABLE_H
 #include <cstdint>
 
-#define hashmap_size 0x800000 // size of transposition table (4MB)
+#define hashmap_size 800000 // size of transposition table (20MB)
 #define no_hashmap_entry 100000
 
 #define hashFlagEXACT 0

@@ -9,13 +9,13 @@ const std::array<int, 12> material_score =
     365,      // white bishop
     477,      // white rook
     1025,      // white queen
-    0,      // white king
+    9999,      // white king
     -82,      // black pawn
     -337,      // black knight
     -365,      // black bishop 
     -477,      // black rook 
     -1025,      // black queen 
-    0      // black king
+    -9999      // black king
 };
 
 const std::array<int, 12> material_score_eg = 
@@ -25,14 +25,13 @@ const std::array<int, 12> material_score_eg =
     297,
     512,
     936,
-    0,
+    9999,
     -94,
     -281,
     -297,
     -512,
     -936,
-    0
-
+    -9999
 };
 
 const std::array<int, 64> wPawn_mg = {

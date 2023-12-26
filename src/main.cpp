@@ -27,16 +27,6 @@ int main() {
         cout<<"developer mode"<<endl;
         parse_fen(start_position);
         print_board(colour_to_move);
-        
-        search_position(10);
-
-
-
-
-
-
-
-
     }
     else
         uci_loop();

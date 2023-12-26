@@ -63,17 +63,16 @@ int negamax(int depth, int alpha, int beta)
 
     if ((nodes & 2047)==0)
         communicate();
-
+    
     // init pv 
     pv_depth[ply] = ply;
 
-    
     if (depth == 0)
     {
         return quiescence(alpha, beta);
     }
 
-    if (ply>=MAX_DEPTH) // array overflow at max depth
+    if (ply>MAX_DEPTH-1) // array overflow at max depth
     {
         std::cout<<"array overflow at max depth: "<<ply<<endl;
         return evaluate();
@@ -138,7 +137,7 @@ int negamax(int depth, int alpha, int beta)
         repetition_index++;
         repetition_table[repetition_index] = zobristKey;
 
-        if (!make_move(move, all_moves))
+        if (make_move(move, all_moves)==0)
         {
             ply--;
             repetition_index--;
@@ -150,9 +149,14 @@ int negamax(int depth, int alpha, int beta)
         if (moves_searched == 0) 
             score = -negamax(depth-1, -beta, -alpha);
 
-        else // late move reduction (lmr)
+        // late move reduction (lmr)
+        else 
         {
-            if (moves_searched >= full_depth_moves && depth >= reduction_limit && inCheck == false && get_is_capture_move(move) == 0 && get_promoted_piece(move) == 0)
+            if (moves_searched >= full_depth_moves && 
+                depth >= reduction_limit && 
+                inCheck == false && 
+                get_is_capture_move(move) == 0 && 
+                get_promoted_piece(move) == 0)
                 score = -negamax(depth - 2, -alpha - 1, -alpha);
 
             // ensure that full-depth search is done
