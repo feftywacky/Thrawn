@@ -10,7 +10,7 @@ chess engine in c++ that uses a bitboard data structure and a piece square table
 - Time control
 - Various search optimizations
 - Uses bitboard data structure for fast move generation
-- Transposition tables for positino hashing
+- Transposition tables
 - Piece-square tables for evaluation
 - Implements UCI protocol
 
