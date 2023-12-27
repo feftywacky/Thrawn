@@ -1,6 +1,6 @@
 # Thrawn
 IN DEVELOPMENT <br>
-Thrawn is UCI compliant chess engine (it does NOT have its own GUI)
+Thrawn is UCI compliant chess engine (it does NOT have its own GUI) <br>
 Requires a GUI engine such as CuteChess, Arena GUI, Scid vs PC etc.
 
 ## Features
