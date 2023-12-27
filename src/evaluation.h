@@ -29,6 +29,10 @@ extern const int double_pawn_penalty_middlegame;
 extern const int double_pawn_penalty_endgame;
 extern const int isolated_pawn_penalty_middlegame;
 extern const int isolated_pawn_penalty_endgame;
+// extern const int double_pawn_penalty_opening;
+// extern const int double_pawn_penalty_endgame;
+// extern const int isolated_pawn_penalty_opening;
+// extern const int isolated_pawn_penalty_endgame;
 
 extern const int passed_pawn_bonus[8]; 
 extern const int semi_open_file_score;
@@ -36,11 +40,18 @@ extern const int open_file_score;
 
 extern const int bishop_mobility_unit;
 extern const int queen_mobility_unit;
+// extern const int bishop_unit;
+// extern const int queen_unit;
 
 extern const int bishop_mobility_middlegame;
 extern const int bishop_mobility_endgame;
 extern const int queen_mobility_middlegame;
 extern const int queen_mobility_endgame;
+// extern const int bishop_mobility_opening;
+// extern const int bishop_mobility_endgame;
+// extern const int queen_mobility_opening;
+// extern const int queen_mobility_endgame;
+
 
 extern const int king_shield_bonus;
 
