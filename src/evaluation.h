@@ -25,19 +25,29 @@ extern uint64_t wPassedPawn_masks[64];
 extern uint64_t bPassedPawn_masks[64];
 
 // penalties and bonuses
-extern const int double_pawn_penalty;
-extern const int isolated_pawn_penalty;
+extern const int double_pawn_penalty_middlegame;
+extern const int double_pawn_penalty_endgame;
+extern const int isolated_pawn_penalty_middlegame;
+extern const int isolated_pawn_penalty_endgame;
+
 extern const int passed_pawn_bonus[8]; 
-extern const int semi_open_file_bonus;
-extern const int open_file_bonus;
+extern const int semi_open_file_score;
+extern const int open_file_score;
+
+extern const int bishop_mobility_unit;
+extern const int queen_mobility_unit;
+
+extern const int bishop_mobility_middlegame;
+extern const int bishop_mobility_endgame;
+extern const int queen_mobility_middlegame;
+extern const int queen_mobility_endgame;
+
 extern const int king_shield_bonus;
 
-// game phase
-extern const int opening_score;
-extern const int endgame_score;
+extern const int opening_phase_score;
+extern const int endgame_phase_score;
 
 extern const int get_rank_from_sq[64];
-
 
 
 int evaluate();
