@@ -342,7 +342,7 @@ void uci_loop() {
     std::string input;
 
     // Print engine info
-    cout << "id name Thrawn"<< version << "\n";
+    cout << "id name ThrawnEngine "<< version << "\n";
     cout << "id author Feiyu Lin\n";
     cout << "option name Hash type spin default 64 min 4 max " << max_hashmap_size << "\n";
     cout << "uciok\n";
@@ -398,7 +398,7 @@ void uci_loop() {
         // Parse UCI "uci" command
         else if (input == "uci") {
             // Print engine info
-            cout << "id name Thrawn"<< version << "\n";
+            cout << "id name ThrawnEngine "<< version << "\n";
             cout << "id author Feiyu Lin\n";
             cout << "uciok\n";
         }

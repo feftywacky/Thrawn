@@ -1,18 +1,16 @@
-# ThrawnEngine
+# Thrawn
 IN DEVELOPMENT <br>
-ThrawnEngine is UCI Compliant (does NOT contain its own GUI)
+Thrawn is UCI compliant chess engine (it does NOT have its own GUI)
 Requires a GUI engine such as CuteChess, Arena GUI, Scid vs PC etc.
 
-chess engine in c++ that uses a bitboard data structure and a piece square tables evaluation (nnue in the future)
-
 ## Features
-- ~1800 ELO
-- Time control
+- ~1900 ELO
 - Various search optimizations
-- Uses bitboard data structure for fast move generation
+- Bitboard data structure
 - Transposition tables
-- Piece-square tables for evaluation
+- PeSTO's evaluation + bonuses/penalties for piece mobility and safety
 - Implements UCI protocol
+- Time control
 
 ## Updates
 - detecting threefold repetition
@@ -30,6 +28,7 @@ chess engine in c++ that uses a bitboard data structure and a piece square table
 
 ## Compiling ThrawnEngine
 currently only supports windows machines with 64-bit CPUs
+
 ### Compiler:
 ```bash
 g++ --version
@@ -45,9 +44,8 @@ thrawn.exe
 ``` 
 
 ## TODO
-- fixed pv node null on deepest depth
-- improve evaluation function
-- tansposition tables/zobrist hashing, implement 3 move repitition
+- razoring pruning
+- hash move ordering
 - nnue
 
 ## REFERENCES
