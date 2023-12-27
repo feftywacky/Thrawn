@@ -44,6 +44,7 @@ thrawn.exe
 ``` 
 
 ## TODO
+- opening book table
 - razoring pruning
 - hash move ordering
 - nnue
