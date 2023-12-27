@@ -5,11 +5,13 @@
 #include "transposition_table.h"
 #include "fen.h"
 #include "search.h"
+#include "misc.h"
 #include <stdlib.h>
 #include <vector>
 #include <cstring>
 #include <string>
 #include <chrono>
+#include <sstream>
 #include <unistd.h>
 #include <windows.h>
 #include <stdio.h>
@@ -332,66 +334,75 @@ void uci_parse_go(const char* command)
 }
 
 void uci_loop() {
-    // reset stdin and stdout
-    std::ios_base::sync_with_stdio(false);
-    
-    string input;
-    
-    // print engine info
-    cout << "ThrawnEngine v1\n";
-    cout << "Feiyu Lin\n";
-    cout << "uciok\n";
-    
-    // main loop
-    while (true) {
+    // Max hash MB
+    int max_hashmap_size = 512; // 512 MB
+    int mb = 128; // default 128 MB
 
-        // reset user/GUI input & output
+    // Define user / GUI input buffer
+    std::string input;
+
+    // Print engine info
+    cout << "id name ThrawnEngine "<< version << "\n";
+    cout << "id author Feiyu Lin\n";
+    cout << "option name Hash type spin default 64 min 4 max " << max_hashmap_size << "\n";
+    cout << "uciok\n";
+
+    // Main loop
+    while (true) {
         input.clear();
+
+        // Make sure output reaches the GUI
         std::cout.flush();
-        
-        // get user/GUI input
-        if (!std::getline(std::cin, input))
-            continue;
-        
+
+        std::getline(std::cin, input);
+
         if (input.empty())
             continue;
 
-        // parse UCI "isready" command
-        if (input.compare(0, 7, "isready") == 0) 
-        {
-            cout << "readyok\n";
+        // Parse UCI "isready" command
+        if (input == "isready") {
+            std::cout << "readyok\n";
             continue;
-        }   
+        }
 
-        // parse UCI "position" command
-        else if (input.compare(0, 8, "position") == 0)
-        {
+        // Parse UCI "position" command
+        else if (input.compare(0, 8, "position") == 0) {
             uci_parse_position(input.c_str());
             reset_hashmap();
         }
-        
-        // parse UCI "ucinewgame" command
-        else if (input.compare(0, 10, "ucinewgame") == 0) 
-        {
+        // Parse UCI "ucinewgame" command
+        else if (input == "ucinewgame") {
             uci_parse_position("position startpos");
             reset_hashmap();
         }
-        
-        // parse UCI "go" command
+        // Parse UCI "go" command
         else if (input.compare(0, 2, "go") == 0)
             uci_parse_go(input.c_str());
-        
-        // parse UCI "quit" command
-        else if (input.compare(0, 4, "quit") == 0)
+
+        // Parse UCI "quit" command
+        else if (input == "quit")
             break;
-        
-        // parse UCI "uci" command
-        else if (input.compare(0, 3, "uci") == 0)
-        {
-            cout << "ThrawnEngine v1\n";
-            cout << "Feiyu Lin\n";
+
+        // parse UCI set hashmap size command
+        else if (input.compare(0, 26, "setoption name Hash value ") == 0) {
+            // Init MB
+            std::istringstream iss(input.substr(26));
+            iss >> mb;
+
+            mb = std::max(4, std::min(mb, max_hashmap_size));
+
+            std::cout << "    Set hash table size to " << mb << "MB\n";
+            init_hashmap(mb);
+        }
+
+        // Parse UCI "uci" command
+        else if (input == "uci") {
+            // Print engine info
+            cout << "id name ThrawnEngine "<< version << "\n";
+            cout << "id author Feiyu Lin\n";
             cout << "uciok\n";
         }
+
     }
 }
 

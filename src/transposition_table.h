@@ -2,12 +2,13 @@
 #define TRANSPOSITION_TABLE_H
 #include <cstdint>
 
-#define hashmap_size 20000 // size of transposition table (20MB)
 #define no_hashmap_entry 100000
 
 #define hashFlagEXACT 0
 #define hashFlagALPHA 1
 #define hashFlagBETA 2
+
+extern int hashmap_len;
 
 struct TranspositionTable
 {
@@ -16,6 +17,8 @@ struct TranspositionTable
     int hash_flag;           // flag the type of node (fail-low/fail-high/PV) 
     int score;          // score (alpha/beta/PV)
 };
+
+void init_hashmap(int mb);
 
 void reset_hashmap();
 

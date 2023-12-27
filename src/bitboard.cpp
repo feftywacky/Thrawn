@@ -500,7 +500,7 @@ void init_all()
 
     // init hashkeys
     init_hashkeys();
-    reset_hashmap();
+    init_hashmap(128); // default of 64 MB
 
     // init eval masks
     init_eval_masks();
