@@ -5,26 +5,46 @@
 
 using namespace std;
 
+// constants
+enum {opening, endgame, middlegame};
+enum {PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING};
+
 // material
-extern const std::array<int, 12> material_score;
-extern const std::array<int, 12> material_score_eg;
+extern const int material_score[2][12];
 
 // position
-extern const std::array<int, 64> wKnight_mg;
-extern const std::array<int, 64> wKnight_eg;
-extern const std::array<int, 64> wBishop_mg;
-extern const std::array<int, 64> wBishop_eg;
-extern const std::array<int, 64> wRook_mg;
-extern const std::array<int, 64> wRook_eg;
-extern const std::array<int, 64> wQueen_mg;
-extern const std::array<int, 64> wQueen_eg;
-extern const std::array<int, 64> wKing_mg;
-extern const std::array<int, 64> wKing_eg;
-extern const std::array<int, 64> wPawn_mg;
-extern const std::array<int, 64> wPawn_eg;
+extern const int position_score[2][6][64];
 
-extern const std::array<int, 128> mirror_score;
+extern const int mirror_score[128];
+
+// files and rank masks
+extern uint64_t file_masks[64];
+extern uint64_t rank_masks[64];
+extern uint64_t isolated_masks[64];
+extern uint64_t wPassedPawn_masks[64];
+extern uint64_t bPassedPawn_masks[64];
+
+// penalties and bonuses
+extern const int double_pawn_penalty;
+extern const int isolated_pawn_penalty;
+extern const int passed_pawn_bonus[8]; 
+extern const int semi_open_file_bonus;
+extern const int open_file_bonus;
+extern const int king_shield_bonus;
+
+// game phase
+extern const int opening_score;
+extern const int endgame_score;
+
+extern const int get_rank_from_sq[64];
+
+
 
 int evaluate();
+
+void init_eval_masks();
+uint64_t set_eval_masks(int rankNum, int fileNum);
+
+int get_gamePhase_score();
 
 #endif

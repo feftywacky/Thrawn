@@ -2,6 +2,7 @@
 #include "zobrist_hashing.h"
 #include "transposition_table.h"
 #include "search.h"
+#include "evaluation.h"
 #include <iostream>
 #include <vector>
 #include <string>
@@ -500,4 +501,7 @@ void init_all()
     // init hashkeys
     init_hashkeys();
     reset_hashmap();
+
+    // init eval masks
+    init_eval_masks();
 }
