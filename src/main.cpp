@@ -25,9 +25,9 @@ int main() {
     if (dev_mode)
     {
         cout<<"developer mode"<<endl;
-        parse_fen(position_2);
+        parse_fen(start_position);
         print_board(colour_to_move);
-        search_position(11);
+        search_position(10);
     }
     else
         uci_loop();

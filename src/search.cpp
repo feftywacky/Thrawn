@@ -118,12 +118,34 @@ int negamax(int depth, int alpha, int beta)
             return beta;
     }
 
+    // razoring pruning (forward pruning)
+    if (!pv_node && !inCheck && depth <= 3)
+    {
+        // apply bonus to score
+        score = evaluate() + 125; 
+        int razor_score;
+        if (score<beta)
+        {
+            if (depth == 1)
+            {
+                razor_score - quiescence(alpha, beta);
+                return (razor_score > score) ? razor_score : score;
+            }
+            // second bonus to score
+            score += 175;
+            if ( score < beta && depth <= 3)
+            {
+                razor_score = quiescence(alpha,beta);
+                if (razor_score < beta) // quiescence says score fail-low node
+                    return (razor_score > score) ? razor_score : score;
+            }
+        }
+    }
+
     vector<int> moves = generate_moves();
 
     if (follow_pv_flag)
-    {
         score_pv(moves);
-    }
 
     sort_moves(moves, bestMove);
 
