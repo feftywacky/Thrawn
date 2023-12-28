@@ -1,5 +1,5 @@
 # Thrawn
-IN DEVELOPMENT <br>
+IN DEVELOPMENT <br> <br>
 Thrawn is UCI compliant chess engine (it does NOT have its own GUI) <br>
 Requires a GUI engine such as CuteChess, Arena GUI, Scid vs PC etc.
 
@@ -13,6 +13,8 @@ Requires a GUI engine such as CuteChess, Arena GUI, Scid vs PC etc.
 - Time control
 
 ## Updates
+- hash move ordering
+- razoring pruning
 - detecting threefold repetition
 - transposition table / zobrist hashing
 - null move pruning
@@ -44,10 +46,8 @@ thrawn.exe
 ``` 
 
 ## TODO
-- opening book table
-- razoring pruning
-- hash move ordering
 - nnue
+- opening book table
 
 ## REFERENCES
 - https://www.chessprogramming.org/Main_Page
