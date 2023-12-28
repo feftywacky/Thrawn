@@ -39,7 +39,7 @@ void search_position(int depth);
 
 int score_move(int move);
 
-void sort_moves(vector<int>& moves);
+void sort_moves(vector<int>& moves, int bestMove);
 
 void score_pv(vector<int>& moves);
 

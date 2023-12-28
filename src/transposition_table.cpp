@@ -47,7 +47,7 @@ void init_hashmap(int mb)
     }
 }
 
-int probeHashMap(int depth, int alpha, int beta)
+int probeHashMap(int depth, int alpha, int beta, int *best_move)
 {
     // tt instance pointer that points to the hashmap entry that stores board data
     // hash function key is defined as key % size
@@ -69,11 +69,12 @@ int probeHashMap(int depth, int alpha, int beta)
             if (hashEntryPtr->hash_flag == hashFlagBETA && score >= beta) // fail-high score
                 return beta;
         }
+        *best_move = hashEntryPtr->best_move;
     }
     return no_hashmap_entry;
 }
 
-void writeToHashMap(int depth, int score, int hashFlag)
+void writeToHashMap(int depth, int score, int hashFlag, int bestMove)
 {
     TranspositionTable *hashEntryPtr = &hashmap[zobristKey % hashmap_len]; 
 
@@ -85,4 +86,5 @@ void writeToHashMap(int depth, int score, int hashFlag)
     hashEntryPtr->depth = depth;
     hashEntryPtr->hash_flag = hashFlag;
     hashEntryPtr->score = score;
+    hashEntryPtr->best_move = bestMove;
 }

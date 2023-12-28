@@ -48,7 +48,7 @@ int repetition_index;
 int negamax(int depth, int alpha, int beta)
 {
     int score = 0;
-
+    int bestMove = 0;
     int hashFlag = hashFlagALPHA;
 
     if (ply && isRepetition())
@@ -58,7 +58,7 @@ int negamax(int depth, int alpha, int beta)
 
     // retrieve score if not root ply and not pv node and tt key exists
     // if move has already been searched, return its score instantly
-    if (ply && pv_node==0 && (score = probeHashMap(depth, alpha, beta)) != no_hashmap_entry)
+    if (ply && pv_node==0 && (score = probeHashMap(depth, alpha, beta, &bestMove)) != no_hashmap_entry)
         return score;
 
     if ((nodes & 2047)==0)
@@ -125,7 +125,7 @@ int negamax(int depth, int alpha, int beta)
         score_pv(moves);
     }
 
-    sort_moves(moves);
+    sort_moves(moves, bestMove);
 
     int moves_searched = 0;
 
@@ -190,6 +190,7 @@ int negamax(int depth, int alpha, int beta)
         // found better move, pv
         if (score> alpha)
         {
+            bestMove = move;
             hashFlag = hashFlagEXACT; // pv node
 
             if (get_is_capture_move(move)==0)
@@ -209,7 +210,7 @@ int negamax(int depth, int alpha, int beta)
             // fail-hard beta cutoff
             if (score>=beta)
             {
-                writeToHashMap(depth, beta, hashFlagBETA);
+                writeToHashMap(depth, beta, hashFlagBETA, bestMove);
 
                 if (get_is_capture_move(move)==0)
                 {
@@ -234,7 +235,7 @@ int negamax(int depth, int alpha, int beta)
             return 0; // stalemate
     }
 
-    writeToHashMap(depth, alpha, hashFlag);
+    writeToHashMap(depth, alpha, hashFlag, bestMove);
 
     // move fails low (<= alpha)
     return alpha;
@@ -263,7 +264,7 @@ int quiescence(int alpha, int beta)
     }
 
     vector<int> moves = generate_moves();
-    sort_moves(moves);
+    sort_moves(moves, 0);
 
     for (int move : moves)
     {
@@ -471,12 +472,18 @@ void score_pv(vector<int> &moves)
     }
 }
 
-void sort_moves(vector<int> &moves)
+void sort_moves(vector<int> &moves, int bestMove)
 {
     vector<int> move_scores;
 
     for (int move : moves)
-        move_scores.push_back(score_move(move));
+    {
+        // hash move ordering
+        if (bestMove == move)
+            move_scores.push_back(30000);
+        else
+            move_scores.push_back(score_move(move));
+    }
 
     std::vector<size_t> indices(moves.size());
     std::iota(indices.begin(), indices.end(), 0);

@@ -20,11 +20,14 @@ int main() {
     
     init_all();
 
-    bool dev_mode = false;
+    bool dev_mode = true;
 
     if (dev_mode)
     {
         cout<<"developer mode"<<endl;
+        parse_fen(position_2);
+        print_board(colour_to_move);
+        search_position(11);
     }
     else
         uci_loop();
