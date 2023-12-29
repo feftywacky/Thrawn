@@ -3,19 +3,28 @@ IN DEVELOPMENT <br> <br>
 Thrawn is UCI compliant chess engine (it does NOT have its own GUI) <br>
 Requires a GUI engine such as CuteChess, Arena GUI, Scid vs PC etc.
 
+## TODO
+- [] general code clean up
+- [] transposition table bug?
+- [] hash move ordering giving worst results bug
+- [] fixed zero evaluation bug
+- [] nnue incremental update
+- [] opening book table
+
 ## Features
-- ~1900 ELO
+- ~2300+ ELO
+- NNUE for evaluation
 - Various search optimizations
 - Bitboard data structure
 - Transposition tables
-- PeSTO's evaluation + bonuses/penalties for piece mobility and safety
+- Time allocation
 - Implements UCI protocol
-- Time control
 
 ## Updates
+- fifty-move rule + 3-fold repetition detection
+- NNUE evaluation
 - hash move ordering
 - razoring pruning
-- detecting threefold repetition
 - transposition table / zobrist hashing
 - null move pruning
 - late move reduction
@@ -45,13 +54,15 @@ g++ -std=c++17 -Ofast -flto -o thrawn *.cpp
 thrawn.exe
 ``` 
 
-## TODO
-- nnue
-- opening book table
-
 ## REFERENCES
 - https://www.chessprogramming.org/Main_Page
 - https://web.archive.org/web/20071006042845/http://www.brucemo.com/compchess/programming/index.htm
 - https://github.com/bluefeversoft/vice
 - https://github.com/official-stockfish/Stockfish
+# NNUE
+- https://hxim.github.io/Stockfish-Evaluation-Guide/
+nnue probe library
+- 
+nnue dataset
+- https://tests.stockfishchess.org/nns
 
