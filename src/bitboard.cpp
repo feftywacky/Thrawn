@@ -3,6 +3,7 @@
 #include "transposition_table.h"
 #include "search.h"
 #include "evaluation.h"
+#include "nnue_wrapper.h"
 #include <iostream>
 #include <vector>
 #include <string>
@@ -504,4 +505,7 @@ void init_all()
 
     // init eval masks
     init_eval_masks();
+
+    // init NNUE
+    init_nnue("nn-62ef826d1a6d.nnue");
 }
