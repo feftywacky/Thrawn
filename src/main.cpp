@@ -21,26 +21,14 @@ int main() {
     
     init_all();
 
-    bool dev_mode = false;
+    bool dev_mode = true;
 
     if (dev_mode)
     {
         cout<<"developer mode"<<endl;
         parse_fen(start_position);
         print_board(colour_to_move);
-
-        
-        init_nnue("nn-62ef826d1a6d.nnue");
-        cout<<evaluate_fen_nnue(start_position)<<endl;
-
-        int pieces[33];
-        int squares[33];
-
-        parse_nnue_args(pieces, squares);
-        cout<<evaluate_nnue(colour_to_move, pieces, squares)<<endl;
-
-        int nnue_score = evaluate();
-        cout<<nnue_score<<endl;
+        search_position(10);
     }
     else
         uci_loop();
