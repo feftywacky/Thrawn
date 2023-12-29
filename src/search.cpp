@@ -44,6 +44,7 @@ const int mateScore = 58000;
 // repetition
 uint64_t repetition_table[1028]; // 1028 plies for a game
 int repetition_index;
+int fifty_move;
 
 int negamax(int depth, int alpha, int beta)
 {
@@ -51,7 +52,8 @@ int negamax(int depth, int alpha, int beta)
     int bestMove = 0;
     int hashFlag = hashFlagALPHA;
 
-    if (ply && isRepetition())
+    // stalemate if 3 move repetition or fifty-move rule
+    if (ply && isRepetition() || fifty_move >= 100)
         return 0;
 
     int pv_node = (beta-alpha > 1); // IMPORTANT FIXES TRANPOSITION TABLE PV BUG

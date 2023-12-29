@@ -29,6 +29,7 @@ void parse_fen(const char* fen)
     enpassant = null_sq;
     castle_rights = 0;
     repetition_index = 0;
+    fifty_move = 0;
     std::fill(std::begin(repetition_table), std::end(repetition_table), 0);
     
 

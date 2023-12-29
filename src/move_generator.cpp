@@ -4,6 +4,7 @@
 #include "bitboard_helpers.h"
 #include "move_helpers.h"
 #include "zobrist_hashing.h"
+#include "search.h"
 #include <iostream>
 #include <vector>
 #include <string>
@@ -455,14 +456,20 @@ int make_move(int move, int move_type)
         // move piece
         pop_bit(piece_bitboards[piece], source);
         set_bit(piece_bitboards[piece], target);
-
         zobristKey ^= piece_hashkey[piece][source]; // update hash to exclude source 
         zobristKey ^= piece_hashkey[piece][target]; // update hash to include target
+        fifty_move++;
+
+        // if pawn moved reset fifty-move rule
+        if (piece == P || piece == p)
+            fifty_move = 0;
 
         // if capture move, remove the piece being captured from its corresponding bitboard
         // ie. if white pawn captures black kngiht, remove black knight from black knight bitboard
         if (is_capture_move)
         {
+            // if captured a piece reset fifty-move rule
+            fifty_move = 0;
             int start_piece;
             int end_piece;
             

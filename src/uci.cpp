@@ -317,6 +317,14 @@ void uci_parse_go(const char* command)
         // Set up timing
         uci_time /= movestogo;
         uci_time -= 50;
+
+        if (uci_time < 0)
+        {
+            uci_time = 0;
+            inc -= 50;
+            if (inc<0) 
+                inc = 1;
+        }
         stoptime = starttime + uci_time + inc;
     }
 

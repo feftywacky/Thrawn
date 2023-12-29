@@ -28,6 +28,7 @@ extern const int mateScore;
 // repetition
 extern uint64_t repetition_table[1028];
 extern int repetition_index;
+extern int fifty_move;
 
 
 // negamax with alpha beta pruning

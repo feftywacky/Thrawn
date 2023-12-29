@@ -3,6 +3,7 @@
 #include "bitboard.h"
 #include "bitboard_helpers.h"
 #include "nnue_wrapper.h"
+#include "search.h"
 
 // [game phase][piece]
 const int material_score[2][12] = 
@@ -342,6 +343,8 @@ int evaluate()
     pieces[index] = 0;
     squares[index] = 0;
 
-    return evaluate_nnue(colour_to_move, pieces, squares);
+    // (100-fifty_move) / 100 
+    // taken from Cfish for fifty move scaling
+    return evaluate_nnue(colour_to_move, pieces, squares) * (100-fifty_move) / 100;
 
 }
