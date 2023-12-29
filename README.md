@@ -4,12 +4,12 @@ Thrawn is UCI compliant chess engine (it does NOT have its own GUI) <br>
 Requires a GUI engine such as CuteChess, Arena GUI, Scid vs PC etc.
 
 ## TODO
-- [] general code clean up
-- [] transposition table bug?
-- [] hash move ordering giving worst results bug
-- [] fixed zero evaluation bug
-- [] nnue incremental update
-- [] opening book table
+- [ ] general code clean up
+- [ ] transposition table bug?
+- [ ] hash move ordering giving worst results bug
+- [ ] fixed zero evaluation bug
+- [ ] nnue incremental update
+- [ ] opening book table
 
 ## Features
 - ~2300+ ELO
