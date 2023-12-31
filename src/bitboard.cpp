@@ -508,4 +508,5 @@ void init_all()
 
     // init NNUE
     init_nnue("nn-62ef826d1a6d.nnue");
+
 }

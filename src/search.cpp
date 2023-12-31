@@ -23,7 +23,7 @@ some notes for negamax
 
 const int MAX_DEPTH = 64;
 int ply;
-long nodes;
+uint64_t nodes;
 
 std::vector<int> pv_depth(MAX_DEPTH); // [ply]
 std::vector<std::vector<int>> pv_table(MAX_DEPTH, std::vector<int>(MAX_DEPTH)); // [ply][ply]
@@ -42,7 +42,7 @@ const int mateVal = 59000;
 const int mateScore = 58000;
 
 // repetition
-uint64_t repetition_table[1028]; // 1028 plies for a game
+std::vector<uint64_t> repetition_table(1028); // 1028 plies for a game
 int repetition_index;
 int fifty_move;
 
@@ -51,23 +51,26 @@ int negamax(int depth, int alpha, int beta)
     int score = 0;
     int bestMove = 0;
     int hashFlag = hashFlagALPHA;
+    // init pv 
+    pv_depth[ply] = ply;
 
     // stalemate if 3 move repetition or fifty-move rule
     if (ply && isRepetition() || fifty_move >= 100)
         return 0;
 
-    int pv_node = (beta-alpha > 1); // IMPORTANT FIXES TRANPOSITION TABLE PV BUG
+    // determines if current node is a pv node
+    int pv_node = beta - alpha > 1; // IMPORTANT FIXES TRANPOSITION TABLE PV BUG
 
     // retrieve score if not root ply and not pv node and tt key exists
     // if move has already been searched, return its score instantly
-    if (ply && pv_node==0 && (score = probeHashMap(depth, alpha, beta, &bestMove)) != no_hashmap_entry)
+    if (ply && !pv_node && (score = probeHashMap(depth, alpha, beta, &bestMove)) != no_hashmap_entry)
         return score;
 
     if ((nodes & 2047)==0)
+    {
+        // cout<<"negamax comm"<<"\n";
         communicate();
-    
-    // init pv 
-    pv_depth[ply] = ply;
+    }
 
     if (depth == 0)
     {
@@ -89,7 +92,7 @@ int negamax(int depth, int alpha, int beta)
         depth++;
     
     // null move pruning
-    if (depth>=3 && inCheck==false && ply) 
+    if (depth>=3 && !inCheck && ply) 
     {
         // give opponent another move
         copyBoard();
@@ -114,7 +117,8 @@ int negamax(int depth, int alpha, int beta)
         restoreBoard();
 
         // time is up
-        if(stopped == 1) return 0;
+        if(stopped == 1) 
+            return 0;
         // fail hard beta cut-off
         if (score>=beta)
             return beta;
@@ -152,6 +156,7 @@ int negamax(int depth, int alpha, int beta)
         score_pv(moves);
 
     sort_moves(moves, bestMove);
+    
 
     int moves_searched = 0;
 
@@ -180,9 +185,10 @@ int negamax(int depth, int alpha, int beta)
         {
             if (moves_searched >= full_depth_moves && 
                 depth >= reduction_limit && 
-                inCheck == false && 
+                !inCheck && 
                 get_is_capture_move(move) == 0 && 
-                get_promoted_piece(move) == 0)
+                get_promoted_piece(move) == 0
+                )
                 score = -negamax(depth - 2, -alpha - 1, -alpha);
 
             // ensure that full-depth search is done
@@ -197,7 +203,7 @@ int negamax(int depth, int alpha, int beta)
                 score = -negamax(depth-1, -alpha - 1, -alpha);
             
                 // if LMR fails re-search at full depth and full score bandwith
-                if((score > alpha) && (score < beta))
+                if(score > alpha && score < beta)
                     score = -negamax(depth-1, -beta, -alpha);
             }
         }
@@ -209,7 +215,11 @@ int negamax(int depth, int alpha, int beta)
         restoreBoard();
 
         // time is up
-        if(stopped == 1) return 0;
+        if(stopped == 1) 
+        {
+            cout<<"time is up, returning score = 0"<<"\n";
+            return 0;
+        }
 
         moves_searched++;
 
@@ -226,7 +236,7 @@ int negamax(int depth, int alpha, int beta)
 
             pv_table[ply][ply] = move;
             // store deeper ply move into current ply
-            for (int nextPly=ply+1;nextPly<pv_depth[ply+1];nextPly++)
+            for (int nextPly=ply+1; nextPly<pv_depth[ply+1]; nextPly++)
             {
                 pv_table[ply][nextPly] = pv_table[ply+1][nextPly];
             }
@@ -255,7 +265,6 @@ int negamax(int depth, int alpha, int beta)
         {
             return -mateVal + ply; // +ply allows engine to find the smallest depth mate
             // penalizing longer mates less than shorter ones
-            
         }
         else
             return 0; // stalemate
@@ -270,7 +279,10 @@ int negamax(int depth, int alpha, int beta)
 int quiescence(int alpha, int beta)
 {
     if ((nodes & 2047)==0)
+    {
+        // cout<<"quiscence comm"<<"\n";
         communicate();
+    }
 
     nodes++;
 
@@ -316,9 +328,6 @@ int quiescence(int alpha, int beta)
 
         // time is up
         if(stopped == 1) return 0;
-        
-        
-        
 
         // found better move 
         if (score > alpha)
@@ -348,41 +357,57 @@ int isRepetition()
 
 void search_position(int depth)
 {
-    
     // RESET VARIABLES
-    int score = 0;
     nodes = 0;
-    pv_depth.clear();
-    pv_depth.resize(64);
-
-    pv_table.clear();
-    pv_table.resize(64, std::vector<int>(64));
-
-    killer_moves.clear();
-    killer_moves.resize(2, std::vector<int>(64));
-
-    history_moves.clear();
-    history_moves.resize(12, std::vector<int>(64));
+    // time control
+    stopped = 0;
 
     follow_pv_flag = false;
     score_pv_flag = false;
 
+    // pv_depth.clear();
+    // pv_depth.resize(64);
+
+    // pv_table.clear();
+    // pv_table.resize(64, std::vector<int>(64));
+
+    // killer_moves.clear();
+    // killer_moves.resize(2, std::vector<int>(64));
+
+    // history_moves.clear();
+    // history_moves.resize(12, std::vector<int>(64));
+    pv_depth.assign(MAX_DEPTH, 0);
+    for (auto& row : pv_table) 
+        row.assign(MAX_DEPTH, 0);
+    for (auto& row : killer_moves)
+        row.assign(MAX_DEPTH, 0);
+    for (auto& row : history_moves)
+        row.assign(64, 0);
+
+    int score = 0;
     int alpha = -INFINITY;
     int beta = INFINITY;
 
-    // time control
-    stopped = 0;
+    int start = get_time_ms();
 
     // iterative deepening
     for (int curr_depth = 1;curr_depth<=depth;curr_depth++)
     {
         // time is up
-        if (stopped == 1) break;
+        if (stopped == 1)
+        { 
+            break;
+        }
         
         follow_pv_flag = true;
         score = negamax(curr_depth, alpha, beta);
 
-
+        if (score==0)
+        {
+            cout<<"SKIPPED SCORE = 0"<<"\n";
+            continue;
+        }
+        
         // aspiration window
         if (score<=alpha || score>=beta)
         {
@@ -394,25 +419,27 @@ void search_position(int depth)
         // set up the window for the next iteration
         alpha = score - 50;
         beta = score + 50;
+
+        // if pv exist
         if (pv_depth[0])
         {
             if (score > -mateVal && score < -mateScore)
                 std::cout << "info score mate " << -(score + mateVal) / 2 - 1
                         << " depth " << curr_depth
                         << " nodes " << nodes
-                        << " time " << static_cast<unsigned int>(get_time_ms() - starttime)
+                        << " time " << static_cast<unsigned int>(get_time_ms() - start)
                         << " pv ";
             else if (score > mateScore && score < mateVal)
                 std::cout << "info score mate " << (mateVal - score) / 2 + 1
                         << " depth " << curr_depth
                         << " nodes " << nodes
-                        << " time " << static_cast<unsigned int>(get_time_ms() - starttime)
+                        << " time " << static_cast<unsigned int>(get_time_ms() - start)
                         << " pv ";
             else
                 std::cout << "info score cp " << score
                         << " depth " << curr_depth
                         << " nodes " << nodes
-                        << " time " << static_cast<unsigned int>(get_time_ms() - starttime)
+                        << " time " << static_cast<unsigned int>(get_time_ms() - start)
                         << " pv ";
 
             for (int i=0;i<pv_depth[0];i++)
@@ -505,44 +532,62 @@ void score_pv(vector<int> &moves)
 
 void sort_moves(vector<int> &moves, int bestMove)
 {
-    vector<int> move_scores;
-
-    for (int move : moves)
+    vector<int> move_scores(moves.size());
+    
+    // score all the moves within a move list
+    for (int count = 0; count < moves.size(); count++)
     {
-        // hash move ordering
-        if (bestMove == move)
-            move_scores.push_back(30000);
+        // if hash move available
+        if (bestMove == moves[count])
+        {
+            move_scores[count] = 30000;
+        }
+
         else
-            move_scores.push_back(score_move(move));
+            move_scores[count] = score_move(moves[count]);
     }
 
-    std::vector<size_t> indices(moves.size());
-    std::iota(indices.begin(), indices.end(), 0);
-
-    // Custom comparator that compares scores in descending order
-    auto comparator = [&move_scores](size_t a, size_t b) {
-        return move_scores[a] > move_scores[b];
-    };
-
-    // Sort indices in descending order based on move scores
-    std::sort(indices.begin(), indices.end(), comparator);
-
-    // In-place modification of moves vector based on the sorted indices
-    std::vector<int> sorted_moves(moves.size());
-    for (size_t i = 0; i < moves.size(); i++) {
-        sorted_moves[i] = moves[indices[i]];
-    }
-
-    // Copy the sorted moves back to the original array (in-place modification)
-    moves = std::move(sorted_moves);
+    quicksort_moves(moves, move_scores, 0, moves.size() - 1);
 }
 
 void print_move_scores(const vector<int>& moves)
 {
     for (int move : moves)
     {
-        print_move(move);
-        std::cout<<score_move(move)<<"\n";
+        int score = score_move(move);
+        if (score>0)
+        {
+            if (score>=20000)
+            {
+                print_move(move);
+                printf(" pv/best: %d\n", score);
+            }
+            print_move(move);
+            printf(" %d\n", score);
+        }
+    }
+}
+
+void quicksort_moves(std::vector<int> &moves, std::vector<int> &move_scores, int low, int high) {
+    if (low < high) {
+        int pivot = move_scores[high];
+        int i = low - 1;
+
+        for (int j = low; j <= high - 1; j++) {
+            if (move_scores[j] > pivot) {
+                i++;
+                std::swap(move_scores[i], move_scores[j]);
+                std::swap(moves[i], moves[j]);
+            }
+        }
+
+        std::swap(move_scores[i + 1], move_scores[high]);
+        std::swap(moves[i + 1], moves[high]);
+
+        int pi = i + 1;
+
+        quicksort_moves(moves, move_scores, low, pi - 1);
+        quicksort_moves(moves, move_scores, pi + 1, high);
     }
 }
 

@@ -11,7 +11,7 @@ void reset_hashmap()
 {
     TranspositionTable *hashval = nullptr;
 
-    for (hashval = hashmap; hashval<hashmap+hashmap_len;hashval++)
+    for (hashval = hashmap; hashval<hashmap+hashmap_len; hashval++)
     {
         hashval->key = 0;
         hashval->depth = 0;
@@ -30,7 +30,6 @@ void init_hashmap(int mb)
     {
         std::cout<<"hashmp memory cleared"<<std::endl;
         delete[] hashmap;
-        hashmap = nullptr;
     }
 
     hashmap = new TranspositionTable[hashmap_len];
@@ -59,8 +58,10 @@ int probeHashMap(int depth, int alpha, int beta, int *best_move)
         {
             int score = hashEntryPtr->score;
 
-            if (score < -mateScore) score += ply;
-            if (score > mateScore) score -= ply;
+            if (score < -mateScore) 
+                score += ply;
+            if (score > mateScore) 
+                score -= ply;
 
             if (hashEntryPtr->hash_flag == hashFlagEXACT) // pv node
                 return score;
@@ -69,6 +70,7 @@ int probeHashMap(int depth, int alpha, int beta, int *best_move)
             if (hashEntryPtr->hash_flag == hashFlagBETA && score >= beta) // fail-high score
                 return beta;
         }
+        
         *best_move = hashEntryPtr->best_move;
     }
     return no_hashmap_entry;

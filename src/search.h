@@ -8,7 +8,7 @@ using namespace std;
 
 extern const int MAX_DEPTH;
 extern int ply;
-extern long nodes;
+extern uint64_t nodes;
 
 extern std::vector<std::vector<int>> killer_moves;
 extern std::vector<std::vector<int>> history_moves;
@@ -26,7 +26,7 @@ extern const int mateVal;
 extern const int mateScore;
 
 // repetition
-extern uint64_t repetition_table[1028];
+extern std::vector<uint64_t> repetition_table;
 extern int repetition_index;
 extern int fifty_move;
 
@@ -47,5 +47,7 @@ void score_pv(vector<int>& moves);
 void print_move_scores(const vector<int>& moves);
 
 int isRepetition();
+
+void quicksort_moves(std::vector<int> &moves, std::vector<int> &move_scores, int low, int high);
 
 #endif
