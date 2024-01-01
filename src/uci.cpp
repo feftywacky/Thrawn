@@ -3,6 +3,7 @@
 #include "move_helpers.h"
 #include "bitboard_helpers.h"
 #include "transposition_table.h"
+#include "bitboard.h"
 #include "fen.h"
 #include "search.h"
 #include "misc.h"
@@ -169,11 +170,11 @@ int uci_parse_move(const char *move_str)
             {
                 if ((promoted_piece == Q || promoted_piece == q) && move_str[4] == 'q')
                     return move;
-                else if ((promoted_piece == R || promoted_piece == r) && promoted_piece == move_str[4] == 'r')
+                else if ((promoted_piece == R || promoted_piece == r) && move_str[4] == 'r')
                     return move;
-                else if ((promoted_piece == N || promoted_piece == n) && promoted_piece == move_str[4] == 'b')
+                else if ((promoted_piece == N || promoted_piece == n) && move_str[4] == 'b')
                     return move;
-                else if ((promoted_piece == B || promoted_piece == b) && promoted_piece == move_str[4] == 'n')
+                else if ((promoted_piece == B || promoted_piece == b) && move_str[4] == 'n')
                     return move;
                 continue;
             }
@@ -246,7 +247,8 @@ void uci_parse_position(const char *command) {
 
     }
 
-    print_board(colour_to_move);
+    // for debug
+    // print_board(colour_to_move);
 
 }
 
@@ -343,76 +345,87 @@ void uci_parse_go(const char* command)
     search_position(depth);
 }
 
-void uci_loop() {
-    // Max hash MB
-    int max_hashmap_size = 512; // 512 MB
+void uci_loop()
+{
+    // just make it big enough
+    #define INPUT_BUFFER 20000
+    
+    int max_hashmap_size = 1024; // 1GB
     int mb = 128; // default 128 MB
 
-    // Define user / GUI input buffer
-    std::string input;
+    // reset STDIN & STDOUT buffers
+    setbuf(stdin, NULL);
+    setbuf(stdout, NULL);
+    
+    // define user / GUI input buffer
+    char input[INPUT_BUFFER];
 
-    // Print engine info
-    cout << "id name Thrawn"<< version << "\n";
-    cout << "id author Feiyu Lin\n";
-    cout << "option name Hash type spin default 64 min 4 max " << max_hashmap_size << "\n";
-    cout << "uciok\n";
-
-    // Main loop
-    while (true) {
-        input.clear();
-
-        // Make sure output reaches the GUI
-        std::cout.flush();
-
-        std::getline(std::cin, input);
-
-        if (input.empty())
+    while (true)
+    {
+        // reset user /GUI input
+        memset(input, 0, sizeof(input));
+        
+        // make sure output reaches the GUI
+        fflush(stdout);
+        
+        // get user / GUI input
+        if (!fgets(input, INPUT_BUFFER, stdin))
             continue;
-
-        // Parse UCI "isready" command
-        if (input == "isready") {
+        
+        // make sure input is available
+        if (input[0] == '\n')
+            continue;
+        
+        // parse UCI "isready" command
+        if (strncmp(input, "isready", 7) == 0)
+        {
             std::cout << "readyok\n";
             continue;
         }
-
-        // Parse UCI "position" command
-        else if (input.compare(0, 8, "position") == 0) {
-            uci_parse_position(input.c_str());
+        
+        // parse UCI "position" command
+        else if (strncmp(input, "position", 8) == 0)
+        {
+            uci_parse_position(input);
             reset_hashmap();
         }
-        // Parse UCI "ucinewgame" command
-        else if (input == "ucinewgame") {
+
+        // parse UCI "ucinewgame" command
+        else if (strncmp(input, "ucinewgame", 10) == 0)
+        {
             uci_parse_position("position startpos");
             reset_hashmap();
         }
-        // Parse UCI "go" command
-        else if (input.compare(0, 2, "go") == 0)
-            uci_parse_go(input.c_str());
-
-        // Parse UCI "quit" command
-        else if (input == "quit")
+        // parse UCI "go" command
+        else if (strncmp(input, "go", 2) == 0)
+            uci_parse_go(input);
+        
+        // parse UCI "quit" command
+        else if (strncmp(input, "quit", 4) == 0)
             break;
-
-        // parse UCI set hashmap size command
-        else if (input.compare(0, 26, "setoption name Hash value ") == 0) {
-            // Init MB
-            std::istringstream iss(input.substr(26));
-            iss >> mb;
-
-            mb = std::max(4, std::min(mb, max_hashmap_size));
-
+        
+        // parse UCI "uci" command
+        else if (strncmp(input, "uci", 3) == 0)
+        {
+            // print engine info
+            cout << "id name Thrawn"<< version << "\n";
+            cout << "id author Feiyu Lin\n";
+            cout << "option name Hash type spin default 128 min 4 max " << max_hashmap_size << "\n";
+            cout << "uciok\n";
+        }
+        
+        else if (!strncmp(input, "setoption name Hash value ", 26)) {			
+            // init MB
+            sscanf(input,"%*s %*s %*s %*s %d", &mb);
+            
+            // adjust MB if going beyond the aloowed bounds
+            if(mb < 4) mb = 4;
+            if(mb > max_hashmap_size) mb = max_hashmap_size;
+            
+            // set hash table size in MB
             std::cout << "    Set hash table size to " << mb << "MB\n";
             init_hashmap(mb);
         }
-
-        // Parse UCI "uci" command
-        else if (input == "uci") {
-            // Print engine info
-            cout << "id name Thrawn"<< version << "\n";
-            cout << "id author Feiyu Lin\n";
-            cout << "uciok\n";
-        }
-
     }
 }
 
