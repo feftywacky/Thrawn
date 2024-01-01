@@ -1,6 +1,8 @@
 Thrawn v2.0 + NNUE 
 ~2500+ ELO
 
+IMPORTANT NOTE: nnue file must be placed in the same directory as the executable or engine will play random moves
+
 new changes
 - fixed zero evaluation blundering bug
 - embedded NNUE
