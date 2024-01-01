@@ -50,6 +50,9 @@ extern const int endgame_phase_score;
 
 extern const int get_rank_from_sq[64];
 
+// converting from thrawn to nnue library
+extern int nnue_pieces[12];
+extern int nnue_squares[64];
 
 int evaluate();
 

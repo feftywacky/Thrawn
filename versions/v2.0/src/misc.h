@@ -5,4 +5,6 @@
 
 extern const std::string version;
 
+void init_all();
+
 #endif

@@ -3,7 +3,6 @@
 #include "transposition_table.h"
 #include "search.h"
 #include "evaluation.h"
-#include "nnue_wrapper.h"
 #include <iostream>
 #include <vector>
 #include <string>
@@ -494,24 +493,4 @@ void init_leaping_attacks()
         knight_attacks[square] = get_knight_attacks(square);
         king_attacks[square] = get_king_attacks(square);
     }
-}
-
-void init_all()
-{
-    // init_magic_nums(); // used to help generate magic bitboards
-    
-    init_leaping_attacks();
-    init_sliding_attacks(bishop);
-    init_sliding_attacks(rook);
-
-    // init hashkeys
-    init_hashkeys();
-    init_hashmap(128); // default of 64 MB
-
-    // init eval masks
-    init_eval_masks();
-
-    // init NNUE
-    init_nnue("nn-62ef826d1a6d.nnue");
-
 }
