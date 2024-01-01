@@ -90,6 +90,8 @@ bool is_square_under_attack(int square, int side);
 uint64_t find_magic_num(const int& square, int relevant_bits, int bishop);
 void init_magic_nums();
 
+bool noMajorsOrMinorsPieces();
+
 // init all piece attacks
 void init_leaping_attacks();
 void init_sliding_attacks(int isBishop);

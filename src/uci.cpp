@@ -56,9 +56,7 @@ int stopped = 0;
 TIME CONTROL
 */
 int get_time_ms() {
-    struct timeval time_value;
-    gettimeofday(&time_value, nullptr);
-    return static_cast<long long>(time_value.tv_sec) * 1000 + time_value.tv_usec / 1000;
+    return chrono::duration_cast<chrono::milliseconds>(chrono::high_resolution_clock::now().time_since_epoch()).count();
 }
 
 int input_waiting() 
@@ -310,6 +308,8 @@ void uci_parse_go(const char* command)
 
     // Initialize start time
     starttime = get_time_ms();
+    
+    depth = depth;
 
     // If time control is available
     if (uci_time != -1) {
@@ -318,7 +318,7 @@ void uci_parse_go(const char* command)
 
         // Set up timing
         uci_time /= movestogo;
-        uci_time -= 50;
+        uci_time -= 50; // lag compensation 
 
         if (uci_time < 0)
         {

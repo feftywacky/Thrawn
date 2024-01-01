@@ -6,7 +6,13 @@
 
 using namespace std;
 
-extern const int MAX_DEPTH;
+#define full_depth_moves 4
+#define reduction_limit 3
+#define INFINITY 50000
+#define mateVal 49000
+#define mateScore 48000
+#define MAX_DEPTH 256
+
 extern int ply;
 extern uint64_t nodes;
 
@@ -18,12 +24,11 @@ extern std::vector<std::vector<int>> pv_table;
 extern bool follow_pv_flag;
 extern bool score_pv_flag;
 
-extern const int full_depth_moves;
-extern const int reduction_limit;
+extern bool allowNullMovePruning;
+extern bool allowFutilityPruning;
 
-extern const int INFINITY;
-extern const int mateVal;
-extern const int mateScore;
+extern std::array<int, 4> LateMovePruning_factors;
+extern int RFP_factor;
 
 // repetition
 extern std::vector<uint64_t> repetition_table;
@@ -49,5 +54,9 @@ void print_move_scores(const vector<int>& moves);
 int isRepetition();
 
 void quicksort_moves(std::vector<int> &moves, std::vector<int> &move_scores, int low, int high);
+
+int futility_margin(int depth);
+
+int futility_move_count(int depth);
 
 #endif

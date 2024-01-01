@@ -447,6 +447,11 @@ bool is_square_under_attack(int square, int side)
     return false;
 }
 
+bool noMajorsOrMinorsPieces()
+{
+    return !(count_bits(occupancies[both]) - count_bits(piece_bitboards[P]) - count_bits(piece_bitboards[p]) - 2);
+}
+
 void init_sliding_attacks(int isBishop)
 {
     for (int square = 0;square<64;square++)

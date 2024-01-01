@@ -21,7 +21,6 @@ some notes for negamax
 - pv nodes: increase alpha
 */
 
-const int MAX_DEPTH = 64;
 int ply;
 uint64_t nodes;
 
@@ -34,23 +33,23 @@ std::vector<std::vector<int>> history_moves(12, std::vector<int>(64)); // [piece
 bool follow_pv_flag = false;
 bool score_pv_flag = false;
 
-const int full_depth_moves = 4;
-const int reduction_limit = 3;
+bool allowNullMovePruning = true;
+bool allowFutilityPruning = false;
 
-const int INFINITY = 60000;
-const int mateVal = 59000;
-const int mateScore = 58000;
+std::array<int, 4> LateMovePruning_factors = { 0, 8, 12, 24};
+int RFP_factor = 64;
 
 // repetition
 std::vector<uint64_t> repetition_table(1028); // 1028 plies for a game
-int repetition_index;
-int fifty_move;
+int repetition_index = 0;
+int fifty_move = 0;
 
 int negamax(int depth, int alpha, int beta)
 {
     int score = 0;
     int bestMove = 0;
     int hashFlag = hashFlagALPHA;
+    int static_eval = 0;
     // init pv 
     pv_depth[ply] = ply;
 
@@ -59,23 +58,33 @@ int negamax(int depth, int alpha, int beta)
         return 0;
 
     // determines if current node is a pv node
-    int pv_node = beta - alpha > 1; // IMPORTANT FIXES TRANPOSITION TABLE PV BUG
+    int pv_node = ((beta - alpha) > 1); // IMPORTANT FIXES TRANPOSITION TABLE PV BUG
 
     // retrieve score if not root ply and not pv node and tt key exists
     // if move has already been searched, return its score instantly
-    if (ply && !pv_node && (score = probeHashMap(depth, alpha, beta, &bestMove)) != no_hashmap_entry)
-        return score;
+    if (ply && ((score = probeHashMap(depth, alpha, beta, &bestMove)) != no_hashmap_entry) && !pv_node)
+    {
+        if (fifty_move<90)
+            return score;
+    }
 
     if ((nodes & 2047)==0)
     {
-        // cout<<"negamax comm"<<"\n";
         communicate();
     }
 
-    if (depth == 0)
+    nodes++;
+    int valid_moves = 0;
+    bool inCheck = is_square_under_attack((colour_to_move==white ? get_lsb_index(piece_bitboards[K]) : get_lsb_index(piece_bitboards[k])), colour_to_move^1);
+
+    if (inCheck)
     {
-        return quiescence(alpha, beta);
+        depth++;
+        goto full_search;
     }
+
+    if (depth == 0)
+        return quiescence(alpha, beta);
 
     if (ply>MAX_DEPTH-1) // array overflow at max depth
     {
@@ -83,16 +92,44 @@ int negamax(int depth, int alpha, int beta)
         return evaluate();
     }
 
+    static_eval = evaluate();
 
-    nodes++;
-    int valid_moves = 0;
-    bool inCheck = is_square_under_attack((colour_to_move==white ? get_lsb_index(piece_bitboards[K]) : get_lsb_index(piece_bitboards[k])), colour_to_move^1);
-    
-    if(inCheck)
-        depth++;
+    // Reverse Futility Pruning / static null move pruning
+	if (depth < 3 && !pv_node && !inCheck &&  abs(beta - 1) > -INFINITY + 100)
+	{   
+		int eval_margin = 120 * depth;
+		
+		// evaluation margin substracted from static evaluation score fails high
+		if (static_eval - eval_margin >= beta)
+			return static_eval - eval_margin;
+	}
+
+    // razoring pruning (forward pruning)
+    if (!inCheck && !pv_node && depth <= 3)
+    {
+        // apply bonus to score
+        score = evaluate() + 125; 
+        int razor_score;
+        if (score<beta)
+        {
+            if (depth == 1)
+            {
+                razor_score = quiescence(alpha, beta);
+                return (razor_score > score) ? razor_score : score;
+            }
+            // second bonus to score
+            score += 175;
+            if ( score < beta && depth <= 2)
+            {
+                razor_score = quiescence(alpha,beta);
+                if (razor_score < beta) // quiescence says score fail-low node
+                    return (razor_score > score) ? razor_score : score;
+            }
+        }
+    }
     
     // null move pruning
-    if (depth>=3 && !inCheck && ply) 
+    if (!inCheck && (depth>=3) && allowNullMovePruning && !pv_node && !noMajorsOrMinorsPieces()) 
     {
         // give opponent another move
         copyBoard();
@@ -109,7 +146,9 @@ int negamax(int depth, int alpha, int beta)
         zobristKey ^= colour_to_move_hashkey;
         
         // depth - 1 - R, R is reduction constant
+        allowNullMovePruning = false;
         score = -negamax(depth-1-2, -beta, -beta+1);
+        allowNullMovePruning = true;
 
         ply--;
         repetition_index--;
@@ -124,31 +163,20 @@ int negamax(int depth, int alpha, int beta)
             return beta;
     }
 
-    // razoring pruning (forward pruning)
-    // if used, plays bad with handcrafted evaluation
-    // requries nnue?
-    if (!pv_node && !inCheck && depth <= 3)
-    {
-        // apply bonus to score
-        score = evaluate() + 125; 
-        int razor_score;
-        if (score<beta)
-        {
-            if (depth == 1)
-            {
-                razor_score = quiescence(alpha, beta);
-                return (razor_score > score) ? razor_score : score;
-            }
-            // second bonus to score
-            score += 175;
-            if ( score < beta && depth <= 3)
-            {
-                razor_score = quiescence(alpha,beta);
-                if (razor_score < beta) // quiescence says score fail-low node
-                    return (razor_score > score) ? razor_score : score;
-            }
-        }
-    }
+
+    //Futility Pruning Detection (extended futility: beyond depth == 1)
+    // if (!inCheck && !pv_node && (ply > 0) && (depth <= 8))
+    //     if ((static_eval + futility_margin(depth)) <= alpha)
+	// 		allowFutilityPruning = true;
+
+    // No-hashmove reduction (taken from Stockfish)
+    // If the position is not in TT, decrease depth by 1 (~3 Elo)
+    if (!inCheck && pv_node && (depth >= 3) && !bestMove)
+        depth--;
+
+
+    full_search:
+
 
     vector<int> moves = generate_moves();
 
@@ -174,16 +202,58 @@ int negamax(int depth, int alpha, int beta)
             repetition_index--;
             continue;
         }
+
+        // used for avoiding reductions on moves that give check
+        bool givesCheck = is_square_under_attack((colour_to_move == white) ? get_lsb_index(piece_bitboards[K]) : 
+                                                                    get_lsb_index(piece_bitboards[k]),
+                                                                    colour_to_move ^ 1);        
         valid_moves++;
 
         // full depth search
         if (moves_searched == 0) 
             score = -negamax(depth-1, -beta, -alpha);
 
-        // late move reduction (lmr)
+        
+        // pruning techniques
         else 
-        {
-            if (moves_searched >= full_depth_moves && 
+        {   
+            // Futility Pruning on current move
+            // if (allowFutilityPruning && valid_moves>1)
+            // {
+            //     if (!givesCheck && (killer_moves[0][ply] != move)
+            //                     && (killer_moves[1][ply] != move)
+            //                     && (get_move_piece(move) != P)
+            //                     && (get_move_piece(move) != p)
+            //                     && !get_promoted_piece(move)
+            //                     && !get_is_move_castling(move)
+            //                     && !get_is_capture_move(move))
+            //     {
+            //         // undo the current move and skip to the next one
+            //         restoreBoard();
+            //         ply--;
+            //         repetition_index--;
+
+            //         continue;
+            //     }
+            // }
+
+            // Late Move Pruning (LMP)
+		    if ((ply > 0) && (depth <= 3)
+                          && !pv_node
+                          && !inCheck
+                          && !get_is_capture_move(move)
+                          && (valid_moves > LateMovePruning_factors[depth]))
+            {
+                // undo the current move and skip to the next one
+                restoreBoard();
+                ply--;
+                repetition_index--;
+
+                continue;
+			}
+
+            // late move reduction (LMR)
+            if (valid_moves >= full_depth_moves && 
                 depth >= reduction_limit && 
                 !inCheck && 
                 get_is_capture_move(move) == 0 && 
@@ -203,11 +273,10 @@ int negamax(int depth, int alpha, int beta)
                 score = -negamax(depth-1, -alpha - 1, -alpha);
             
                 // if LMR fails re-search at full depth and full score bandwith
-                if(score > alpha && score < beta)
+                if((score > alpha) && (score < beta))
                     score = -negamax(depth-1, -beta, -alpha);
             }
         }
-
 
         ply--;
         repetition_index--;
@@ -216,10 +285,7 @@ int negamax(int depth, int alpha, int beta)
 
         // time is up
         if(stopped == 1) 
-        {
-            cout<<"time is up, returning score = 0"<<"\n";
             return 0;
-        }
 
         moves_searched++;
 
@@ -280,7 +346,6 @@ int quiescence(int alpha, int beta)
 {
     if ((nodes & 2047)==0)
     {
-        // cout<<"quiscence comm"<<"\n";
         communicate();
     }
 
@@ -364,18 +429,10 @@ void search_position(int depth)
 
     follow_pv_flag = false;
     score_pv_flag = false;
+    
+    allowNullMovePruning = true;
+    allowFutilityPruning = false;
 
-    // pv_depth.clear();
-    // pv_depth.resize(64);
-
-    // pv_table.clear();
-    // pv_table.resize(64, std::vector<int>(64));
-
-    // killer_moves.clear();
-    // killer_moves.resize(2, std::vector<int>(64));
-
-    // history_moves.clear();
-    // history_moves.resize(12, std::vector<int>(64));
     pv_depth.assign(MAX_DEPTH, 0);
     for (auto& row : pv_table) 
         row.assign(MAX_DEPTH, 0);
@@ -401,15 +458,9 @@ void search_position(int depth)
         
         follow_pv_flag = true;
         score = negamax(curr_depth, alpha, beta);
-
-        if (score==0)
-        {
-            cout<<"SKIPPED SCORE = 0"<<"\n";
-            continue;
-        }
         
         // aspiration window
-        if (score<=alpha || score>=beta)
+        if ((score<=alpha) || (score>=beta))
         {
             alpha = -INFINITY;
             beta = INFINITY;
@@ -455,6 +506,7 @@ void search_position(int depth)
     print_move(pv_table[0][0]);
     std::cout<<"\n";
 
+    stopped = 1; // fixes zero eval blundering bug
 }
 
 
@@ -591,3 +643,12 @@ void quicksort_moves(std::vector<int> &moves, std::vector<int> &move_scores, int
     }
 }
 
+int futility_margin(int depth)
+{
+    return 168 * depth;
+}
+
+int futility_move_count(int depth)
+{
+    return (3 + depth * depth) / 2;
+}

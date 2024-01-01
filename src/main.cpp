@@ -26,22 +26,11 @@ int main() {
     if (dev_mode)
     {
         cout<<"developer mode"<<endl;
-        parse_fen("k2r4/p2q1p1p/5Pp1/5b2/8/5Q1P/PPnN1PP1/2RK3R b - - 18 31");
+        parse_fen(position_2);
         // parse_fen(position_2);
         print_board(colour_to_move);
-        // cout<<"nnue: "<<evaluate_fen_nnue("k2r4/p2q1p1p/5Pp1/5b2/8/5Q1P/PPnN1PP1/2RK3R b - - 18 31");
-        
-        // int best_move;
-        // parse_fen(position_2);
-        // print_board(colour_to_move);
-        // vector<int> moves = generate_moves();
-        // print_move_scores(moves);
-        // moves[0] = best_move;
-        // sort_moves(moves,best_move);
-        // cout<<"************************************"<<"\n";
-        // print_move_scores(moves);
 
-        search_position(8);
+        search_position(10);
     }
     else
         uci_loop();
