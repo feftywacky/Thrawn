@@ -33,3 +33,6 @@
 # Code Editors
 *.vscode
 *.idea
+
+# Compressed Files
+*.zip
