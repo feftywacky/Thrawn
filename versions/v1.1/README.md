@@ -2,7 +2,7 @@ Thrawn v1.1
 ~1900 ELO
 
 new changes
-- razoring (commented out for v1.1 because it performs bad without a nnue)
+- razoring
 - hash move ordering
 
 old updates
