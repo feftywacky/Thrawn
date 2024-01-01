@@ -60,7 +60,6 @@ thrawn.exe
 ``` 
 
 for Thrawn v1.1 and older:
-for Thrawn v2.0:
 ```bash
 cd src
 g++ -std=c++17 -Ofast -flto -o Thrawn *.cpp
