@@ -10,7 +10,7 @@
 #include "search.h"
 #include "zobrist_hashing.h"
 #include "transposition_table.h"
-#include "nnue_wrapper.h"
+#include "nnue.h"
 #include <cstdint>
 #include <iostream>
 #include <chrono>
