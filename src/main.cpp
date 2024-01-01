@@ -11,6 +11,7 @@
 #include "zobrist_hashing.h"
 #include "transposition_table.h"
 #include "nnue.h"
+#include "misc.h"
 #include <cstdint>
 #include <iostream>
 #include <chrono>

@@ -95,5 +95,6 @@ bool noMajorsOrMinorsPieces();
 // init all piece attacks
 void init_leaping_attacks();
 void init_sliding_attacks(int isBishop);
+        
 
 #endif

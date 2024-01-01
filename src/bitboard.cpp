@@ -3,7 +3,6 @@
 #include "transposition_table.h"
 #include "search.h"
 #include "evaluation.h"
-#include "nnue.h"
 #include <iostream>
 #include <vector>
 #include <string>
