@@ -27,11 +27,10 @@ int main() {
     if (dev_mode)
     {
         cout<<"developer mode"<<endl;
-        parse_fen(position_2);
+        parse_fen("7b/2P1k3/NP4P1/P3p3/2K1B3/8/8/8 w - - 1 82");
         // parse_fen(position_2);
         print_board(colour_to_move);
 
-        search_position(10);
     }
     else
         uci_loop();
