@@ -529,6 +529,11 @@ int score_move(int move)
         }
     }
 
+    if (get_promoted_piece(move)==Q || get_promoted_piece(move)==q)
+    {
+        return 10000 + 499;
+    }
+
     if (get_is_capture_move(move))
     {
         int target = P;
@@ -547,8 +552,6 @@ int score_move(int move)
             }
         }
 
-        if (get_promoted_piece(move) == Q || get_promoted_piece(q))
-            return mvv_lva[get_move_piece(move)][target] + 10000 + 100;
         return mvv_lva[get_move_piece(move)][target] + 10000;
     }
     
