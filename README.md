@@ -52,14 +52,14 @@ g++ --version
 ### Build and Run:
 for gcc: 
 
-for Thrawn v2.0:
+compiling Thrawn v2.0:
 ```bash
 cd src
-g++ -std=c++17 -Ofast -flto -DUSE_AVX2 -mavx2 -DUSE_SSE41 -msse4.1 -DUSE_SSE3 -msse3 -DUSE_SSE2 -msse2 -DUSE_SSE -msse -o Thrawn *.cpp
+mingw32-make
 Thrawn.exe
 ``` 
 
-for Thrawn v1.1 and older:
+compiling Thrawn v1.1 and older:
 ```bash
 cd src
 g++ -std=c++17 -Ofast -flto -o Thrawn *.cpp
