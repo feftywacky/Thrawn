@@ -14,7 +14,7 @@
 using namespace std;
 
 /*
-some notes for negamax 
+some notes for negamax
 3 types
 - fail high: causes beta cut-off
 - fail low: don't increase alpha
@@ -24,10 +24,10 @@ some notes for negamax
 int ply;
 uint64_t nodes;
 
-std::vector<int> pv_depth(MAX_DEPTH); // [ply]
+std::vector<int> pv_depth(MAX_DEPTH);                                           // [ply]
 std::vector<std::vector<int>> pv_table(MAX_DEPTH, std::vector<int>(MAX_DEPTH)); // [ply][ply]
-std::vector<std::vector<int>> killer_moves(2, std::vector<int>(MAX_DEPTH)); // [killer 1 or 2][ply]
-std::vector<std::vector<int>> history_moves(12, std::vector<int>(64)); // [piece][sq]
+std::vector<std::vector<int>> killer_moves(2, std::vector<int>(MAX_DEPTH));     // [killer 1 or 2][ply]
+std::vector<std::vector<int>> history_moves(12, std::vector<int>(64));          // [piece][sq]
 
 // pv sorting
 bool follow_pv_flag = false;
@@ -36,7 +36,7 @@ bool score_pv_flag = false;
 bool allowNullMovePruning = true;
 bool allowFutilityPruning = false;
 
-std::array<int, 4> LateMovePruning_factors = { 0, 8, 12, 24};
+std::array<int, 4> LateMovePruning_factors = {0, 8, 12, 24};
 int RFP_factor = 64;
 
 // repetition
@@ -50,7 +50,7 @@ int negamax(int depth, int alpha, int beta)
     int bestMove = 0;
     int hashFlag = hashFlagALPHA;
     int static_eval = 0;
-    // init pv 
+    // init pv
     pv_depth[ply] = ply;
 
     // stalemate if 3 move repetition or fifty-move rule
@@ -64,18 +64,18 @@ int negamax(int depth, int alpha, int beta)
     // if move has already been searched, return its score instantly
     if (ply && ((score = probeHashMap(depth, alpha, beta, &bestMove)) != no_hashmap_entry) && !pv_node)
     {
-        if (fifty_move<90)
+        if (fifty_move < 90)
             return score;
     }
 
-    if ((nodes & 2047)==0)
+    if ((nodes & 2047) == 0)
     {
         communicate();
     }
 
     nodes++;
     int valid_moves = 0;
-    bool inCheck = is_square_under_attack((colour_to_move==white ? get_lsb_index(piece_bitboards[K]) : get_lsb_index(piece_bitboards[k])), colour_to_move^1);
+    bool inCheck = is_square_under_attack((colour_to_move == white ? get_lsb_index(piece_bitboards[K]) : get_lsb_index(piece_bitboards[k])), colour_to_move ^ 1);
 
     if (inCheck)
     {
@@ -86,31 +86,31 @@ int negamax(int depth, int alpha, int beta)
     if (depth == 0)
         return quiescence(alpha, beta);
 
-    if (ply>MAX_DEPTH-1) // array overflow at max depth
+    if (ply > MAX_DEPTH - 1) // array overflow at max depth
     {
-        std::cout<<"array overflow at max depth: "<<ply<<endl;
+        std::cout << "array overflow at max depth: " << ply << endl;
         return evaluate();
     }
 
     static_eval = evaluate();
 
     // Reverse Futility Pruning / static null move pruning
-	if (depth < 3 && !pv_node && !inCheck &&  abs(beta - 1) > -INFINITY + 100)
-	{   
-		int eval_margin = 120 * depth;
-		
-		// evaluation margin substracted from static evaluation score fails high
-		if (static_eval - eval_margin >= beta)
-			return static_eval - eval_margin;
-	}
+    if (depth < 3 && !pv_node && !inCheck && abs(beta - 1) > -INFINITY + 100)
+    {
+        int eval_margin = 120 * depth;
+
+        // evaluation margin substracted from static evaluation score fails high
+        if (static_eval - eval_margin >= beta)
+            return static_eval - eval_margin;
+    }
 
     // razoring pruning (forward pruning)
     if (!inCheck && !pv_node && depth <= 3)
     {
         // apply bonus to score
-        score = evaluate() + 125; 
+        score = evaluate() + 125;
         int razor_score;
-        if (score<beta)
+        if (score < beta)
         {
             if (depth == 1)
             {
@@ -119,17 +119,17 @@ int negamax(int depth, int alpha, int beta)
             }
             // second bonus to score
             score += 175;
-            if ( score < beta && depth <= 2)
+            if (score < beta && depth <= 2)
             {
-                razor_score = quiescence(alpha,beta);
+                razor_score = quiescence(alpha, beta);
                 if (razor_score < beta) // quiescence says score fail-low node
                     return (razor_score > score) ? razor_score : score;
             }
         }
     }
-    
+
     // null move pruning
-    if (!inCheck && (depth>=3) && allowNullMovePruning && !pv_node && !noMajorsOrMinorsPieces()) 
+    if (!inCheck && (depth >= 3) && allowNullMovePruning && !pv_node && !noMajorsOrMinorsPieces())
     {
         // give opponent another move
         copyBoard();
@@ -138,16 +138,16 @@ int negamax(int depth, int alpha, int beta)
         repetition_index++;
         repetition_table[repetition_index] = zobristKey;
 
-        if (enpassant!=null_sq) 
+        if (enpassant != null_sq)
             zobristKey ^= enpassant_hashkey[enpassant];
         enpassant = null_sq;
 
         colour_to_move ^= 1;
         zobristKey ^= colour_to_move_hashkey;
-        
+
         // depth - 1 - R, R is reduction constant
         allowNullMovePruning = false;
-        score = -negamax(depth-1-2, -beta, -beta+1);
+        score = -negamax(depth - 1 - 2, -beta, -beta + 1);
         allowNullMovePruning = true;
 
         ply--;
@@ -156,27 +156,19 @@ int negamax(int depth, int alpha, int beta)
         restoreBoard();
 
         // time is up
-        if(stopped == 1) 
+        if (stopped == 1)
             return 0;
         // fail hard beta cut-off
-        if (score>=beta)
+        if (score >= beta)
             return beta;
     }
-
-
-    //Futility Pruning Detection (extended futility: beyond depth == 1)
-    // if (!inCheck && !pv_node && (ply > 0) && (depth <= 8))
-    //     if ((static_eval + futility_margin(depth)) <= alpha)
-	// 		allowFutilityPruning = true;
 
     // No-hashmove reduction (taken from Stockfish)
     // If the position is not in TT, decrease depth by 1 (~3 Elo)
     if (!inCheck && pv_node && (depth >= 3) && !bestMove)
         depth--;
 
-
-    full_search:
-
+full_search:
 
     vector<int> moves = generate_moves();
 
@@ -184,7 +176,6 @@ int negamax(int depth, int alpha, int beta)
         score_pv(moves);
 
     sort_moves(moves, bestMove);
-    
 
     int moves_searched = 0;
 
@@ -196,7 +187,7 @@ int negamax(int depth, int alpha, int beta)
         repetition_index++;
         repetition_table[repetition_index] = zobristKey;
 
-        if (make_move(move, all_moves)==0)
+        if (make_move(move, all_moves) == 0)
         {
             ply--;
             repetition_index--;
@@ -204,21 +195,19 @@ int negamax(int depth, int alpha, int beta)
         }
 
         // used for avoiding reductions on moves that give check
-        bool givesCheck = is_square_under_attack((colour_to_move == white) ? get_lsb_index(piece_bitboards[K]) : 
-                                                                    get_lsb_index(piece_bitboards[k]),
-                                                                    colour_to_move ^ 1);        
+        bool givesCheck = is_square_under_attack((colour_to_move == white) ? get_lsb_index(piece_bitboards[K]) : get_lsb_index(piece_bitboards[k]),
+                                                 colour_to_move ^ 1);
         valid_moves++;
 
         // full depth search
-        if (moves_searched == 0) 
-            score = -negamax(depth-1, -beta, -alpha);
+        if (moves_searched == 0)
+            score = -negamax(depth - 1, -beta, -alpha);
 
-        
         // pruning techniques
-        else 
-        {   
+        else
+        {
             // Futility Pruning on current move
-            // if (allowFutilityPruning && valid_moves>1)
+            // if (doFutility && valid_moves>1)
             // {
             //     if (!givesCheck && (killer_moves[0][ply] != move)
             //                     && (killer_moves[1][ply] != move)
@@ -229,20 +218,16 @@ int negamax(int depth, int alpha, int beta)
             //                     && !get_is_capture_move(move))
             //     {
             //         // undo the current move and skip to the next one
-            //         restoreBoard();
-            //         ply--;
-            //         repetition_index--;
+            //         // restoreBoard();
+            //         // ply--;
+            //         // repetition_index--;
 
-            //         continue;
+            //         break;
             //     }
             // }
 
             // Late Move Pruning (LMP)
-		    if ((ply > 0) && (depth <= 3)
-                          && !pv_node
-                          && !inCheck
-                          && !get_is_capture_move(move)
-                          && (valid_moves > LateMovePruning_factors[depth]))
+            if ((ply > 0) && (depth <= 3) && !pv_node && !inCheck && !get_is_capture_move(move) && (valid_moves > LateMovePruning_factors[depth]))
             {
                 // undo the current move and skip to the next one
                 restoreBoard();
@@ -250,31 +235,30 @@ int negamax(int depth, int alpha, int beta)
                 repetition_index--;
 
                 continue;
-			}
+            }
 
             // late move reduction (LMR)
-            if (valid_moves >= full_depth_moves && 
-                depth >= reduction_limit && 
-                !inCheck && 
-                get_is_capture_move(move) == 0 && 
-                get_promoted_piece(move) == 0
-                )
+            if (valid_moves >= full_depth_moves &&
+                depth >= reduction_limit &&
+                !inCheck &&
+                get_is_capture_move(move) == 0 &&
+                get_promoted_piece(move) == 0)
                 score = -negamax(depth - 2, -alpha - 1, -alpha);
 
             // ensure that full-depth search is done
-            else 
+            else
                 score = alpha + 1;
-            
+
             // if found a better move during LMR
             // PVS
-            if(score > alpha)
+            if (score > alpha)
             {
                 // re-search at full depth but with narrowed score bandwith
-                score = -negamax(depth-1, -alpha - 1, -alpha);
-            
+                score = -negamax(depth - 1, -alpha - 1, -alpha);
+
                 // if LMR fails re-search at full depth and full score bandwith
-                if((score > alpha) && (score < beta))
-                    score = -negamax(depth-1, -beta, -alpha);
+                if ((score > alpha) && (score < beta))
+                    score = -negamax(depth - 1, -beta, -alpha);
             }
         }
 
@@ -284,37 +268,37 @@ int negamax(int depth, int alpha, int beta)
         restoreBoard();
 
         // time is up
-        if(stopped == 1) 
+        if (stopped == 1)
             return 0;
 
         moves_searched++;
 
         // found better move, pv
-        if (score> alpha)
+        if (score > alpha)
         {
             bestMove = move;
             hashFlag = hashFlagEXACT; // pv node
 
-            if (get_is_capture_move(move)==0)
+            if (get_is_capture_move(move) == 0)
                 history_moves[get_move_piece(move)][get_move_target(move)] += depth;
 
             alpha = score; // principal variation PV node (best move)
 
             pv_table[ply][ply] = move;
             // store deeper ply move into current ply
-            for (int nextPly=ply+1; nextPly<pv_depth[ply+1]; nextPly++)
+            for (int nextPly = ply + 1; nextPly < pv_depth[ply + 1]; nextPly++)
             {
-                pv_table[ply][nextPly] = pv_table[ply+1][nextPly];
+                pv_table[ply][nextPly] = pv_table[ply + 1][nextPly];
             }
 
-            pv_depth[ply] = pv_depth[ply+1];
+            pv_depth[ply] = pv_depth[ply + 1];
 
             // fail-hard beta cutoff
-            if (score>=beta)
+            if (score >= beta)
             {
                 writeToHashMap(depth, beta, hashFlagBETA, bestMove);
 
-                if (get_is_capture_move(move)==0)
+                if (get_is_capture_move(move) == 0)
                 {
                     killer_moves[1][ply] = killer_moves[0][ply];
                     killer_moves[0][ply] = move;
@@ -322,7 +306,6 @@ int negamax(int depth, int alpha, int beta)
                 return beta; // fails high
             }
         }
-        
     }
 
     if (valid_moves == 0)
@@ -344,23 +327,23 @@ int negamax(int depth, int alpha, int beta)
 
 int quiescence(int alpha, int beta)
 {
-    if ((nodes & 2047)==0)
+    if ((nodes & 2047) == 0)
     {
         communicate();
     }
 
     nodes++;
 
-    if (ply>MAX_DEPTH - 1)
+    if (ply > MAX_DEPTH - 1)
         return evaluate();
 
     int evaluation = evaluate();
 
     // fail-hard beta cutoff
-    if (evaluation>=beta)
+    if (evaluation >= beta)
         return beta; // fails high
 
-    // found better move 
+    // found better move
     if (evaluation > alpha)
     {
         alpha = evaluation; // principal variation PV node (best move)
@@ -392,18 +375,18 @@ int quiescence(int alpha, int beta)
         restoreBoard();
 
         // time is up
-        if(stopped == 1) return 0;
+        if (stopped == 1)
+            return 0;
 
-        // found better move 
+        // found better move
         if (score > alpha)
         {
             alpha = score; // principal variation PV node (best move)
 
             // fail-hard beta cutoff
-            if (score>=beta)
+            if (score >= beta)
                 return beta; // fails high
         }
-        
     }
 
     // move fails low (<= alpha)
@@ -429,16 +412,16 @@ void search_position(int depth)
 
     follow_pv_flag = false;
     score_pv_flag = false;
-    
+
     allowNullMovePruning = true;
     allowFutilityPruning = false;
 
     pv_depth.assign(MAX_DEPTH, 0);
-    for (auto& row : pv_table) 
+    for (auto &row : pv_table)
         row.assign(MAX_DEPTH, 0);
-    for (auto& row : killer_moves)
+    for (auto &row : killer_moves)
         row.assign(MAX_DEPTH, 0);
-    for (auto& row : history_moves)
+    for (auto &row : history_moves)
         row.assign(64, 0);
 
     int score = 0;
@@ -448,19 +431,19 @@ void search_position(int depth)
     int start = get_time_ms();
 
     // iterative deepening
-    for (int curr_depth = 1;curr_depth<=depth;curr_depth++)
+    for (int curr_depth = 1; curr_depth <= depth; curr_depth++)
     {
         // time is up
         if (stopped == 1)
-        { 
+        {
             break;
         }
-        
+
         follow_pv_flag = true;
         score = negamax(curr_depth, alpha, beta);
-        
+
         // aspiration window
-        if ((score<=alpha) || (score>=beta))
+        if ((score <= alpha) || (score >= beta))
         {
             alpha = -INFINITY;
             beta = INFINITY;
@@ -476,39 +459,38 @@ void search_position(int depth)
         {
             if (score > -mateVal && score < -mateScore)
                 std::cout << "info score mate " << -(score + mateVal) / 2 - 1
-                        << " depth " << curr_depth
-                        << " nodes " << nodes
-                        << " time " << static_cast<unsigned int>(get_time_ms() - start)
-                        << " pv ";
+                          << " depth " << curr_depth
+                          << " nodes " << nodes
+                          << " time " << static_cast<unsigned int>(get_time_ms() - start)
+                          << " pv ";
             else if (score > mateScore && score < mateVal)
                 std::cout << "info score mate " << (mateVal - score) / 2 + 1
-                        << " depth " << curr_depth
-                        << " nodes " << nodes
-                        << " time " << static_cast<unsigned int>(get_time_ms() - start)
-                        << " pv ";
+                          << " depth " << curr_depth
+                          << " nodes " << nodes
+                          << " time " << static_cast<unsigned int>(get_time_ms() - start)
+                          << " pv ";
             else
                 std::cout << "info score cp " << score
-                        << " depth " << curr_depth
-                        << " nodes " << nodes
-                        << " time " << static_cast<unsigned int>(get_time_ms() - start)
-                        << " pv ";
+                          << " depth " << curr_depth
+                          << " nodes " << nodes
+                          << " time " << static_cast<unsigned int>(get_time_ms() - start)
+                          << " pv ";
 
-            for (int i=0;i<pv_depth[0];i++)
-            { 
+            for (int i = 0; i < pv_depth[0]; i++)
+            {
                 print_move(pv_table[0][i]);
-                std::cout<<" ";
+                std::cout << " ";
             }
-            std::cout<<"\n";
+            std::cout << "\n";
         }
     }
 
-    std::cout<<"bestmove ";
+    std::cout << "bestmove ";
     print_move(pv_table[0][0]);
-    std::cout<<"\n";
+    std::cout << "\n";
 
     stopped = 1; // fixes zero eval blundering bug
 }
-
 
 // SCORING PRIORITY
 // 1) PV
@@ -529,7 +511,7 @@ int score_move(int move)
         }
     }
 
-    if (get_promoted_piece(move)==Q || get_promoted_piece(move)==q)
+    if (get_promoted_piece(move) == Q || get_promoted_piece(move) == q)
     {
         return 10000 + 499;
     }
@@ -539,11 +521,11 @@ int score_move(int move)
         int target = P;
         int start_piece;
         int end_piece;
-        
-        (colour_to_move==white) ? start_piece = p : start_piece = P;
-        (colour_to_move==white) ? end_piece = k : end_piece = K;
 
-        for(int i=start_piece; i<=end_piece;i++)
+        (colour_to_move == white) ? start_piece = p : start_piece = P;
+        (colour_to_move == white) ? end_piece = k : end_piece = K;
+
+        for (int i = start_piece; i <= end_piece; i++)
         {
             if (get_bit(piece_bitboards[i], get_move_target(move)))
             {
@@ -554,17 +536,17 @@ int score_move(int move)
 
         return mvv_lva[get_move_piece(move)][target] + 10000;
     }
-    
+
     // quiet moves
     else
-    {   
+    {
         if (killer_moves[0][ply] == move)
             return 9000;
         else if (killer_moves[1][ply] == move)
             return 8000;
         else if (get_promoted_piece(move) == Q || get_promoted_piece(q))
-            return mvv_lva[get_move_piece(move)][get_move_target(move)]+100;
-        else 
+            return mvv_lva[get_move_piece(move)][get_move_target(move)] + 100;
+        else
             return history_moves[get_move_piece(move)][get_move_target(move)];
     }
 
@@ -575,7 +557,7 @@ void score_pv(vector<int> &moves)
 {
     follow_pv_flag = false;
 
-    for (int move: moves)
+    for (int move : moves)
     {
         if (pv_table[0][ply] == move)
         {
@@ -588,7 +570,7 @@ void score_pv(vector<int> &moves)
 void sort_moves(vector<int> &moves, int bestMove)
 {
     vector<int> move_scores(moves.size());
-    
+
     // score all the moves within a move list
     for (int count = 0; count < moves.size(); count++)
     {
@@ -605,14 +587,14 @@ void sort_moves(vector<int> &moves, int bestMove)
     quicksort_moves(moves, move_scores, 0, moves.size() - 1);
 }
 
-void print_move_scores(const vector<int>& moves)
+void print_move_scores(const vector<int> &moves)
 {
     for (int move : moves)
     {
         int score = score_move(move);
-        if (score>0)
+        if (score > 0)
         {
-            if (score>=20000)
+            if (score >= 20000)
             {
                 print_move(move);
                 printf(" pv/best: %d\n", score);
@@ -623,13 +605,17 @@ void print_move_scores(const vector<int>& moves)
     }
 }
 
-void quicksort_moves(std::vector<int> &moves, std::vector<int> &move_scores, int low, int high) {
-    if (low < high) {
+void quicksort_moves(std::vector<int> &moves, std::vector<int> &move_scores, int low, int high)
+{
+    if (low < high)
+    {
         int pivot = move_scores[high];
         int i = low - 1;
 
-        for (int j = low; j <= high - 1; j++) {
-            if (move_scores[j] > pivot) {
+        for (int j = low; j <= high - 1; j++)
+        {
+            if (move_scores[j] > pivot)
+            {
                 i++;
                 std::swap(move_scores[i], move_scores[j]);
                 std::swap(moves[i], moves[j]);
