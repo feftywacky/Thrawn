@@ -1,5 +1,5 @@
 # Thrawn
-Thrawn is free UCI compliant chess engine that analyzes and outputs optimal moves. 
+Thrawn is free UCI compliant chess engine that analyzes positions and outputs optimal moves. 
 
 Thrawn does not include a graphical user interface (GUI) that is required to display a chessboard and to make it easy to input moves. These GUIs are developed independently from Thrawn and are available online. Some recommended GUIs include:
 - CuteChess: https://github.com/cutechess/cutechess
