@@ -29,14 +29,14 @@ Notes:
 - Various search optimizations
 - Bitboard data structure
 - Transposition tables
-- Time allocation
+- Time allocation/Control
 - Implements UCI protocol
 
 ## Updates
 - no-hashmove reduction
 - reverse futility pruning / static null move pruning
 - late move pruning
-- fifty-move rule + 3-fold repetition detection
+- fifty-move rule + three-fold repetition detection
 - NNUE evaluation
 - hash move ordering
 - razoring pruning
