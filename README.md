@@ -1,5 +1,5 @@
 # Thrawn
-Thrawn is free UCI compliant chess engine that analyzes positions and outputs optimal moves. 
+Thrawn is a free UCI compliant chess engine that analyzes positions and outputs optimal moves. 
 
 Thrawn does not include a graphical user interface (GUI) that is required to display a chessboard and to make it easy to input moves. These GUIs are developed independently from Thrawn and are available online. Some recommended GUIs include:
 - CuteChess: https://github.com/cutechess/cutechess
@@ -8,12 +8,12 @@ Thrawn does not include a graphical user interface (GUI) that is required to dis
 
 ## RATING/ELO
 The Rating of Thrawn is evaluated by [CCRL](https://computerchess.org.uk/ccrl/404/) <br>
-- Thrawn v2.0: ~3000 ELO? (is currently being tested) 
-- [Thrawn v1.1](https://computerchess.org.uk/ccrl/404/cgi/compare_engines.cgi?class=None&only_best_in_class=on&num_best_in_class=1&e=Thrawn+1.1+64-bit&print=Rating+list&profile_step=50&profile_numbers=1&print=Results+table&print=LOS+table&table_size=100&ct_from_elo=0&ct_to_elo=10000&match_length=30&cross_tables_for_best_versions_only=1&sort_tables=by+rating&diag=0&reference_list=None&recalibrate=no): 2011 ELO
+- Thrawn v2.0: **~3000 ELO**? (is currently being tested) 
+- [Thrawn v1.1](https://computerchess.org.uk/ccrl/404/cgi/compare_engines.cgi?class=None&only_best_in_class=on&num_best_in_class=1&e=Thrawn+1.1+64-bit&print=Rating+list&profile_step=50&profile_numbers=1&print=Results+table&print=LOS+table&table_size=100&ct_from_elo=0&ct_to_elo=10000&match_length=30&cross_tables_for_best_versions_only=1&sort_tables=by+rating&diag=0&reference_list=None&recalibrate=no): **2011 ELO**
 
-Note:
+Notes:
 - Thrawn v2.0 uses NNUE
-- Thrawn v1,1 uses handcrafted evaluation
+- Thrawn v1.1 uses handcrafted evaluation
 
 ## TODO
 - [ ] LOTS of general code clean up
