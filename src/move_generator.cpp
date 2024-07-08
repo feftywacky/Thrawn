@@ -1,10 +1,3 @@
-#include "move_generator.h"
-#include "bitboard.h"
-#include "constants.h"
-#include "bitboard_helpers.h"
-#include "move_helpers.h"
-#include "zobrist_hashing.h"
-#include "search.h"
 #include <iostream>
 #include <vector>
 #include <string>
@@ -12,7 +5,16 @@
 #include <set>
 #include <bitset>
 
+#include "move_generator.h"
+#include "bitboard.h"
+#include "constants.h"
+#include "bitboard_helpers.h"
+#include "move_helpers.h"
+#include "zobrist_hashing.h"
+#include "search.h"
+
 using namespace std;
+
 
 vector<int> generate_moves()
 {
@@ -597,7 +599,7 @@ int make_move(int move, int move_type)
         // update colour occupancies
         occupancies[white] = get_white_occupancy();
         occupancies[black] = get_black_occupancy();
-        occupancies[both] = get_both_occupancy();
+        occupancies[both]  = get_both_occupancy();
 
         // change sides
         colour_to_move ^= 1;
@@ -628,9 +630,14 @@ int make_move(int move, int move_type)
     
     else if (move_type == only_captures)
     {
-        if (get_is_capture_move(move))
-            make_move(move, all_moves);
+        if (get_is_capture_move(move)) {
+            return make_move(move, all_moves);
+            // make_move(move, all_moves); // ORG < RBedit
+        }
         else    
             return 0;
     }
+
+    return 0; // ORG : lacks < RBedit
+
 }

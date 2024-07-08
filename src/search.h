@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <array>
+#include <cstdint>
 
 using namespace std;
 

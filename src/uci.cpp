@@ -1,3 +1,93 @@
+#include <stdio.h>
+#include <sys/time.h>
+
+#include <stdlib.h>
+#include <vector>
+#include <cstring>
+#include <string>
+#include <chrono>
+#include <sstream>
+#include <unistd.h>
+
+#include <iostream>
+
+#ifdef _WIN32
+    #include <windows.h>
+#else
+    #include <cstdint>
+    #include <pthread.h>
+    #include <fcntl.h>
+    #include <termios.h>
+    #include <sys/ioctl.h>
+
+    // Define placeholders for Windows types on non-Windows systems
+    typedef pthread_t HANDLE;
+    typedef uint32_t DWORD;
+    typedef int BOOL;
+    typedef void* LPVOID;
+    typedef uint32_t* LPDWORD;
+
+    const HANDLE STD_INPUT_HANDLE = 0;
+
+    #define TRUE 1
+    #define FALSE 0
+
+    #define ENABLE_MOUSE_INPUT 0x0010
+    #define ENABLE_WINDOW_INPUT 0x0008
+
+    HANDLE GetStdHandle(DWORD) {
+        return fileno(stdin); // On POSIX systems, fileno returns the file descriptor for stdin
+    }
+
+    BOOL GetConsoleMode(HANDLE hConsole, DWORD* lpMode) {
+        // This function is a stub and always returns FALSE
+        // You can add platform-specific code if needed
+        if (isatty(hConsole)) {
+            *lpMode = 0; // Just a placeholder value
+            return TRUE;
+        }
+        return FALSE;
+    }
+
+    BOOL SetConsoleMode(HANDLE hConsole, DWORD dwMode) {
+        // This function is a stub and always returns TRUE
+        // You can add platform-specific code if needed
+        return TRUE;
+    }
+
+    void FlushConsoleInputBuffer(HANDLE hConsole) {
+        // This function is a stub // ???????????????????????????????????????????????
+        tcflush(hConsole, TCIFLUSH); // Clear the input buffer for POSIX systems
+    }
+
+    BOOL PeekNamedPipe(HANDLE hNamedPipe, LPVOID lpBuffer, DWORD nBufferSize, LPDWORD lpBytesRead, LPDWORD lpTotalBytesAvail, LPDWORD lpBytesLeftThisMessage) {
+        // This function is a stub // ???????????????????????????????????????????????
+        // On POSIX systems, use ioctl to get the number of bytes available
+        int bytesAvailable;
+        if (ioctl(hNamedPipe, FIONREAD, &bytesAvailable) != -1) {
+            if (lpTotalBytesAvail) {
+                *lpTotalBytesAvail = bytesAvailable;
+            }
+            return TRUE;
+        }
+        return FALSE;
+    }
+
+    BOOL GetNumberOfConsoleInputEvents(HANDLE hConsoleInput, LPDWORD lpcNumberOfEvents) {
+        // This function is a stub // ???????????????????????????????????????????????
+        // On POSIX systems, use ioctl to get the number of bytes available
+        int bytesAvailable;
+        if (ioctl(hConsoleInput, FIONREAD, &bytesAvailable) != -1) {
+            *lpcNumberOfEvents = bytesAvailable;
+            return TRUE;
+        }
+        return FALSE;
+    }
+
+#endif
+
+
+
 #include "uci.h"
 #include "move_generator.h"
 #include "move_helpers.h"
@@ -7,16 +97,6 @@
 #include "fen.h"
 #include "search.h"
 #include "misc.h"
-#include <stdlib.h>
-#include <vector>
-#include <cstring>
-#include <string>
-#include <chrono>
-#include <sstream>
-#include <unistd.h>
-#include <windows.h>
-#include <stdio.h>
-#include <sys/time.h>
 
 using namespace std;
 
@@ -69,7 +149,14 @@ int input_waiting()
     if (!init)
     {
         init = 1;
-        inh = GetStdHandle(STD_INPUT_HANDLE);
+
+        #ifdef _WIN32
+            inh = GetStdHandle(STD_INPUT_HANDLE);
+        #else
+            // Non-Windows equivalent code to get the standard input handle
+            inh = fileno(stdin); // On POSIX systems, fileno returns the file descriptor for stdin
+        #endif
+
         pipe = !GetConsoleMode(inh, &dw);
         if (!pipe)
         {
@@ -441,5 +528,3 @@ void reset_time_control()
     timeset = 0;
     stopped = 0;
 }
-
-

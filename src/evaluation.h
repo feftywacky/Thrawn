@@ -1,7 +1,8 @@
 #ifndef EVALUATION_H
 #define EVALUATION_H
 
-#include<array>
+#include <array>
+#include <cstdint>
 
 using namespace std;
 
