@@ -29,6 +29,7 @@
 # Executables
 *.out
 *.app
+*.exe
 
 # Code Editors
 *.vscode
@@ -40,8 +41,10 @@
 # MacOS
 *.DS_STORE
 
-# Files in without extensions
+# Misc
 *.*
 
 # Versions folder
 versions/
+
+Thrawn
