@@ -18,6 +18,7 @@
 #include <sys/time.h>
 #ifdef _WIN32
 #include <windows.h>
+#undef byte
 #else
 #include <termios.h>
 #include <sys/ioctl.h>
