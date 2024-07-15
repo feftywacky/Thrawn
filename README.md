@@ -34,6 +34,8 @@ make clean # or mingw32-make clean
 
 Compiling Thrawn v1.1 and older:
 ```bash
+git clone https://github.com/feftywacky/Thrawn.git
+cd Thrawn
 cd src
 g++ -std=c++17 -Ofast -flto -o Thrawn *.cpp
 ```
