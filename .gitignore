@@ -36,3 +36,9 @@
 
 # Compressed Files
 *.zip
+
+# MacOS
+*.DS_STORE
+
+# Ignore files in without extensions
+*.*
