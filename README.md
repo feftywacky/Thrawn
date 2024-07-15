@@ -27,12 +27,6 @@ cd src
 make
 ```
 
-Compiling Thrawn v2.0:
-```bash
-cd src
-make
-``` 
-
 Compiling Thrawn v1.1 and older:
 ```bash
 cd src
@@ -45,7 +39,7 @@ make clean
 ```
 
 ## Evaluation:
-- Thrawn v2.0 uses NNUE
+- Thrawn v2.0 and newer uses NNUE
 - Thrawn v1.1 uses handcrafted evaluation
 
 ## TODO
