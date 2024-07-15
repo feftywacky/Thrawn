@@ -9,6 +9,9 @@ ifeq ($(OS), Windows_NT)
     ifeq ($(PROCESSOR_ARCHITECTURE), AMD64)
         CXXFLAGS += -DUSE_AVX2 -DUSE_SSE41 -DUSE_SSE3 -DUSE_SSE2 -DUSE_SSE
     endif
+    ifeq ($(PROCESSOR_ARCHITECTURE), ARM64)
+        CXXFLAGS += -DARM64
+    endif
     RM = del /Q
     EXECUTABLE_EXTENSION = .exe
 else
