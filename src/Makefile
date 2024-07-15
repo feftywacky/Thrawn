@@ -29,23 +29,23 @@ ARCH_FLAGS =
 
 ifeq ($(KERNEL),Linux)
     ifeq ($(shell uname -m), x86_64)
-        ARCH_FLAGS += -DUSE_AVX2 -DUSE_SSE41 -DUSE_SSE3 -DUSE_SSE2 -DUSE_SSE -mbmi2 -mavx2 -msse4.1 -msse3 -msse2 -msse
+        ARCH_FLAGS += -mavx512vnni -mavx256vnni -mavx512bw -mavxvnni -mavx2 -msse4.1 -msse3 -msse2 -mmmx -msse
     else ifeq ($(shell uname -m), aarch64)
-        ARCH_FLAGS += -DARM64 -ffast-math -DUSE_NEON -flax-vector-conversions
+        ARCH_FLAGS += -DARM64 -DUSE_NEON -DUSE_NEON_DOTPROD -flax-vector-conversions
     endif
 else ifeq ($(KERNEL),Darwin)
     ARCH_FLAGS += -mmacosx-version-min=10.15
     ifeq ($(shell uname -m), arm64)
-        ARCH_FLAGS += -DARM64 -ffast-math -DUSE_NEON -flax-vector-conversions
+        ARCH_FLAGS += -DARM64 -DUSE_NEON -DUSE_NEON_DOTPROD -flax-vector-conversions
     else
-        ARCH_FLAGS += -DUSE_AVX2 -DUSE_SSE41 -DUSE_SSE3 -DUSE_SSE2 -DUSE_SSE -mbmi2 -mavx2 -msse4.1 -msse3 -msse2 -msse
+        ARCH_FLAGS += -mavx512vnni -mavx256vnni -mavx512bw -mavxvnni -mavx2 -msse4.1 -msse3 -msse2 -mmmx -msse
     endif
 else ifeq ($(OS),Windows_NT)
     ARCH_FLAGS += -DWIN32
     ifeq ($(PROCESSOR_ARCHITECTURE), AMD64)
-        ARCH_FLAGS += -DUSE_AVX2 -DUSE_SSE41 -DUSE_SSE3 -DUSE_SSE2 -DUSE_SSE -mbmi2 -mavx2 -msse4.1 -msse3 -msse2 -msse
+        ARCH_FLAGS += -mavx512vnni -mavx256vnni -mavx512bw -mavxvnni -mavx2 -msse4.1 -msse3 -msse2 -mmmx -msse
     else ifeq ($(PROCESSOR_ARCHITECTURE), ARM64)
-        ARCH_FLAGS += -DARM64 -flax-vector-conversions -DUSE_NEON
+        ARCH_FLAGS += -DARM64 -DUSE_NEON -DUSE_NEON_DOTPROD -flax-vector-conversions
     endif
 endif
 
