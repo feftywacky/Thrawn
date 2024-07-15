@@ -40,5 +40,8 @@
 # MacOS
 *.DS_STORE
 
-# Ignore files in without extensions
+# Files in without extensions
 *.*
+
+# Versions folder
+versions/
