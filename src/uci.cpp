@@ -19,6 +19,7 @@
 #ifdef _WIN32
 #include <windows.h>
 #undef byte
+typedef unsigned char byte_t;
 #else
 #include <termios.h>
 #include <sys/ioctl.h>
