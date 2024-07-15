@@ -2,20 +2,24 @@
 CXX = g++
 CXXFLAGS = -std=c++17 -Ofast -flto
 
-# Establish the operating system name
-OS := $(shell uname -s)
-ifeq ($(OS),Linux)
-    OS_NAME := Linux
-else ifeq ($(OS),Darwin)
-    OS_NAME := macOS
-else
+# Determine operating system
+ifeq ($(OS),Windows_NT)
     OS_NAME := Windows
-endif
-
-# Executable name
-ifeq ($(OS_NAME),Windows)
+    RM = del /Q
+    MKDIR = mkdir
     EXE = Thrawn.exe
 else
+    OS := $(shell uname -s)
+    ifeq ($(OS),Linux)
+        OS_NAME := Linux
+        RM = rm -f
+        MKDIR = mkdir -p
+    endif
+    ifeq ($(OS),Darwin)
+        OS_NAME := macOS
+        RM = rm -f
+        MKDIR = mkdir -p
+    endif
     EXE = Thrawn
 endif
 
@@ -26,7 +30,7 @@ OBJECTS = $(SOURCES:.cpp=.o)
 # Default optimization flags
 OPTIMIZE_FLAGS = -O3 -funroll-loops
 
-# Define architecture-specific flags
+# Architecture-specific flags
 ARCH_FLAGS =
 
 ifeq ($(OS_NAME),Linux)
@@ -63,15 +67,10 @@ $(EXE): $(OBJECTS)
 	$(CXX) $(CXXFLAGS) $(ARCH_FLAGS) -c -o $@ $<
 
 # Clean up generated files
-ifeq ($(OS_NAME),Windows)
 clean:
-	del /f $(subst /,\,$(OBJECTS)) $(subst /,\,$(EXE))
-else
-clean:
-	rm -f $(OBJECTS) $(EXE)
-endif
+	$(RM) $(OBJECTS) $(EXE)
 
-# Detailed flags information
+# Additional flags
 debug = no
 sanitize = none
 optimize = yes
