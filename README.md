@@ -16,7 +16,7 @@ Version v2.1 and later: supports x64 and ARM chips. Cross compatible with linux,
 
 Older verions: only supports x64 and windows compilation.
 
-Ensure you have a gcc compiler.
+Ensure you have a gcc compiler version 7.3 or later.
 
 ### Building from source
 Run these commands:
@@ -24,18 +24,18 @@ Run these commands:
 git clone https://github.com/feftywacky/Thrawn.git
 cd Thrawn
 cd src
-make
+make # or mingw32-make
+```
+
+To clean the build:
+```bash
+make clean # or mingw32-make clean
 ```
 
 Compiling Thrawn v1.1 and older:
 ```bash
 cd src
 g++ -std=c++17 -Ofast -flto -o Thrawn *.cpp
-```
-
-To clean the build:
-```bash
-make clean
 ```
 
 ## Evaluation:
