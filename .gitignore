@@ -36,3 +36,12 @@
 
 # Compressed Files
 *.zip
+
+# MacOS
+*.DS_STORE
+
+# Files in without extensions
+*.*
+
+# Versions folder
+versions/

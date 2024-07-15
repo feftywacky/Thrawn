@@ -8,11 +8,38 @@ Thrawn does not include a graphical user interface (GUI) that is required to dis
 
 ## Rating/ELO
 The Rating of Thrawn is evaluated by [CCRL](https://computerchess.org.uk/ccrl/404/) <br>
-- Thrawn v2.0: **~2900 ELO**
-- [Thrawn v1.1](https://computerchess.org.uk/ccrl/404/cgi/compare_engines.cgi?class=None&only_best_in_class=on&num_best_in_class=1&e=Thrawn+1.1+64-bit&print=Rating+list&profile_step=50&profile_numbers=1&print=Results+table&print=LOS+table&table_size=100&ct_from_elo=0&ct_to_elo=10000&match_length=30&cross_tables_for_best_versions_only=1&sort_tables=by+rating&diag=0&reference_list=None&recalibrate=no): **1909 ELO**
+- Thrawn v2.0: **~2800 ELO**
+- [Thrawn v1.1](https://computerchess.org.uk/ccrl/404/cgi/compare_engines.cgi?class=None&only_best_in_class=on&num_best_in_class=1&e=Thrawn+1.1+64-bit&print=Rating+list&profile_step=50&profile_numbers=1&print=Results+table&print=LOS+table&table_size=100&ct_from_elo=0&ct_to_elo=10000&match_length=30&cross_tables_for_best_versions_only=1&sort_tables=by+rating&diag=0&reference_list=None&recalibrate=no): **~1900 ELO**
 
-Notes:
-- Thrawn v2.0 uses NNUE
+## Compiling Thrawn
+Version v2.1 and later: supports x64 and ARM chips. Cross compatible with linux, macos, and, windows.
+
+Older verions: only supports x64 and windows compilation.
+
+Ensure you have a gcc compiler.
+
+### Building from source
+Run these commands:
+```bash
+git clone https://github.com/feftywacky/Thrawn.git
+cd Thrawn
+cd src
+make
+```
+
+Compiling Thrawn v1.1 and older:
+```bash
+cd src
+g++ -std=c++17 -Ofast -flto -o Thrawn *.cpp
+```
+
+To clean the build:
+```bash
+make clean
+```
+
+## Evaluation:
+- Thrawn v2.0 and newer uses NNUE
 - Thrawn v1.1 uses handcrafted evaluation
 
 ## TODO
@@ -52,32 +79,6 @@ Notes:
 - uci compliant
 - passes perft test! <3
 
-## Compiling Thrawn
-currently only supports windows machines with 64-bit CPUs
-
-### Compiler:
-```bash
-g++ --version
-```
-> g++ (x86_64-posix-seh-rev0, Built by MinGW-W64 project) 7.3.0
-
-### Build and Run:
-for gcc: 
-
-compiling Thrawn v2.0:
-```bash
-cd src
-mingw32-make
-Thrawn.exe
-``` 
-
-compiling Thrawn v1.1 and older:
-```bash
-cd src
-g++ -std=c++17 -Ofast -flto -o Thrawn *.cpp
-Thrawn.exe
-``` 
-
 ## References
 ### General
 - https://www.chessprogramming.org/Main_Page
@@ -90,4 +91,3 @@ Thrawn.exe
 - https://hxim.github.io/Stockfish-Evaluation-Guide/ <br>
 - nnue probe framework: https://github.com/dshawul/nnue-probe
 - nnue dataset https://tests.stockfishchess.org/nns
-

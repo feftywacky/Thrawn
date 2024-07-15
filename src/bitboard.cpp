@@ -1,7 +1,15 @@
 #include "bitboard.h"
+#include "zobrist_hashing.h"
+#include "transposition_table.h"
+#include "search.h"
 #include "evaluation.h"
 #include <iostream>
 #include <vector>
+#include <string>
+#include <map>
+#include <set>
+#include <bitset>
+#include <cstring> 
 
 using namespace std;
 

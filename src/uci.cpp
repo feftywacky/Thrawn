@@ -14,9 +14,14 @@
 #include <chrono>
 #include <sstream>
 #include <unistd.h>
-#include <windows.h>
 #include <stdio.h>
 #include <sys/time.h>
+#ifdef _WIN32
+#include <windows.h>
+#else
+#include <termios.h>
+#include <sys/ioctl.h>
+#endif
 
 using namespace std;
 
@@ -60,36 +65,34 @@ int get_time_ms() {
     return chrono::duration_cast<chrono::milliseconds>(chrono::high_resolution_clock::now().time_since_epoch()).count();
 }
 
-int input_waiting() 
-{
+int input_waiting() {
+#ifdef _WIN32
     static int init = 0, pipe;
     static HANDLE inh;
     DWORD dw;
 
-    if (!init)
-    {
+    if (!init) {
         init = 1;
         inh = GetStdHandle(STD_INPUT_HANDLE);
         pipe = !GetConsoleMode(inh, &dw);
-        if (!pipe)
-        {
-            SetConsoleMode(inh, dw & ~(ENABLE_MOUSE_INPUT|ENABLE_WINDOW_INPUT));
+        if (!pipe) {
+            SetConsoleMode(inh, dw & ~(ENABLE_MOUSE_INPUT | ENABLE_WINDOW_INPUT));
             FlushConsoleInputBuffer(inh);
         }
     }
-    
-    if (pipe)
-    {
+
+    if (pipe) {
         if (!PeekNamedPipe(inh, NULL, 0, NULL, &dw, NULL)) return 1;
         return dw;
-    }
-    
-    else
-    {
+    } else {
         GetNumberOfConsoleInputEvents(inh, &dw);
         return dw <= 1 ? 0 : dw;
     }
-    
+#else
+    int bytesAvailable;
+    ioctl(fileno(stdin), FIONREAD, &bytesAvailable);
+    return bytesAvailable;
+#endif
 }
 
 void read_input() {
@@ -441,5 +444,3 @@ void reset_time_control()
     timeset = 0;
     stopped = 0;
 }
-
-

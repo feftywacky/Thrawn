@@ -1,6 +1,13 @@
 #include "zobrist_hashing.h"
 #include "bitboard.h"
 #include "bitboard_helpers.h"
+#include <cstdint>
+#include <iostream>
+#include <map>
+#include <set>
+#include <vector>
+#include <array>
+#include <iomanip>
 
 
 uint64_t piece_hashkey[12][64]; // [piece][square]
