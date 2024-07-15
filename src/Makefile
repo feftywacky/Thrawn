@@ -2,62 +2,96 @@
 CXX = g++
 CXXFLAGS = -std=c++17 -Ofast -flto
 
-# Define platform-specific flags
-ifeq ($(OS), Windows_NT)
-    # Windows-specific flags
-    CXXFLAGS += -DWIN32
-    ifeq ($(PROCESSOR_ARCHITECTURE), AMD64)
-        CXXFLAGS += -DUSE_AVX2 -DUSE_SSE41 -DUSE_SSE3 -DUSE_SSE2 -DUSE_SSE
-    endif
-    ifeq ($(PROCESSOR_ARCHITECTURE), ARM64)
-        CXXFLAGS += -DARM64
-    endif
-    RM = del /Q
-    EXECUTABLE_EXTENSION = .exe
+# Establish the operating system name
+KERNEL := $(shell uname -s)
+ifeq ($(KERNEL),Linux)
+    OS := $(shell uname -o)
+else ifeq ($(KERNEL),Darwin)
+    OS := macOS
+endif
+
+# Executable name
+ifeq ($(OS),Windows_NT)
+    EXE = Thrawn.exe
 else
-    UNAME_S := $(shell uname -s)
-    UNAME_M := $(shell uname -m)
-    ifeq ($(UNAME_S), Darwin)
-        # macOS-specific flags
-        CXXFLAGS += -DMACOS
-        ifeq ($(UNAME_M), arm64)
-            CXXFLAGS += -DARM64
-        else
-            CXXFLAGS += -DUSE_AVX2 -DUSE_SSE41 -DUSE_SSE3 -DUSE_SSE2 -DUSE_SSE -mbmi2 -mavx2 -msse4.1 -msse3 -msse2 -msse
-        endif
-        RM = rm -f
-        EXECUTABLE_EXTENSION =
+    EXE = Thrawn
+endif
+
+# Source and object files
+SOURCES = $(wildcard *.cpp)
+OBJECTS = $(SOURCES:.cpp=.o)
+
+# Default optimization flags
+OPTIMIZE_FLAGS = -O3 -funroll-loops
+
+# Define architecture-specific flags
+ARCH_FLAGS =
+
+ifeq ($(KERNEL),Linux)
+    ifeq ($(shell uname -m), x86_64)
+        ARCH_FLAGS += -DUSE_AVX2 -DUSE_SSE41 -DUSE_SSE3 -DUSE_SSE2 -DUSE_SSE -mbmi2 -mavx2 -msse4.1 -msse3 -msse2 -msse
+    else ifeq ($(shell uname -m), aarch64)
+        ARCH_FLAGS += -DARM64 -ffast-math -DUSE_NEON -flax-vector-conversions
+    endif
+else ifeq ($(KERNEL),Darwin)
+    ARCH_FLAGS += -mmacosx-version-min=10.15
+    ifeq ($(shell uname -m), arm64)
+        ARCH_FLAGS += -DARM64 -ffast-math -DUSE_NEON -flax-vector-conversions
     else
-        # Linux-specific flags
-        CXXFLAGS += -DLINUX
-        ifeq ($(UNAME_M), x86_64)
-            CXXFLAGS += -DUSE_AVX2 -DUSE_SSE41 -DUSE_SSE3 -DUSE_SSE2 -DUSE_SSE -mbmi2 -mavx2 -msse4.1 -msse3 -msse2 -msse
-        else ifeq ($(UNAME_M), aarch64)
-            CXXFLAGS += -DARM64
-        endif
-        RM = rm -f
-        EXECUTABLE_EXTENSION =
+        ARCH_FLAGS += -DUSE_AVX2 -DUSE_SSE41 -DUSE_SSE3 -DUSE_SSE2 -DUSE_SSE -mbmi2 -mavx2 -msse4.1 -msse3 -msse2 -msse
+    endif
+else ifeq ($(OS),Windows_NT)
+    ARCH_FLAGS += -DWIN32
+    ifeq ($(PROCESSOR_ARCHITECTURE), AMD64)
+        ARCH_FLAGS += -DUSE_AVX2 -DUSE_SSE41 -DUSE_SSE3 -DUSE_SSE2 -DUSE_SSE -mbmi2 -mavx2 -msse4.1 -msse3 -msse2 -msse
+    else ifeq ($(PROCESSOR_ARCHITECTURE), ARM64)
+        ARCH_FLAGS += -DARM64 -flax-vector-conversions -DUSE_NEON
     endif
 endif
 
-# Source files, object files, and executable
-SOURCES = $(wildcard *.cpp)
-OBJECTS = $(SOURCES:.cpp=.o)
-EXECUTABLE = Thrawn_v2.0$(EXECUTABLE_EXTENSION)
-
 # Default target
-all: $(EXECUTABLE)
+all: $(EXE)
 
 # Link object files to create the executable
-$(EXECUTABLE): $(OBJECTS)
-	$(CXX) $(CXXFLAGS) -o $@ $^
+$(EXE): $(OBJECTS)
+	$(CXX) $(CXXFLAGS) $(ARCH_FLAGS) -o $@ $^
 
 # Compile source files to object files
 %.o: %.cpp
-	$(CXX) $(CXXFLAGS) -c -o $@ $<
+	$(CXX) $(CXXFLAGS) $(ARCH_FLAGS) -c -o $@ $<
 
 # Clean up generated files
 clean:
-	$(RM) $(OBJECTS) $(EXECUTABLE)
+	rm -f $(OBJECTS) $(EXE)
+
+# Detailed flags information
+debug = no
+sanitize = none
+optimize = yes
+
+ifeq ($(optimize),yes)
+    CXXFLAGS += $(OPTIMIZE_FLAGS)
+endif
+
+ifeq ($(debug),yes)
+    CXXFLAGS += -g
+else
+    CXXFLAGS += -DNDEBUG
+endif
+
+ifneq ($(sanitize),none)
+    CXXFLAGS += -g3 $(addprefix -fsanitize=,$(sanitize))
+    LDFLAGS += $(addprefix -fsanitize=,$(sanitize))
+endif
+
+# Default architecture if not set
+ifeq ($(ARCH),)
+   ARCH = native
+endif
+
+# Allow overwriting CXX from command line
+ifdef COMPCXX
+    CXX=$(COMPCXX)
+endif
 
 .PHONY: all clean
