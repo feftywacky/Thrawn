@@ -4,7 +4,7 @@
 #include "evaluation.h"
 #include "nnue.h"
 
-const std::string version = " v2.0";
+const std::string version = " v2.1";
 
 
 void init_all()
