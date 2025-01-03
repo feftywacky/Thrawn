@@ -142,7 +142,7 @@ void read_input() {
 void communicate() {
 	// if time is up break here
     if(timeset == 1 && get_time_ms() > stoptime) {
-        // cout<<"communicate set stopped = 1"<<"\n";
+         // cout<<"communicate set stopped = 1"<<"\n";
 		stopped = 1;
 	}
 	
