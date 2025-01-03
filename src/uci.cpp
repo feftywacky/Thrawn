@@ -15,7 +15,6 @@
 #include <sstream>
 #include <unistd.h>
 #include <stdio.h>
-#include <sys/time.h>
 #ifdef _WIN32
 #include <windows.h>
 #else

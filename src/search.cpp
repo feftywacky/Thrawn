@@ -9,7 +9,6 @@
 #include <vector>
 #include <algorithm>
 #include <numeric>
-#include <cstring>
 
 using namespace std;
 
@@ -569,22 +568,13 @@ void score_pv(vector<int> &moves)
 
 void sort_moves(vector<int> &moves, int bestMove)
 {
-    vector<int> move_scores(moves.size());
-
-    // score all the moves within a move list
-    for (int count = 0; count < moves.size(); count++)
-    {
-        // if hash move available
-        if (bestMove == moves[count])
-        {
-            move_scores[count] = 30000;
-        }
-
-        else
-            move_scores[count] = score_move(moves[count]);
+    const int n = static_cast<int>(moves.size());
+    std::vector<int> scores(n);
+    for (int i = 0; i < n; i++) {
+        scores[i] = (moves[i] == bestMove) ? 30000 : score_move(moves[i]);
     }
 
-    quicksort_moves(moves, move_scores, 0, moves.size() - 1);
+    quicksort_moves(moves, scores, 0, moves.size() - 1);
 }
 
 void print_move_scores(const vector<int> &moves)

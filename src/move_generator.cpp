@@ -1,10 +1,5 @@
 #include <iostream>
 #include <vector>
-#include <string>
-#include <map>
-#include <set>
-#include <bitset>
-
 #include "move_generator.h"
 #include "bitboard.h"
 #include "constants.h"

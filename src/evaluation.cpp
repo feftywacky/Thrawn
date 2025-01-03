@@ -1,5 +1,4 @@
 #include "evaluation.h"
-#include "constants.h"
 #include "bitboard.h"
 #include "bitboard_helpers.h"
 #include "nnue.h"
