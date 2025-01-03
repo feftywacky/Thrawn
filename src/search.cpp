@@ -9,7 +9,6 @@
 #include <vector>
 #include <algorithm>
 #include <numeric>
-#include <cstring>
 
 using namespace std;
 
@@ -55,22 +54,35 @@ int negamax(int depth, int alpha, int beta)
 
     // stalemate if 3 move repetition or fifty-move rule
     if (ply && isRepetition() || fifty_move >= 100)
+    {
         return 0;
+    }
 
     // determines if current node is a pv node
-    int pv_node = ((beta - alpha) > 1); // IMPORTANT FIXES TRANPOSITION TABLE PV BUG
+    int pv_node = (beta - alpha) > 1; // IMPORTANT FIXES TRANPOSITION TABLE PV BUG
 
     // retrieve score if not root ply and not pv node and tt key exists
     // if move has already been searched, return its score instantly
-    if (ply && ((score = probeHashMap(depth, alpha, beta, &bestMove)) != no_hashmap_entry) && !pv_node)
+    if (ply && (score = probeHashMap(depth, alpha, beta, &bestMove)) != no_hashmap_entry && !pv_node)
     {
-        if (fifty_move < 90)
-            return score;
+        // if (fifty_move < 90)
+        return score;
     }
 
     if ((nodes & 2047) == 0)
     {
         communicate();
+    }
+
+    if (depth == 0)
+    {
+        return quiescence(alpha, beta);
+    }
+
+    if (ply > MAX_DEPTH - 1) // array overflow at max depth
+    {
+        std::cout << "array overflow at max depth: " << ply << endl;
+        return evaluate();
     }
 
     nodes++;
@@ -80,28 +92,54 @@ int negamax(int depth, int alpha, int beta)
     if (inCheck)
     {
         depth++;
-        goto full_search;
-    }
-
-    if (depth == 0)
-        return quiescence(alpha, beta);
-
-    if (ply > MAX_DEPTH - 1) // array overflow at max depth
-    {
-        std::cout << "array overflow at max depth: " << ply << endl;
-        return evaluate();
     }
 
     static_eval = evaluate();
 
-    // Reverse Futility Pruning / static null move pruning
-    if (depth < 3 && !pv_node && !inCheck && abs(beta - 1) > -INFINITY + 100)
-    {
-        int eval_margin = 120 * depth;
+//    // Reverse Futility Pruning / static null move pruning
+//    if (depth < 3 && !pv_node && !inCheck && abs(beta - 1) > -INFINITY + 100)
+//    {
+//        int eval_margin = 120 * depth;
+//
+//        // evaluation margin substracted from static evaluation score fails high
+//        if (static_eval - eval_margin >= beta)
+//            return static_eval - eval_margin;
+//    }
 
-        // evaluation margin substracted from static evaluation score fails high
-        if (static_eval - eval_margin >= beta)
-            return static_eval - eval_margin;
+    // null move pruning
+    if (!inCheck && depth >= 3 && ply && !pv_node && !noMajorsOrMinorsPieces())
+    {
+        // give opponent another move
+        copyBoard();
+
+        ply++;
+        repetition_index++;
+        repetition_table[repetition_index] = zobristKey;
+
+        if (enpassant != null_sq)
+            zobristKey ^= enpassant_hashkey[enpassant];
+        enpassant = null_sq;
+
+        colour_to_move ^= 1;
+        zobristKey ^= colour_to_move_hashkey;
+
+        // depth - 1 - R, R is reduction constant
+        //allowNullMovePruning = false;
+        score = -negamax(depth - 1 - 2, -beta, -beta + 1);
+        //allowNullMovePruning = true;
+
+        ply--;
+        repetition_index--;
+
+        restoreBoard();
+
+        // time is up
+        if (stopped == 1)
+            return 0;
+
+        // fail hard beta cut-off
+        if (score >= beta)
+            return beta;
     }
 
     // razoring pruning (forward pruning)
@@ -128,47 +166,10 @@ int negamax(int depth, int alpha, int beta)
         }
     }
 
-    // null move pruning
-    if (!inCheck && (depth >= 3) && allowNullMovePruning && !pv_node && !noMajorsOrMinorsPieces())
-    {
-        // give opponent another move
-        copyBoard();
-
-        ply++;
-        repetition_index++;
-        repetition_table[repetition_index] = zobristKey;
-
-        if (enpassant != null_sq)
-            zobristKey ^= enpassant_hashkey[enpassant];
-        enpassant = null_sq;
-
-        colour_to_move ^= 1;
-        zobristKey ^= colour_to_move_hashkey;
-
-        // depth - 1 - R, R is reduction constant
-        allowNullMovePruning = false;
-        score = -negamax(depth - 1 - 2, -beta, -beta + 1);
-        allowNullMovePruning = true;
-
-        ply--;
-        repetition_index--;
-
-        restoreBoard();
-
-        // time is up
-        if (stopped == 1)
-            return 0;
-        // fail hard beta cut-off
-        if (score >= beta)
-            return beta;
-    }
-
     // No-hashmove reduction (taken from Stockfish)
     // If the position is not in TT, decrease depth by 1 (~3 Elo)
-    if (!inCheck && pv_node && (depth >= 3) && !bestMove)
-        depth--;
-
-full_search:
+//    if (!inCheck && pv_node && (depth >= 3) && !bestMove)
+//        depth--;
 
     vector<int> moves = generate_moves();
 
@@ -195,8 +196,8 @@ full_search:
         }
 
         // used for avoiding reductions on moves that give check
-        bool givesCheck = is_square_under_attack((colour_to_move == white) ? get_lsb_index(piece_bitboards[K]) : get_lsb_index(piece_bitboards[k]),
-                                                 colour_to_move ^ 1);
+//        bool givesCheck = is_square_under_attack((colour_to_move == white) ? get_lsb_index(piece_bitboards[K]) : get_lsb_index(piece_bitboards[k]),
+//                                                 colour_to_move ^ 1);
         valid_moves++;
 
         // full depth search
@@ -227,15 +228,15 @@ full_search:
             // }
 
             // Late Move Pruning (LMP)
-            if ((ply > 0) && (depth <= 3) && !pv_node && !inCheck && !get_is_capture_move(move) && (valid_moves > LateMovePruning_factors[depth]))
-            {
-                // undo the current move and skip to the next one
-                restoreBoard();
-                ply--;
-                repetition_index--;
-
-                continue;
-            }
+//            if ((ply > 0) && (depth <= 3) && !pv_node && !inCheck && !get_is_capture_move(move) && (valid_moves > LateMovePruning_factors[depth]))
+//            {
+//                // undo the current move and skip to the next one
+//                restoreBoard();
+//                ply--;
+//                repetition_index--;
+//
+//                continue;
+//            }
 
             // late move reduction (LMR)
             if (valid_moves >= full_depth_moves &&
@@ -269,7 +270,7 @@ full_search:
 
         // time is up
         if (stopped == 1)
-            return 0;
+            return alpha;
 
         moves_searched++;
 
@@ -376,7 +377,7 @@ int quiescence(int alpha, int beta)
 
         // time is up
         if (stopped == 1)
-            return 0;
+            return alpha;
 
         // found better move
         if (score > alpha)
@@ -405,6 +406,7 @@ int isRepetition()
 
 void search_position(int depth)
 {
+    int start = get_time_ms();
     // RESET VARIABLES
     nodes = 0;
     // time control
@@ -413,7 +415,7 @@ void search_position(int depth)
     follow_pv_flag = false;
     score_pv_flag = false;
 
-    allowNullMovePruning = true;
+    allowNullMovePruning = false;
     allowFutilityPruning = false;
 
     pv_depth.assign(MAX_DEPTH, 0);
@@ -427,8 +429,6 @@ void search_position(int depth)
     int score = 0;
     int alpha = -INFINITY;
     int beta = INFINITY;
-
-    int start = get_time_ms();
 
     // iterative deepening
     for (int curr_depth = 1; curr_depth <= depth; curr_depth++)
@@ -569,22 +569,13 @@ void score_pv(vector<int> &moves)
 
 void sort_moves(vector<int> &moves, int bestMove)
 {
-    vector<int> move_scores(moves.size());
-
-    // score all the moves within a move list
-    for (int count = 0; count < moves.size(); count++)
-    {
-        // if hash move available
-        if (bestMove == moves[count])
-        {
-            move_scores[count] = 30000;
-        }
-
-        else
-            move_scores[count] = score_move(moves[count]);
+    const int n = static_cast<int>(moves.size());
+    std::vector<int> scores(n);
+    for (int i = 0; i < n; i++) {
+        scores[i] = (moves[i] == bestMove) ? 30000 : score_move(moves[i]);
     }
 
-    quicksort_moves(moves, move_scores, 0, moves.size() - 1);
+    quicksort_moves(moves, scores, 0, moves.size() - 1);
 }
 
 void print_move_scores(const vector<int> &moves)

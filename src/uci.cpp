@@ -15,7 +15,6 @@
 #include <sstream>
 #include <unistd.h>
 #include <stdio.h>
-#include <sys/time.h>
 #ifdef _WIN32
 #include <windows.h>
 #else
@@ -143,7 +142,7 @@ void read_input() {
 void communicate() {
 	// if time is up break here
     if(timeset == 1 && get_time_ms() > stoptime) {
-        // cout<<"communicate set stopped = 1"<<"\n";
+         // cout<<"communicate set stopped = 1"<<"\n";
 		stopped = 1;
 	}
 	

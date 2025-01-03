@@ -1,9 +1,6 @@
-#include <cstdint>
 #include <vector>
 #include <bitset>
 #include <iostream>
-#include <map>
-#include <set>
 #include "constants.h"
 #include "bitboard.h"
 #include "zobrist_hashing.h"
