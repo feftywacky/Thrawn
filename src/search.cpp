@@ -135,7 +135,7 @@ int negamax(int depth, int alpha, int beta)
 
         // time is up
         if (stopped == 1)
-            return 0;
+            return alpha;
 
         // fail hard beta cut-off
         if (score >= beta)
