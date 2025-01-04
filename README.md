@@ -7,7 +7,7 @@ Thrawn does not include a graphical user interface (GUI) that is required to dis
 - Scid vs PC: https://scidvspc.sourceforge.net/
 
 ## Rating/ELO
-The Rating of Thrawn is evaluated by [CCRL](https://computerchess.org.uk/ccrl/404/) <br>
+The rating of Thrawn is evaluated by [CCRL](https://computerchess.org.uk/ccrl/404/) <br>
 - Thrawn v2.0: **~2800 ELO**
 - [Thrawn v1.1](https://computerchess.org.uk/ccrl/404/cgi/compare_engines.cgi?class=None&only_best_in_class=on&num_best_in_class=1&e=Thrawn+1.1+64-bit&print=Rating+list&profile_step=50&profile_numbers=1&print=Results+table&print=LOS+table&table_size=100&ct_from_elo=0&ct_to_elo=10000&match_length=30&cross_tables_for_best_versions_only=1&sort_tables=by+rating&diag=0&reference_list=None&recalibrate=no): **~1900 ELO**
 
@@ -45,11 +45,11 @@ g++ -std=c++17 -Ofast -flto -o Thrawn *.cpp
 - Thrawn v1.1 uses handcrafted evaluation
 
 ## TODO
+- [ ] position class
+- [ ] lazy-SMP
 - [ ] LOTS of general code clean up
-- [x] transposition table bug?
 - [x] hash move ordering giving worst results bug
 - [x] fixed zero evaluation bug
-- [ ] nnue incremental update
 - [ ] train own nnue
 - [ ] opening book table
 
@@ -59,11 +59,10 @@ g++ -std=c++17 -Ofast -flto -o Thrawn *.cpp
 - Bitboard data structure
 - Transposition tables
 - Time allocation/Control
-- Implements UCI protocol
+- UCI protocol
 
 ## Updates
 - no-hashmove reduction
-- reverse futility pruning / static null move pruning
 - late move pruning
 - fifty-move rule + three-fold repetition detection
 - NNUE evaluation
