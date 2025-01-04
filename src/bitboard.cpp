@@ -5,64 +5,64 @@
 
 using namespace std;
 
-// init variables
-// ALl piece bitboards -> 12 in total -> one for each piece type and colour
-array<uint64_t, 12> piece_bitboards;
-
-// Bitboard occupancies
-array<uint64_t, 3> occupancies; // white, black, both
-
-// colour to move first
-int colour_to_move;
-
-// enpassant square
-int enpassant;
-
-// castle rights
-int castle_rights;
-
-// for copying and restoring board
-array<uint64_t, 12> piece_bitboards_copy;
-array<uint64_t, 3> occupancies_copy;
-int colour_to_move_copy;
-int enpassant_copy;
-int castle_rights_copy;
-
-
-// leaping
-std::array<std::array<uint64_t, BOARD_SIZE>, 2> pawn_attacks;
-std::array<uint64_t, BOARD_SIZE> knight_attacks;
-std::array<uint64_t, BOARD_SIZE> king_attacks;
-
-// sliding
-// [square][occupancy]
-array<uint64_t, 64> bishop_masks;
-array<array<uint64_t, 512>, 64> bishop_attacks;
-array<uint64_t, 64> rook_masks;
-vector<vector<uint64_t>> rook_attacks(64, vector<uint64_t>(4096, 0));
+//// init variables
+//// ALl piece bitboards -> 12 in total -> one for each piece type and colour
+//array<uint64_t, 12> piece_bitboards;
+//
+//// Bitboard occupancies
+//array<uint64_t, 3> occupancies; // white, black, both
+//
+//// colour to move first
+//int colour_to_move;
+//
+//// enpassant square
+//int enpassant;
+//
+//// castle rights
+//int castle_rights;
+//
+//// for copying and restoring board
+//array<uint64_t, 12> piece_bitboards_copy;
+//array<uint64_t, 3> occupancies_copy;
+//int colour_to_move_copy;
+//int enpassant_copy;
+//int castle_rights_copy;
+//
+//
+//// leaping
+//std::array<std::array<uint64_t, BOARD_SIZE>, 2> pawn_attacks;
+//std::array<uint64_t, BOARD_SIZE> knight_attacks;
+//std::array<uint64_t, BOARD_SIZE> king_attacks;
+//
+//// sliding
+//// [square][occupancy]
+//array<uint64_t, 64> bishop_masks;
+//array<array<uint64_t, 512>, 64> bishop_attacks;
+//array<uint64_t, 64> rook_masks;
+//vector<vector<uint64_t>> rook_attacks(64, vector<uint64_t>(4096, 0));
 
 // GET OCCUPANCY BITBOARDS
-uint64_t get_white_occupancy()
+uint64_t get_white_occupancy(Position* pos)
 {
     uint64_t res = 0ULL;
     for(int i=0;i<6;i++)
-        res |= piece_bitboards[i];
+        res |= pos->piece_bitboards[i];
     return res;
 }
 
-uint64_t get_black_occupancy()
+uint64_t get_black_occupancy(Position* pos)
 {
     uint64_t res = 0ULL;
     for(int i=6;i<12;i++)
-        res |= piece_bitboards[i];
+        res |= pos->piece_bitboards[i];
     return res;
 }
 
-uint64_t get_both_occupancy()
+uint64_t get_both_occupancy(Position* pos)
 {
     uint64_t res = 0ULL;
-    res |= get_white_occupancy();
-    res |= get_black_occupancy();
+    res |= get_white_occupancy(pos);
+    res |= get_black_occupancy(pos);
     return res;
 }
 
@@ -384,75 +384,75 @@ void init_magic_nums()
         bishop_magic_nums[square] = find_magic_num(square, bishop_relevant_bits[square], bishop);
 }
 
-uint64_t get_bishop_attacks(int square, uint64_t occupancy)
+uint64_t get_bishop_attacks(Position* pos, int square, uint64_t occupancy)
 {
     // generate bishop attacks given current board occupancy
-    occupancy &= bishop_masks[square];
+    occupancy &= pos->bishop_masks[square];
     occupancy *= bishop_magic_nums[square];
     occupancy >>= 64-bishop_relevant_bits[square];
 
-    return bishop_attacks[square][occupancy];
+    return pos->bishop_attacks[square][occupancy];
 }
 
-uint64_t get_rook_attacks(int square, uint64_t occupancy)
+uint64_t get_rook_attacks(Position* pos, int square, uint64_t occupancy)
 {
     // generate rook attacks given current board occupancy
-    occupancy &= rook_masks[square];
+    occupancy &= pos->rook_masks[square];
     occupancy *= rook_magic_nums[square];
     occupancy >>= 64-rook_relevant_bits[square];
 
-    return rook_attacks[square][occupancy];
+    return pos->rook_attacks[square][occupancy];
 }
 
-uint64_t get_queen_attacks(int square, uint64_t occupancy)
+uint64_t get_queen_attacks(Position* pos, int square, uint64_t occupancy)
 {
-    return get_bishop_attacks(square, occupancy) | get_rook_attacks(square, occupancy);
+    return get_bishop_attacks(pos, square, occupancy) | get_rook_attacks(pos, square, occupancy);
 }
 
 // is <square> under attacked by <side> pieces
-bool is_square_under_attack(int square, int side)
+bool is_square_under_attack(Position* pos, int square, int side)
 {
     // Attacked by white pawns
-    if ((side == white) && (pawn_attacks[black][square] & piece_bitboards[P])) 
+    if ((side == white) && (pos->pawn_attacks[black][square] & pos->piece_bitboards[P]))
         return true;
 
     // Attacked by black pawns
-    if ((side == black) && (pawn_attacks[white][square] & piece_bitboards[p])) 
+    if ((side == black) && (pos->pawn_attacks[white][square] & pos->piece_bitboards[p]))
         return true;
 
-    if (knight_attacks[square] & ((side == white) ? piece_bitboards[N] : piece_bitboards[n])) 
+    if (pos->knight_attacks[square] & ((side == white) ? pos->piece_bitboards[N] : pos->piece_bitboards[n]))
         return true;
 
-    if (get_bishop_attacks(square, occupancies[both]) & ((side == white) ? piece_bitboards[B] : piece_bitboards[b])) 
+    if (get_bishop_attacks(pos, square, pos->occupancies[both]) & ((side == white) ? pos->piece_bitboards[B] : pos->piece_bitboards[b]))
         return true;
 
-    if (get_rook_attacks(square, occupancies[both]) & ((side == white) ? piece_bitboards[R] : piece_bitboards[r])) 
+    if (get_rook_attacks(pos, square, pos->occupancies[both]) & ((side == white) ? pos->piece_bitboards[R] : pos->piece_bitboards[r]))
         return true;
 
-    if (get_queen_attacks(square, occupancies[both]) & ((side == white) ? piece_bitboards[Q] : piece_bitboards[q])) 
+    if (get_queen_attacks(pos, square, pos->occupancies[both]) & ((side == white) ? pos->piece_bitboards[Q] : pos->piece_bitboards[q]))
         return true;
 
-    if (king_attacks[square] & ((side == white) ? piece_bitboards[K] : piece_bitboards[k])) 
+    if (pos->king_attacks[square] & ((side == white) ? pos->piece_bitboards[K] : pos->piece_bitboards[k]))
         return true;
 
     return false;
 }
 
-bool noMajorsOrMinorsPieces()
+bool noMajorsOrMinorsPieces(Position* pos)
 {
-    return !(count_bits(occupancies[both]) - count_bits(piece_bitboards[P]) - count_bits(piece_bitboards[p]) - 2);
+    return !(count_bits(pos->occupancies[both]) - count_bits(pos->piece_bitboards[P]) - count_bits(pos->piece_bitboards[p]) - 2);
 }
 
-void init_sliding_attacks(int isBishop)
+void init_sliding_attacks(Position* pos, int isBishop)
 {
     for (int square = 0;square<64;square++)
     {
         if (isBishop)
-            bishop_masks[square] = get_bishop_mask(square);
+            pos->bishop_masks[square] = get_bishop_mask(square);
         else
-            rook_masks[square] = get_rook_mask(square);
+            pos->rook_masks[square] = get_rook_mask(square);
 
-        uint64_t curr_attack_mask = isBishop ? bishop_masks[square] : rook_masks[square];
+        uint64_t curr_attack_mask = isBishop ? pos->bishop_masks[square] : pos->rook_masks[square];
 
         int relevant_bits_count = count_bits(curr_attack_mask);
 
@@ -464,25 +464,25 @@ void init_sliding_attacks(int isBishop)
             {
                 uint64_t occupancy = set_occupancy(i, relevant_bits_count, curr_attack_mask);
                 int magic_index = (occupancy * bishop_magic_nums[square]) >> (64-bishop_relevant_bits[square]);
-                bishop_attacks[square][magic_index] = bishop_attack_runtime_gen(square, occupancy);
+                pos->bishop_attacks[square][magic_index] = bishop_attack_runtime_gen(square, occupancy);
             }
             else
             {
                 uint64_t occupancy = set_occupancy(i, relevant_bits_count, curr_attack_mask);
                 int magic_index = (occupancy * rook_magic_nums[square]) >> (64-rook_relevant_bits[square]);
-                rook_attacks[square][magic_index] = rook_attack_runtime_gen(square, occupancy);
+                pos->rook_attacks[square][magic_index] = rook_attack_runtime_gen(square, occupancy);
             }
         }
     }
 }
 
-void init_leaping_attacks()
+void init_leaping_attacks(Position* pos)
 {
     for (int square = 0; square < BOARD_SIZE; square++) 
     {
-        pawn_attacks[white][square] = get_pawn_attacks(white, square);
-        pawn_attacks[black][square] = get_pawn_attacks(black, square);
-        knight_attacks[square] = get_knight_attacks(square);
-        king_attacks[square] = get_king_attacks(square);
+        pos->pawn_attacks[white][square] = get_pawn_attacks(white, square);
+        pos->pawn_attacks[black][square] = get_pawn_attacks(black, square);
+        pos->knight_attacks[square] = get_knight_attacks(square);
+        pos->king_attacks[square] = get_king_attacks(square);
     }
 }

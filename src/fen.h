@@ -3,6 +3,7 @@
 
 #include <string>
 #include "bitboard.h"
+#include "position.h"
 
 using namespace std;
 
@@ -12,8 +13,6 @@ extern const char* start_position;
 extern const char* position_2;
 extern const char* position_3;
 
-void parse_fen(const char* fen);
-
-
+void parse_fen(Position* pos, const char* fen);
 
 #endif

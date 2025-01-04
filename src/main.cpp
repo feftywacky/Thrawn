@@ -15,7 +15,7 @@ int main() {
     
     init_all();
 
-    bool dev_mode = false;
+    bool dev_mode = true;
 
     if (dev_mode)
     {
@@ -24,7 +24,8 @@ int main() {
         // parse_fen(position_2);
         print_board(colour_to_move);
 
-        search_position(14);
+        //search_position(12);
+        search_position_threaded(12,2);
 
     }
     else

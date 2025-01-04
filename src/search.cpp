@@ -5,10 +5,13 @@
 #include "uci.h"
 #include "zobrist_hashing.h"
 #include "transposition_table.h"
+#include "position.h"
 #include <iostream>
 #include <vector>
 #include <algorithm>
 #include <numeric>
+#include <atomic>
+#include <thread>
 
 using namespace std;
 
@@ -43,7 +46,10 @@ std::vector<uint64_t> repetition_table(1028); // 1028 plies for a game
 int repetition_index = 0;
 int fifty_move = 0;
 
-int negamax(int depth, int alpha, int beta)
+// threading
+std::atomic<bool> stop_threads(false);
+
+int negamax(Position* pos, int depth, int alpha, int beta)
 {
     int score = 0;
     int bestMove = 0;
@@ -404,7 +410,7 @@ int isRepetition()
     return 0;
 }
 
-void search_position(int depth)
+void search_position(Position& pos, int depth)
 {
     int start = get_time_ms();
     // RESET VARIABLES
@@ -490,6 +496,26 @@ void search_position(int depth)
     std::cout << "\n";
 
     stopped = 1; // fixes zero eval blundering bug
+}
+
+// Lazy SMP – all threads do the same search_position!
+void search_position_threaded(Position& pos, int depth, int numThreads) {
+    stop_threads.store(false, std::memory_order_relaxed);
+
+    std::vector<std::thread> threads;
+    threads.reserve(numThreads);
+
+    for (int i = 0; i < numThreads; i++) {
+        threads.emplace_back([&, depth]() {
+            Position threadPos = pos; // Make a copy of the position for thread safety
+            search_position(threadPos, depth);
+        });
+    }
+
+    for (auto& th : threads) {
+        if (th.joinable())
+            th.join();
+    }
 }
 
 // SCORING PRIORITY

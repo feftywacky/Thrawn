@@ -4,6 +4,8 @@
 #include <vector>
 #include <array>
 #include <cstdint>
+#include <atomic>
+#include "position.h"
 
 using namespace std;
 
@@ -36,13 +38,18 @@ extern std::vector<uint64_t> repetition_table;
 extern int repetition_index;
 extern int fifty_move;
 
+// threading
+extern std::atomic<bool> stop_threads;
+
 
 // negamax with alpha beta pruning
-int negamax(int depth, int alpha, int beta);
+int negamax(Position& pos, int depth, int alpha, int beta);
 
-int quiescence(int alpha, int beta);
+int quiescence(Position& pos, int alpha, int beta);
 
-void search_position(int depth);
+void search_position(Position& pos, int depth);
+
+void search_position_threaded(Position& pos, int depth, int numThreads);
 
 int score_move(int move);
 

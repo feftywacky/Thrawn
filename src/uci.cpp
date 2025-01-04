@@ -344,7 +344,8 @@ void uci_parse_go(const char* command)
               << " depth:" << depth << " timeset:" << timeset << std::endl;
 
     // Search position
-    search_position(depth);
+    // search_position(depth);
+    search_position_threaded(depth, 2);
 }
 
 void uci_loop()
