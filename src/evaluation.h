@@ -57,9 +57,9 @@ extern int nnue_squares[64];
 
 int evaluate();
 
-void init_eval_masks();
-uint64_t set_eval_masks(int rankNum, int fileNum);
-
-int get_gamePhase_score();
+//void init_eval_masks();
+//uint64_t set_eval_masks(int rankNum, int fileNum);
+//
+//int get_gamePhase_score();
 
 #endif

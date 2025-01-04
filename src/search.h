@@ -43,23 +43,23 @@ extern std::atomic<bool> stop_threads;
 
 
 // negamax with alpha beta pruning
-int negamax(Position& pos, int depth, int alpha, int beta);
+int negamax(Position* pos, int depth, int alpha, int beta);
 
-int quiescence(Position& pos, int alpha, int beta);
+int quiescence(Position* pos, int alpha, int beta);
 
-void search_position(Position& pos, int depth);
+void search_position(Position* pos, int depth);
 
-void search_position_threaded(Position& pos, int depth, int numThreads);
+void search_position_threaded(Position* pos, int depth, int numThreads);
 
-int score_move(int move);
+int score_move(Position* pos, int move);
 
-void sort_moves(vector<int>& moves, int bestMove);
+void sort_moves(Position* pos, vector<int>& moves, int bestMove);
 
 void score_pv(vector<int>& moves);
 
-void print_move_scores(const vector<int>& moves);
+void print_move_scores(Position* pos, const vector<int>& moves);
 
-int isRepetition();
+int isRepetition(Position* pos);
 
 void quicksort_moves(std::vector<int> &moves, std::vector<int> &move_scores, int low, int high);
 

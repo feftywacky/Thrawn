@@ -129,5 +129,5 @@ void parse_fen(Position* pos, const char* fen)
     pos->occupancies[2] = get_both_occupancy(pos);
     
     // init hashkeys
-    pos->zobristKey = gen_hashkey();
+    pos->zobristKey = gen_hashkey(pos);
 }

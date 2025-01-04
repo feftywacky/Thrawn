@@ -7,6 +7,7 @@
 #include "search.h"
 #include "transposition_table.h"
 #include "misc.h"
+#include "position.h"
 #include <iostream>
 
 using namespace std;
@@ -20,12 +21,14 @@ int main() {
     if (dev_mode)
     {
         cout<<"developer mode"<<endl;
-        parse_fen("r3kb1r/3n1pp1/p6p/2pPp2q/Pp2N3/3B2PP/1PQ2P2/R3K2R w KQkq -");
+
+        Position* pos1 = new Position();
+        parse_fen(pos1, "r3kb1r/3n1pp1/p6p/2pPp2q/Pp2N3/3B2PP/1PQ2P2/R3K2R w KQkq -");
         // parse_fen(position_2);
-        print_board(colour_to_move);
+        print_board(pos1->colour_to_move);
 
         //search_position(12);
-        search_position_threaded(12,2);
+//        search_position_threaded(12,2);
 
     }
     else

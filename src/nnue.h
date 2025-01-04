@@ -46,7 +46,7 @@ namespace nnue{
   enum colors {
       white,black
   };
-}
+
 enum pieces {
     blank=0,wking,wqueen,wrook,wbishop,wknight,wpawn,
             bking,bqueen,brook,bbishop,bknight,bpawn
@@ -159,5 +159,5 @@ DLLExport int _CDECL nnue_evaluate_incremental(
   int* squares,                     /** Corresponding array of squares each piece stands on */
   NNUEdata** nnue_data              /** Pointer to NNUEdata* for current and previous plies */
 );
-
+} // end namepsace
 #endif

@@ -439,7 +439,7 @@ int make_move(Position* pos, int move, int move_type)
 {
     if (move_type == all_moves)
     {
-        copyBoard();
+        pos->copyBoard();
 
         // move parsing
         int source = get_move_source(move);
@@ -578,7 +578,7 @@ int make_move(Position* pos, int move, int move_type)
             else if (target == c8)
             {
                 pop_bit(pos->piece_bitboards[r], a8);
-                set_bit(piece_bitboards[r], d8);
+                set_bit(pos->piece_bitboards[r], d8);
 
                 pos->zobristKey ^= pos->piece_hashkey[r][a8];  // remove rook from a8 from hash key
                 pos->zobristKey ^= pos->piece_hashkey[r][d8];  // put rook on d8 into a hash key
@@ -617,7 +617,7 @@ int make_move(Position* pos, int move, int move_type)
         // handle illegal moves. if move causes king to check, restore previous position and return illegal move
         if (is_square_under_attack((pos->colour_to_move==white) ? get_lsb_index(pos->piece_bitboards[k]) : get_lsb_index(pos->piece_bitboards[K]), pos->colour_to_move))
         {
-            restoreBoard();
+            pos->restoreBoard();
             return 0;
         }
         else 

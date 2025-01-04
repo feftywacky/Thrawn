@@ -16,12 +16,12 @@ void init_all()
     // init_sliding_attacks(pos, rook);
 
     // init hashkeys
-    init_hashkeys();
+    // init_hashkeys();
     init_hashmap(128); // default of 64 MB
 
     // init eval masks
-    init_eval_masks();
+    //init_eval_masks();
 
     // init NNUE
-    nnue_init("nn-62ef826d1a6d.nnue");
+    nnue::nnue_init("nn-62ef826d1a6d.nnue");
 }
