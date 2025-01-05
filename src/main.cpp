@@ -13,26 +13,27 @@
 using namespace std;
 
 int main() {
-    
+    thrawn::Position pos;
     init_all();
 
-    bool dev_mode = true;
+    bool dev_mode = false;
 
     if (dev_mode)
     {
         cout<<"developer mode"<<endl;
 
-        Position* pos1 = new Position();
+        thrawn::Position pos1;
+
         parse_fen(pos1, "r3kb1r/3n1pp1/p6p/2pPp2q/Pp2N3/3B2PP/1PQ2P2/R3K2R w KQkq -");
         // parse_fen(position_2);
-        print_board(pos1->colour_to_move);
+        print_board(pos1, pos1.colour_to_move);
 
         //search_position(12);
 //        search_position_threaded(12,2);
 
     }
     else
-        uci_loop();
+        uci_loop(pos);
     
     delete[] hashmap;
 

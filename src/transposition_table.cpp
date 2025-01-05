@@ -59,15 +59,15 @@ void init_hashmap(int mb)
     4) If match, load the data, verify the key again
     5) If still matches, return the stored score (or alpha/beta boundary) as usual
 */
-int probeHashMap(int depth, int alpha, int beta, int *best_move)
+int probeHashMap(thrawn::Position& pos, int depth, int alpha, int beta, int *best_move)
 {
-    int index = (int)(zobristKey % hashmap_len);
+    int index = (int)(pos.zobristKey % hashmap_len);
 
     // Step 1: Acquire the stored key with acquire semantics
     uint64_t storedKey = hashmap[index].key.load(std::memory_order_acquire);
 
     // if no entry or mismatch
-    if (storedKey != zobristKey)
+    if (storedKey != pos.zobristKey)
         return no_hashmap_entry;
 
     // Step 2: load the data (relaxed is OK, but we must re-check the key later)
@@ -75,7 +75,7 @@ int probeHashMap(int depth, int alpha, int beta, int *best_move)
 
     // Step 3: re-check that the key didn’t change in between
     uint64_t storedKey2 = hashmap[index].key.load(std::memory_order_relaxed);
-    if (storedKey2 != zobristKey)
+    if (storedKey2 != pos.zobristKey)
         return no_hashmap_entry;
 
     // Step 4: unpack
@@ -149,13 +149,13 @@ int probeHashMap(int depth, int alpha, int beta, int *best_move)
     4) store the new key (relaxed)
     5) store the new data (release)
 */
-void writeToHashMap(int depth, int score, int hashFlag, int bestMove)
+void writeToHashMap(thrawn::Position& pos, int depth, int score, int hashFlag, int bestMove)
 {
     // boundary conditions for mate-scores
     if (score < -mateScore) score -= ply;
     if (score >  mateScore) score += ply;
 
-    uint64_t index = zobristKey % hashmap_len;
+    uint64_t index = pos.zobristKey % hashmap_len;
     uint64_t oldKey = hashmap[index].key.load(std::memory_order_relaxed);
 
     // Some custom replacement strategy can go here:
@@ -167,7 +167,7 @@ void writeToHashMap(int depth, int score, int hashFlag, int bestMove)
     uint64_t rawData = pack_data(depth, score, hashFlag, bestMove);
 
     // Step 1: store the key
-    hashmap[index].key.store(zobristKey, std::memory_order_relaxed);
+    hashmap[index].key.store(pos.zobristKey, std::memory_order_relaxed);
     // Step 2: store data with release semantics
     hashmap[index].data.store(rawData, std::memory_order_release);
 //    TranspositionTable *hashEntryPtr = &hashmap[zobristKey % hashmap_len];

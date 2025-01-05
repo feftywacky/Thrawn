@@ -43,23 +43,23 @@ extern std::atomic<bool> stop_threads;
 
 
 // negamax with alpha beta pruning
-int negamax(Position* pos, int depth, int alpha, int beta);
+int negamax(thrawn::Position& pos, int depth, int alpha, int beta);
 
-int quiescence(Position* pos, int alpha, int beta);
+int quiescence(thrawn::Position& pos, int alpha, int beta);
 
-void search_position(Position* pos, int depth);
+void search_position(thrawn::Position& pos, int depth);
 
-void search_position_threaded(Position* pos, int depth, int numThreads);
+void search_position_threaded(thrawn::Position& pos, int depth, int numThreads);
 
-int score_move(Position* pos, int move);
+int score_move(thrawn::Position& pos, int move);
 
-void sort_moves(Position* pos, vector<int>& moves, int bestMove);
+void sort_moves(thrawn::Position& pos, vector<int>& moves, int bestMove);
 
 void score_pv(vector<int>& moves);
 
-void print_move_scores(Position* pos, const vector<int>& moves);
+void print_move_scores(thrawn::Position& pos, const vector<int>& moves);
 
-int isRepetition(Position* pos);
+int isRepetition(thrawn::Position& pos);
 
 void quicksort_moves(std::vector<int> &moves, std::vector<int> &move_scores, int low, int high);
 

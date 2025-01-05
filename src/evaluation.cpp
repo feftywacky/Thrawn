@@ -312,7 +312,7 @@ int nnue_squares[64] = {
 //}
 
 //position evaluation
-int evaluate(Position* pos)
+int evaluate(thrawn::Position& pos)
 {   
     uint64_t bitboard;
     int square;
@@ -326,7 +326,7 @@ int evaluate(Position* pos)
     
     for (int piece = P; piece <= k; piece++)
     {
-        bitboard = pos->piece_bitboards[piece];
+        bitboard = pos.piece_bitboards[piece];
         
         while (bitboard)
         {            
@@ -362,5 +362,5 @@ int evaluate(Position* pos)
 
     // (100-fifty_move) / 100 
     // taken from Cfish for fifty move scaling
-    return nnue::nnue_evaluate(pos->colour_to_move, pieces, squares) * (100-fifty_move) / 100;
+    return nnue_evaluate(pos.colour_to_move, pieces, squares) * (100-fifty_move) / 100;
 }

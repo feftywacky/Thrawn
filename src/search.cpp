@@ -49,7 +49,7 @@ int fifty_move = 0;
 // threading
 std::atomic<bool> stop_threads(false);
 
-int negamax(Position* pos, int depth, int alpha, int beta)
+int negamax(thrawn::Position& pos, int depth, int alpha, int beta)
 {
     int score = 0;
     int bestMove = 0;
@@ -69,7 +69,7 @@ int negamax(Position* pos, int depth, int alpha, int beta)
 
     // retrieve score if not root ply and not pv node and tt key exists
     // if move has already been searched, return its score instantly
-    if (ply && (score = probeHashMap(depth, alpha, beta, &bestMove)) != no_hashmap_entry && !pv_node)
+    if (ply && (score = probeHashMap(pos, depth, alpha, beta, &bestMove)) != no_hashmap_entry && !pv_node)
     {
         // if (fifty_move < 90)
         return score;
@@ -88,19 +88,19 @@ int negamax(Position* pos, int depth, int alpha, int beta)
     if (ply > MAX_DEPTH - 1) // array overflow at max depth
     {
         std::cout << "array overflow at max depth: " << ply << endl;
-        return evaluate();
+        return evaluate(pos);
     }
 
     nodes++;
     int valid_moves = 0;
-    bool inCheck = is_square_under_attack((pos->colour_to_move == white ? get_lsb_index(pos->piece_bitboards[K]) : get_lsb_index(pos->piece_bitboards[k])), pos->colour_to_move ^ 1);
+    bool inCheck = is_square_under_attack(pos,(pos.colour_to_move == white ? get_lsb_index(pos.piece_bitboards[K]) : get_lsb_index(pos.piece_bitboards[k])), pos.colour_to_move ^ 1);
 
     if (inCheck)
     {
         depth++;
     }
 
-    static_eval = evaluate();
+    static_eval = evaluate(pos);
 
 //    // Reverse Futility Pruning / static null move pruning
 //    if (depth < 3 && !pv_node && !inCheck && abs(beta - 1) > -INFINITY + 100)
@@ -116,18 +116,18 @@ int negamax(Position* pos, int depth, int alpha, int beta)
     if (!inCheck && depth >= 3 && ply && !pv_node && !noMajorsOrMinorsPieces(pos))
     {
         // give opponent another move
-        pos->copyBoard();
+        pos.copyBoard();
 
         ply++;
         repetition_index++;
-        repetition_table[repetition_index] = pos->zobristKey;
+        repetition_table[repetition_index] = pos.zobristKey;
 
-        if (pos->enpassant != null_sq)
-            pos->zobristKey ^= pos->enpassant_hashkey[pos->enpassant];
-        pos->enpassant = null_sq;
+        if (pos.enpassant != null_sq)
+            pos.zobristKey ^= pos.enpassant_hashkey[pos.enpassant];
+        pos.enpassant = null_sq;
 
-        pos->colour_to_move ^= 1;
-        pos->zobristKey ^= pos->colour_to_move_hashkey;
+        pos.colour_to_move ^= 1;
+        pos.zobristKey ^= pos.colour_to_move_hashkey;
 
         // depth - 1 - R, R is reduction constant
         //allowNullMovePruning = false;
@@ -137,7 +137,7 @@ int negamax(Position* pos, int depth, int alpha, int beta)
         ply--;
         repetition_index--;
 
-        pos->restoreBoard();
+        pos.restoreBoard();
 
         // time is up
         if (stopped == 1)
@@ -152,7 +152,7 @@ int negamax(Position* pos, int depth, int alpha, int beta)
     if (!inCheck && !pv_node && depth <= 3)
     {
         // apply bonus to score
-        score = evaluate() + 125;
+        score = evaluate(pos) + 125;
         int razor_score;
         if (score < beta)
         {
@@ -177,7 +177,7 @@ int negamax(Position* pos, int depth, int alpha, int beta)
 //    if (!inCheck && pv_node && (depth >= 3) && !bestMove)
 //        depth--;
 
-    vector<int> moves = generate_moves();
+    vector<int> moves = generate_moves(pos);
 
     if (follow_pv_flag)
         score_pv(moves);
@@ -188,13 +188,13 @@ int negamax(Position* pos, int depth, int alpha, int beta)
 
     for (int move : moves)
     {
-        pos->copyBoard();
+        pos.copyBoard();
 
         ply++;
         repetition_index++;
-        repetition_table[repetition_index] = pos->zobristKey;
+        repetition_table[repetition_index] = pos.zobristKey;
 
-        if (make_move(move, all_moves) == 0)
+        if (make_move(pos, move, all_moves) == 0)
         {
             ply--;
             repetition_index--;
@@ -272,7 +272,7 @@ int negamax(Position* pos, int depth, int alpha, int beta)
         ply--;
         repetition_index--;
 
-        pos->restoreBoard();
+        pos.restoreBoard();
 
         // time is up
         if (stopped == 1)
@@ -303,7 +303,7 @@ int negamax(Position* pos, int depth, int alpha, int beta)
             // fail-hard beta cutoff
             if (score >= beta)
             {
-                writeToHashMap(depth, beta, hashFlagBETA, bestMove);
+                writeToHashMap(pos, depth, beta, hashFlagBETA, bestMove);
 
                 if (get_is_capture_move(move) == 0)
                 {
@@ -326,13 +326,13 @@ int negamax(Position* pos, int depth, int alpha, int beta)
             return 0; // stalemate
     }
 
-    writeToHashMap(depth, alpha, hashFlag, bestMove);
+    writeToHashMap(pos, depth, alpha, hashFlag, bestMove);
 
     // move fails low (<= alpha)
     return alpha;
 }
 
-int quiescence(Position* pos, int alpha, int beta)
+int quiescence(thrawn::Position& pos, int alpha, int beta)
 {
     if ((nodes & 2047) == 0)
     {
@@ -342,9 +342,9 @@ int quiescence(Position* pos, int alpha, int beta)
     nodes++;
 
     if (ply > MAX_DEPTH - 1)
-        return evaluate();
+        return evaluate(pos);
 
-    int evaluation = evaluate();
+    int evaluation = evaluate(pos);
 
     // fail-hard beta cutoff
     if (evaluation >= beta)
@@ -356,18 +356,18 @@ int quiescence(Position* pos, int alpha, int beta)
         alpha = evaluation; // principal variation PV node (best move)
     }
 
-    vector<int> moves = generate_moves();
+    vector<int> moves = generate_moves(pos);
     sort_moves(pos, moves, 0);
 
     for (int move : moves)
     {
-        pos->copyBoard();
+        pos.copyBoard();
 
         ply++;
         repetition_index++;
-        repetition_table[repetition_index] = pos->zobristKey;
+        repetition_table[repetition_index] = pos.zobristKey;
 
-        if (!make_move(move, only_captures))
+        if (!make_move(pos, move, only_captures))
         {
             ply--;
             repetition_index--;
@@ -379,7 +379,7 @@ int quiescence(Position* pos, int alpha, int beta)
         ply--;
         repetition_index--;
 
-        pos->restoreBoard();
+        pos.restoreBoard();
 
         // time is up
         if (stopped == 1)
@@ -400,17 +400,17 @@ int quiescence(Position* pos, int alpha, int beta)
     return alpha;
 }
 
-int isRepetition(Position* pos)
+int isRepetition(thrawn::Position& pos)
 {
     for (int i = 0; i < repetition_index; i++)
     {
-        if (repetition_table[i] == pos->zobristKey)
+        if (repetition_table[i] == pos.zobristKey)
             return 1;
     }
     return 0;
 }
 
-void search_position(Position* pos, int depth)
+void search_position(thrawn::Position& pos, int depth)
 {
     int start = get_time_ms();
     // RESET VARIABLES
@@ -499,7 +499,7 @@ void search_position(Position* pos, int depth)
 }
 
 // Lazy SMP – all threads do the same search_position!
-void search_position_threaded(Position* pos, int depth, int numThreads) {
+void search_position_threaded(thrawn::Position& pos, int depth, int numThreads) {
     stop_threads.store(false, std::memory_order_relaxed);
 
     std::vector<std::thread> threads;
@@ -524,7 +524,7 @@ void search_position_threaded(Position* pos, int depth, int numThreads) {
 // 4) killer move 2
 // 5) history moves
 // 6) unsorted moves
-int score_move(Position* pos, int move)
+int score_move(thrawn::Position& pos, int move)
 {
     // scoring pv
     if (score_pv_flag)
@@ -547,12 +547,12 @@ int score_move(Position* pos, int move)
         int start_piece;
         int end_piece;
 
-        (pos->colour_to_move == white) ? start_piece = p : start_piece = P;
-        (pos->colour_to_move == white) ? end_piece = k : end_piece = K;
+        (pos.colour_to_move == white) ? start_piece = p : start_piece = P;
+        (pos.colour_to_move == white) ? end_piece = k : end_piece = K;
 
         for (int i = start_piece; i <= end_piece; i++)
         {
-            if (get_bit(pos->piece_bitboards[i], get_move_target(move)))
+            if (get_bit(pos.piece_bitboards[i], get_move_target(move)))
             {
                 target = i;
                 break;
@@ -592,7 +592,7 @@ void score_pv(vector<int> &moves)
     }
 }
 
-void sort_moves(Position* pos, vector<int> &moves, int bestMove)
+void sort_moves(thrawn::Position& pos, vector<int> &moves, int bestMove)
 {
     const int n = static_cast<int>(moves.size());
     std::vector<int> scores(n);
@@ -603,7 +603,7 @@ void sort_moves(Position* pos, vector<int> &moves, int bestMove)
     quicksort_moves(moves, scores, 0, moves.size() - 1);
 }
 
-void print_move_scores(Position* pos, const vector<int> &moves)
+void print_move_scores(thrawn::Position& pos, const vector<int> &moves)
 {
     for (int move : moves)
     {

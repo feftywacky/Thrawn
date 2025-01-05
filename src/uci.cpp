@@ -154,9 +154,9 @@ void communicate() {
 UCI PROTOCOL
 */
 
-int uci_parse_move(const char *move_str)
+int uci_parse_move(thrawn::Position& pos, const char *move_str)
 {
-    std::vector<int> moves = generate_moves();
+    std::vector<int> moves = generate_moves(pos);
     
     int source = (move_str[0] - 'a') + (8-(move_str[1]- '0')) * 8;
     int target = (move_str[2] - 'a') + (8-(move_str[3]- '0')) * 8;
@@ -190,7 +190,7 @@ int uci_parse_move(const char *move_str)
     return 0;
 }
 
-void uci_parse_position(const char *command) {
+void uci_parse_position(thrawn::Position& pos, const char *command) {
     // Create a non-const pointer for manipulation
     cout<<command<<endl;
     const char *non_const_command = command;
@@ -202,7 +202,7 @@ void uci_parse_position(const char *command) {
     // parse 'startpos' command
     
     if (strncmp(non_const_command, "startpos", 8) == 0)
-        parse_fen(start_position);
+        parse_fen(pos, start_position);
 
     // parse 'fen' command
     else 
@@ -211,12 +211,12 @@ void uci_parse_position(const char *command) {
 
         // no 'fen' command found
         if (curr_ch == nullptr)
-            parse_fen(start_position);
+            parse_fen(pos, start_position);
 
         else {
             // shift index to next token
             curr_ch += 4;
-            parse_fen(curr_ch);
+            parse_fen(pos, curr_ch);
         }
     }
 
@@ -229,15 +229,15 @@ void uci_parse_position(const char *command) {
         curr_ch += 6;
 
         while (*curr_ch) {
-            int move = uci_parse_move(curr_ch);
+            int move = uci_parse_move(pos, curr_ch);
 
             if (move == 0)
                 break;
 
             repetition_index++;
-            repetition_table[repetition_index] = zobristKey;
+            repetition_table[repetition_index] = pos.zobristKey;
 
-            make_move(move, all_moves);
+            make_move(pos, move, all_moves);
 
             // Move index to the end of the current move
             while (*curr_ch && *curr_ch != ' ')
@@ -254,7 +254,7 @@ void uci_parse_position(const char *command) {
 
 }
 
-void uci_parse_go(const char* command)
+void uci_parse_go(thrawn::Position& pos, const char* command)
 {
     reset_time_control();
     int depth = -1;
@@ -263,25 +263,25 @@ void uci_parse_go(const char* command)
     if (strstr(command, "infinite") != nullptr) {}
 
     // Match UCI "binc" command
-    if (strstr(command, "binc") != nullptr && colour_to_move == 1) {
+    if (strstr(command, "binc") != nullptr && pos.colour_to_move == 1) {
         // Parse black time increment
         inc = atoi(strstr(command, "binc") + 5);
     }
 
     // Match UCI "winc" command
-    if (strstr(command, "winc") != nullptr && colour_to_move == 0) {
+    if (strstr(command, "winc") != nullptr && pos.colour_to_move == 0) {
         // Parse white time increment
         inc = atoi(strstr(command, "winc") + 5);
     }
 
     // Match UCI "wtime" command
-    if (strstr(command, "wtime") != nullptr && colour_to_move == 0) {
+    if (strstr(command, "wtime") != nullptr && pos.colour_to_move == 0) {
         // Parse white time limit
         uci_time = atoi(strstr(command, "wtime") + 6);
     }
 
     // Match UCI "btime" command
-    if (strstr(command, "btime") != nullptr && colour_to_move == 1) {
+    if (strstr(command, "btime") != nullptr && pos.colour_to_move == 1) {
         // Parse black time limit
         uci_time = atoi(strstr(command, "btime") + 6);
     }
@@ -345,10 +345,10 @@ void uci_parse_go(const char* command)
 
     // Search position
     // search_position(depth);
-    search_position_threaded(depth, 2);
+    search_position_threaded(pos, depth, 2);
 }
 
-void uci_loop()
+void uci_loop(thrawn::Position& pos)
 {
     // just make it big enough
     #define INPUT_BUFFER 20000
@@ -389,19 +389,19 @@ void uci_loop()
         // parse UCI "position" command
         else if (strncmp(input, "position", 8) == 0)
         {
-            uci_parse_position(input);
+            uci_parse_position(pos, input);
             reset_hashmap();
         }
 
         // parse UCI "ucinewgame" command
         else if (strncmp(input, "ucinewgame", 10) == 0)
         {
-            uci_parse_position("position startpos");
+            uci_parse_position(pos, "position startpos");
             reset_hashmap();
         }
         // parse UCI "go" command
         else if (strncmp(input, "go", 2) == 0)
-            uci_parse_go(input);
+            uci_parse_go(pos, input);
         
         // parse UCI "quit" command
         else if (strncmp(input, "quit", 4) == 0)

@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <atomic>
+#include "position.h"
 
 #define no_hashmap_entry 100000
 
@@ -37,9 +38,9 @@ void init_hashmap(int mb);
 
 void reset_hashmap();
 
-int probeHashMap(int depth, int alpha, int beta, int* bestMove);
+int probeHashMap(thrawn::Position& pos, int depth, int alpha, int beta, int* bestMove);
 
-void writeToHashMap(int depth, int score, int hashFlag, int bestMove);
+void writeToHashMap(thrawn::Position& pos, int depth, int score, int hashFlag, int bestMove);
 
 // helpers for atomic packing
 inline uint64_t pack_data(int depth, int score, int hash_flag, int best_move);

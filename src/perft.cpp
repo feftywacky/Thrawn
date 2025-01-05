@@ -4,11 +4,12 @@
 #include "constants.h"
 #include "bitboard_helpers.h"
 #include "zobrist_hashing.h"
+#include "position.h"
 #include <chrono>
 
 long leaf_nodes;
 
-void perft_search (int depth)
+void perft_search (thrawn::Position& pos, int depth)
 {
     
     if (depth == 0)
@@ -17,19 +18,19 @@ void perft_search (int depth)
         return;
     }  
 
-    vector<int> moves = generate_moves();
+    vector<int> moves = generate_moves(pos);
     
     for (int move : moves)
     {
-        copyBoard();   
+        pos.copyBoard();   
 
 
-        if (!make_move(move, all_moves))
+        if (!make_move(pos, move, all_moves))
             continue;
 
-        perft_search(depth-1);
+        perft_search(pos, depth-1);
         
-        restoreBoard();
+        pos.restoreBoard();
 
         // uint64_t curr_hash = gen_hashkey(); // new hashkey after move made
         // if (curr_hash != zobristKey)
@@ -48,27 +49,27 @@ void perft_search (int depth)
 
 }
 
-void perft_test(int depth)
+void perft_test(thrawn::Position& pos, int depth)
 {
 
-    vector<int> moves = generate_moves();
+    vector<int> moves = generate_moves(pos);
     auto start = std::chrono::high_resolution_clock::now();
     for (int move : moves)
     {
         
-        copyBoard();
+        pos.copyBoard();
         
 
-        if (!make_move(move, all_moves))
+        if (!make_move(pos, move, all_moves))
             continue;
 
         long cumulative_nodes = leaf_nodes;
         
-        perft_search(depth-1);
+        perft_search(pos, depth-1);
 
         long old_nodes = leaf_nodes - cumulative_nodes;
 
-        restoreBoard();
+        pos.restoreBoard();
 
         // Print move
         std::cout << "     move: " << square_to_coordinates[get_move_source(move)]
