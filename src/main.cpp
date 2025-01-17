@@ -16,7 +16,7 @@ int main() {
     init_all();
 
     bool dev_mode = false;
-
+    
     if (dev_mode)
     {
         cout<<"developer mode"<<endl;
@@ -24,7 +24,7 @@ int main() {
         // parse_fen(position_2);
         print_board(colour_to_move);
 
-        search_position(14);
+        search_position(10);
 
     }
     else
