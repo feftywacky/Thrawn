@@ -1,5 +1,6 @@
 # Thrawn
-Thrawn is a free UCI compliant chess engine that analyzes positions and outputs optimal moves. 
+
+Thrawn is a free UCI-compliant chess engine. I made this because I enjoy studying chess in my free time while also pursuing a degree in computer science.
 
 Thrawn does not include a graphical user interface (GUI) that is required to display a chessboard and to make it easy to input moves. These GUIs are developed independently from Thrawn and are available online. Some recommended GUIs include:
 - CuteChess: https://github.com/cutechess/cutechess
@@ -19,20 +20,28 @@ Older verions: only supports x64 and windows compilation.
 Ensure you have a gcc compiler version 7.3 or later.
 
 ### Building from source
-Run these commands:
+
+**Compiling Thrawn v2.0 and newer:**
 ```bash
 git clone https://github.com/feftywacky/Thrawn.git
 cd Thrawn
 cd src
+
+# release build
 make # or mingw32-make
+
+# debug build (only available for v3.0 or newer)
+make BUILD=debug # or mingw32-make BUILD=debug
 ```
+
+
 
 To clean the build:
 ```bash
 make clean # or mingw32-make clean
 ```
 
-Compiling Thrawn v1.1 and older:
+**Compiling Thrawn v1.1 and older:**
 ```bash
 git clone https://github.com/feftywacky/Thrawn.git
 cd Thrawn
@@ -45,13 +54,13 @@ g++ -std=c++17 -Ofast -flto -o Thrawn *.cpp
 - Thrawn v1.1 uses handcrafted evaluation
 
 ## TODO
-- [ ] position class
+- [x] position class
 - [ ] lazy-SMP
-- [ ] LOTS of general code clean up
 - [x] hash move ordering giving worst results bug
 - [x] fixed zero evaluation bug
 - [ ] train own nnue
 - [ ] opening book table
+- [ ] LOTS of general code clean up
 
 ## Features
 - NNUE for evaluation
@@ -62,6 +71,7 @@ g++ -std=c++17 -Ofast -flto -o Thrawn *.cpp
 - UCI protocol
 
 ## Updates
+- position class
 - no-hashmove reduction
 - late move pruning
 - fifty-move rule + three-fold repetition detection

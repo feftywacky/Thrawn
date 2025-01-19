@@ -4,6 +4,7 @@
 #include "constants.h"
 #include "zobrist_hashing.h"
 #include "search.h"
+#include "position.h"
 #include <string>
 
 using namespace std;
@@ -15,21 +16,22 @@ const char* start_position = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq
 const char* position_2 = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1 ";
 const char* position_3 = "r2q1rk1/ppp2ppp/2n1bn2/2b1p3/3pP3/3P1NPP/PPP1NPB1/R1BQ1RK1 b - - 0 9 ";
 
-void parse_fen(const char* fen)
+void parse_fen(thrawn::Position& pos, const char* fen)
 {
-    // reset piece bitboards and occupancies
-    for (int i = 0; i < piece_bitboards.size(); i++)
-        piece_bitboards[i] = 0ULL;
 
-    for (int i = 0; i < occupancies.size(); i++)
-        occupancies[i] = 0ULL;
+    // reset piece bitboards and occupancies
+    for (int i = 0; i < pos.piece_bitboards.size(); i++)
+        pos.piece_bitboards[i] = 0ULL;
+
+    for (int i = 0; i < pos.occupancies.size(); i++)
+        pos.occupancies[i] = 0ULL;
     
     // reset gameState variables
-    colour_to_move = white;
-    enpassant = null_sq;
-    castle_rights = 0;
+    pos.colour_to_move = white;
+    pos.enpassant = null_sq;
+    pos.castle_rights = 0;
     repetition_index = 0;
-    fifty_move = 0;
+    pos.fifty_move = 0;
     std::fill(std::begin(repetition_table), std::end(repetition_table), 0);
     
 
@@ -44,7 +46,7 @@ void parse_fen(const char* fen)
             if ( (*fen >= 'a' && *fen<='z') || (*fen>='A' && *fen<='Z') )
             {
                 int piece = char_pieces.at(*fen);
-                set_bit(piece_bitboards[piece], square);
+                set_bit(pos.piece_bitboards[piece], square);
                 *fen++;
             }
 
@@ -57,7 +59,7 @@ void parse_fen(const char* fen)
                 // loops over all the pieces (white pawn -> black king)
                 for (int i=P;i<=k;i++)
                 {
-                    if (get_bit(piece_bitboards[i], square))
+                    if (get_bit(pos.piece_bitboards[i], square))
                         piece = i;
                 }
                 
@@ -78,7 +80,7 @@ void parse_fen(const char* fen)
     fen++;
 
     // parsing colour_to_move
-    *fen == 'w' ? (colour_to_move = white) : (colour_to_move = black);
+    *fen == 'w' ? (pos.colour_to_move = white) : (pos.colour_to_move = black);
 
     // go to parse castling rights value in fen string
     fen += 2;
@@ -87,13 +89,13 @@ void parse_fen(const char* fen)
     while(*fen != ' ')
     {
         if (*fen == 'K')
-            castle_rights |= wks;
+            pos.castle_rights |= wks;
         else if (*fen == 'Q')
-            castle_rights |= wqs;
-        else if (*fen == 'k')  
-            castle_rights |= bks;
+            pos.castle_rights |= wqs;
+        else if (*fen == 'k')
+            pos.castle_rights |= bks;
         else if (*fen == 'q')
-            castle_rights |= bqs;
+            pos.castle_rights |= bqs;
         else if (*fen == '-')
             break;
         
@@ -115,17 +117,17 @@ void parse_fen(const char* fen)
         cout<<"fen2: "<<*fen<<endl;
         int row = 8- (*fen -'0');
 
-        enpassant = row*8+col;
+        pos.enpassant = row*8+col;
 
     }
-    else 
-        enpassant = null_sq;
+    else
+        pos.enpassant = null_sq;
     
     // setting white, black, and both occupancies
-    occupancies[0] = get_white_occupancy();
-    occupancies[1] = get_black_occupancy();
-    occupancies[2] = get_both_occupancy();
+    pos.occupancies[0] = get_white_occupancy(pos);
+    pos.occupancies[1] = get_black_occupancy(pos);
+    pos.occupancies[2] = get_both_occupancy(pos);
     
     // init hashkeys
-    zobristKey = gen_hashkey();
+    pos.zobristKey = gen_hashkey(pos);
 }

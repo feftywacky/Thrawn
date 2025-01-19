@@ -46,13 +46,13 @@ void init_hashmap(int mb)
     }
 }
 
-int probeHashMap(int depth, int alpha, int beta, int *best_move)
+int probeHashMap(thrawn::Position& pos, int depth, int alpha, int beta, int *best_move, int ply)
 {
     // tt instance pointer that points to the hashmap entry that stores board data
     // hash function key is defined as key % size
-    TranspositionTable *hashEntryPtr = &hashmap[zobristKey % hashmap_len]; 
+    TranspositionTable *hashEntryPtr = &hashmap[pos.zobristKey % hashmap_len]; 
 
-    if (hashEntryPtr->key == zobristKey)
+    if (hashEntryPtr->key == pos.zobristKey)
     {
         if (hashEntryPtr->depth >= depth)
         {
@@ -76,15 +76,15 @@ int probeHashMap(int depth, int alpha, int beta, int *best_move)
     return no_hashmap_entry;
 }
 
-void writeToHashMap(int depth, int score, int hashFlag, int bestMove)
+void writeToHashMap(thrawn::Position& pos, int depth, int score, int hashFlag, int bestMove, int ply)
 {
-    TranspositionTable *hashEntryPtr = &hashmap[zobristKey % hashmap_len]; 
+    TranspositionTable *hashEntryPtr = &hashmap[pos.zobristKey % hashmap_len]; 
 
     if (score < -mateScore) score -= ply;
     if (score > mateScore) score += ply;
     
 
-    hashEntryPtr->key = zobristKey;
+    hashEntryPtr->key = pos.zobristKey;
     hashEntryPtr->depth = depth;
     hashEntryPtr->hash_flag = hashFlag;
     hashEntryPtr->score = score;

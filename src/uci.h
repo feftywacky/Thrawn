@@ -2,9 +2,9 @@
 #define UCI_H
 
 #include <string>
+#include "position.h"
 
 using namespace std;
-
 
 extern int quit;
 extern int movestogo;
@@ -17,13 +17,13 @@ extern int timeset;
 extern int stopped;
 
 // UCI PROTOCOL
-int uci_parse_move(const char* move_str);
+int uci_parse_move(thrawn::Position& pos, const char* move_str);
 
-void uci_parse_position(const char* command);
+void uci_parse_position(thrawn::Position& pos, const char* command);
 
-void uci_parse_go(const char* command);
+void uci_parse_go(thrawn::Position& pos, const char* command);
 
-void uci_loop();
+void uci_loop(thrawn::Position& pos);
 
 
 // TIME CONTROL 

@@ -39,7 +39,9 @@
 
 //-------------------
 #include "nnue_misc.h"
+// #define DLL_EXPORT
 #include "nnue.h"
+// #undef DLL_EXPORT
 
 #define KING(c)    ( (c) ? bking : wking )
 #define IS_KING(p) ( ((p) == wking) || ((p) == bking) )

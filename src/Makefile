@@ -79,9 +79,9 @@ endif
 ###############################################################################
 .PHONY: all release debug clean
 
-all: $(BUILD)
+all: clean $(BUILD)
 
-release: $(EXE)
+release: clean $(EXE)
 
 debug: clean $(EXE)
 
@@ -92,4 +92,6 @@ $(EXE): $(OBJECTS)
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 clean:
+
 	$(RM) $(OBJECTS) $(EXE)
+  

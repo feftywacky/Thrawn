@@ -46,7 +46,7 @@ namespace nnue{
   enum colors {
       white,black
   };
-}
+} // end namepsace
 enum pieces {
     blank=0,wking,wqueen,wrook,wbishop,wknight,wpawn,
             bking,bqueen,brook,bbishop,bknight,bpawn

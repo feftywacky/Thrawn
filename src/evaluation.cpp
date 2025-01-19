@@ -215,104 +215,104 @@ int nnue_squares[64] = {
 	a8, b8, c8, d8, e8, f8, g8, h8
 };
 
-uint64_t set_eval_masks(int rankNum, int fileNum)
-{
-    uint64_t mask = 0ULL;
-
-    for(int r=0;r<8;r++)
-    {
-        for(int f=0;f<8;f++)
-        {
-            int sq = r*8+f;
-            
-            if (rankNum == -1 && f==fileNum)
-                set_bit(mask, sq);
-            else if (fileNum == -1 && r==rankNum)
-                set_bit(mask, sq);
-        }
-    }   
-    return mask;
-}
-
-void init_eval_masks()
-{
-    // init file masks
-    for(int r=0;r<8;r++)
-    {
-        for(int f=0;f<8;f++)
-        {
-            int sq = r*8+f;
-            file_masks[sq] |= set_eval_masks(-1,f);
-        }
-    }
-
-    // init rank masks
-    for(int r=0;r<8;r++)
-    {
-        for(int f=0;f<8;f++)
-        {
-            int sq = r*8+f;
-            rank_masks[sq] |= set_eval_masks(r,-1);
-        }
-    }
-
-    // init isolated masks
-    for(int r=0;r<8;r++)
-    {
-        for(int f=0;f<8;f++)
-        {
-            int sq = r*8+f;
-            isolated_masks[sq] |= set_eval_masks(-1,f+1);
-            isolated_masks[sq] |= set_eval_masks(-1,f-1);
-        }
-    }
-    
-    // init white pass pawn masks
-    for(int r=0;r<8;r++)
-    {
-        for(int f=0;f<8;f++)
-        {
-            int sq = r*8+f;
-            wPassedPawn_masks[sq] |= set_eval_masks(-1, f);
-            wPassedPawn_masks[sq] |= set_eval_masks(-1, f+1);
-            wPassedPawn_masks[sq] |= set_eval_masks(-1, f-1);
-
-            for(int i=0;i<(8-r);i++)
-                wPassedPawn_masks[sq] &= ~rank_masks[(7 - i) * 8 + f];
-        }
-    }
-
-    // init black pass pawn masks
-    for(int r=0;r<8;r++)
-    {
-        for(int f=0;f<8;f++)
-        {
-            int sq = r*8+f;
-            bPassedPawn_masks[sq] |= set_eval_masks(-1, f);
-            bPassedPawn_masks[sq] |= set_eval_masks(-1, f+1);
-            bPassedPawn_masks[sq] |= set_eval_masks(-1, f-1);
-
-            for(int i=0;i<r+1;i++)
-                bPassedPawn_masks[sq] &= ~rank_masks[i*8+f];
-        }
-    }
-}
-
-int get_gamePhase_score()
-{
-    // gamePhase scoe determined by adding up all the material scores for each piece
-
-    int gamePhase_score = 0;
-
-    for (int piece = N;piece<=Q;piece++)
-        gamePhase_score += count_bits(piece_bitboards[piece]) * material_score[opening][piece];
-    for (int piece = n;piece<=q;piece++)
-        gamePhase_score += count_bits(piece_bitboards[piece]) * -material_score[opening][piece];
-    return gamePhase_score;
-}
+//uint64_t set_eval_masks(int rankNum, int fileNum)
+//{
+//    uint64_t mask = 0ULL;
+//
+//    for(int r=0;r<8;r++)
+//    {
+//        for(int f=0;f<8;f++)
+//        {
+//            int sq = r*8+f;
+//
+//            if (rankNum == -1 && f==fileNum)
+//                set_bit(mask, sq);
+//            else if (fileNum == -1 && r==rankNum)
+//                set_bit(mask, sq);
+//        }
+//    }
+//    return mask;
+//}
+//
+//void init_eval_masks()
+//{
+//    // init file masks
+//    for(int r=0;r<8;r++)
+//    {
+//        for(int f=0;f<8;f++)
+//        {
+//            int sq = r*8+f;
+//            file_masks[sq] |= set_eval_masks(-1,f);
+//        }
+//    }
+//
+//    // init rank masks
+//    for(int r=0;r<8;r++)
+//    {
+//        for(int f=0;f<8;f++)
+//        {
+//            int sq = r*8+f;
+//            rank_masks[sq] |= set_eval_masks(r,-1);
+//        }
+//    }
+//
+//    // init isolated masks
+//    for(int r=0;r<8;r++)
+//    {
+//        for(int f=0;f<8;f++)
+//        {
+//            int sq = r*8+f;
+//            isolated_masks[sq] |= set_eval_masks(-1,f+1);
+//            isolated_masks[sq] |= set_eval_masks(-1,f-1);
+//        }
+//    }
+//
+//    // init white pass pawn masks
+//    for(int r=0;r<8;r++)
+//    {
+//        for(int f=0;f<8;f++)
+//        {
+//            int sq = r*8+f;
+//            wPassedPawn_masks[sq] |= set_eval_masks(-1, f);
+//            wPassedPawn_masks[sq] |= set_eval_masks(-1, f+1);
+//            wPassedPawn_masks[sq] |= set_eval_masks(-1, f-1);
+//
+//            for(int i=0;i<(8-r);i++)
+//                wPassedPawn_masks[sq] &= ~rank_masks[(7 - i) * 8 + f];
+//        }
+//    }
+//
+//    // init black pass pawn masks
+//    for(int r=0;r<8;r++)
+//    {
+//        for(int f=0;f<8;f++)
+//        {
+//            int sq = r*8+f;
+//            bPassedPawn_masks[sq] |= set_eval_masks(-1, f);
+//            bPassedPawn_masks[sq] |= set_eval_masks(-1, f+1);
+//            bPassedPawn_masks[sq] |= set_eval_masks(-1, f-1);
+//
+//            for(int i=0;i<r+1;i++)
+//                bPassedPawn_masks[sq] &= ~rank_masks[i*8+f];
+//        }
+//    }
+//}
+//
+//int get_gamePhase_score()
+//{
+//    // gamePhase scoe determined by adding up all the material scores for each piece
+//
+//    int gamePhase_score = 0;
+//
+//    for (int piece = N;piece<=Q;piece++)
+//        gamePhase_score += count_bits(piece_bitboards[piece]) * material_score[opening][piece];
+//    for (int piece = n;piece<=q;piece++)
+//        gamePhase_score += count_bits(piece_bitboards[piece]) * -material_score[opening][piece];
+//    return gamePhase_score;
+//}
 
 //position evaluation
-int evaluate()
+int evaluate(thrawn::Position& pos)
 {   
     uint64_t bitboard;
     int square;
@@ -326,7 +326,7 @@ int evaluate()
     
     for (int piece = P; piece <= k; piece++)
     {
-        bitboard = piece_bitboards[piece];
+        bitboard = pos.piece_bitboards[piece];
         
         while (bitboard)
         {            
@@ -362,5 +362,5 @@ int evaluate()
 
     // (100-fifty_move) / 100 
     // taken from Cfish for fifty move scaling
-    return nnue_evaluate(colour_to_move, pieces, squares) * (100-fifty_move) / 100;
+    return nnue_evaluate(pos.colour_to_move, pieces, squares) * (100-pos.fifty_move) / 100;
 }
