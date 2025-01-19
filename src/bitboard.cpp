@@ -5,42 +5,6 @@
 
 using namespace std;
 
-//// init variables
-//// ALl piece bitboards -> 12 in total -> one for each piece type and colour
-//array<uint64_t, 12> piece_bitboards;
-//
-//// Bitboard occupancies
-//array<uint64_t, 3> occupancies; // white, black, both
-//
-//// colour to move first
-//int colour_to_move;
-//
-//// enpassant square
-//int enpassant;
-//
-//// castle rights
-//int castle_rights;
-//
-//// for copying and restoring board
-//array<uint64_t, 12> piece_bitboards_copy;
-//array<uint64_t, 3> occupancies_copy;
-//int colour_to_move_copy;
-//int enpassant_copy;
-//int castle_rights_copy;
-//
-//
-//// leaping
-//std::array<std::array<uint64_t, BOARD_SIZE>, 2> pawn_attacks;
-//std::array<uint64_t, BOARD_SIZE> knight_attacks;
-//std::array<uint64_t, BOARD_SIZE> king_attacks;
-//
-//// sliding
-//// [square][occupancy]
-//array<uint64_t, 64> bishop_masks;
-//array<array<uint64_t, 512>, 64> bishop_attacks;
-//array<uint64_t, 64> rook_masks;
-//vector<vector<uint64_t>> rook_attacks(64, vector<uint64_t>(4096, 0));
-
 // GET OCCUPANCY BITBOARDS
 uint64_t get_white_occupancy(thrawn::Position& pos)
 {

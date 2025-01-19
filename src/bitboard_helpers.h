@@ -50,31 +50,4 @@ void print_board(thrawn::Position& pos, int side);
 
 void print_bits(uint64_t num);
 
-// copying and restoring for move take backs
-//#define copyBoard() \
-//    array<uint64_t, 12> piece_bitboards_copy; \
-//    array<uint64_t, 3> occupancies_copy; \
-//    int colour_to_move_copy; \
-//    int enpassant_copy; \
-//    int castle_rights_copy; \
-//    uint64_t zobristKey_copy; \
-//    int fifty_move_copy; \
-//    piece_bitboards_copy = piece_bitboards; \
-//    occupancies_copy = occupancies; \
-//    colour_to_move_copy = colour_to_move; \
-//    enpassant_copy = enpassant; \
-//    castle_rights_copy = castle_rights; \
-//    zobristKey_copy = zobristKey; \
-//    fifty_move_copy = fifty_move; \
-
-// Restore board state
-//#define restoreBoard() \
-//    piece_bitboards = piece_bitboards_copy; \
-//    occupancies = occupancies_copy; \
-//    colour_to_move = colour_to_move_copy; \
-//    enpassant = enpassant_copy; \
-//    castle_rights = castle_rights_copy; \
-//    zobristKey = zobristKey_copy; \
-//    fifty_move = fifty_move_copy; \
-
 #endif

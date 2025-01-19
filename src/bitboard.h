@@ -13,44 +13,6 @@
 
 using namespace std;
 
-//// ALl piece bitboards -> 12 in total -> one for each piece type and colour
-//extern array<uint64_t, 12> piece_bitboards;
-//
-//// Bitboard occupancies
-//extern array<uint64_t, 3> occupancies; // white, black, both
-//
-//// colour to move first
-//extern int colour_to_move;
-//
-//// enpassant square
-//extern int enpassant;
-//
-//// castle rights
-//extern int castle_rights;
-//
-//// for copying and restoring board
-//extern array<uint64_t, 12> piece_bitboards_copy;
-//extern array<uint64_t, 3> occupancies_copy;
-//extern int colour_to_move_copy;
-//extern int enpassant_copy;
-//extern int castle_rights_copy;
-//
-//
-//// leaping
-//extern std::array<std::array<uint64_t, BOARD_SIZE>, 2> pawn_attacks;
-//extern std::array<uint64_t, BOARD_SIZE> knight_attacks;
-//extern std::array<uint64_t, BOARD_SIZE> king_attacks;
-//
-//// sliding
-//// [square][occupancy]
-//extern array<uint64_t, 64> bishop_masks;
-//extern array<array<uint64_t, 512>, 64> bishop_attacks;
-//extern array<uint64_t, 64> rook_masks;
-//extern vector<vector<uint64_t>> rook_attacks;
-
-// METHODS
-
-
 // get occupancy bitboard by colour
 uint64_t get_white_occupancy(thrawn::Position& pos);
 uint64_t get_black_occupancy(thrawn::Position& pos);
