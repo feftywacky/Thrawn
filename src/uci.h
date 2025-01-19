@@ -6,7 +6,6 @@
 
 using namespace std;
 
-
 extern int quit;
 extern int movestogo;
 extern int movetime;

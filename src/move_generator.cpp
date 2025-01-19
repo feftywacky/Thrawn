@@ -435,11 +435,12 @@ void parse_king_moves(thrawn::Position& pos, uint64_t& curr, const int& piece, v
     }
 }
 
-int make_move(thrawn::Position& pos, int move, int move_type)
+int make_move(thrawn::Position& pos, int move, int move_type, int ply)
 {
     if (move_type == all_moves)
     {
-        pos.copyBoard();
+        if(ply!=-1) // -1
+            pos.copyBoard(ply);
 
         // move parsing
         int source = get_move_source(move);
@@ -456,18 +457,18 @@ int make_move(thrawn::Position& pos, int move, int move_type)
         set_bit(pos.piece_bitboards[piece], target);
         pos.zobristKey ^= pos.piece_hashkey[piece][source]; // update hash to exclude source
         pos.zobristKey ^= pos.piece_hashkey[piece][target]; // update hash to include target
-        fifty_move++;
+        pos.fifty_move++;
 
         // if pawn moved reset fifty-move rule
         if (piece == P || piece == p)
-            fifty_move = 0;
+            pos.fifty_move = 0;
 
         // if capture move, remove the piece being captured from its corresponding bitboard
         // ie. if white pawn captures black kngiht, remove black knight from black knight bitboard
         if (is_capture_move)
         {
             // if captured a piece reset fifty-move rule
-            fifty_move = 0;
+            pos.fifty_move = 0;
             int start_piece;
             int end_piece;
             
@@ -616,8 +617,9 @@ int make_move(thrawn::Position& pos, int move, int move_type)
 
         // handle illegal moves. if move causes king to check, restore previous position and return illegal move
         if (is_square_under_attack(pos,(pos.colour_to_move==white) ? get_lsb_index(pos.piece_bitboards[k]) : get_lsb_index(pos.piece_bitboards[K]), pos.colour_to_move))
-        {
-            pos.restoreBoard();
+        {   
+            if(ply!=-1)
+                pos.restoreBoard(ply);
             return 0;
         }
         else 
@@ -627,7 +629,7 @@ int make_move(thrawn::Position& pos, int move, int move_type)
     else if (move_type == only_captures)
     {
         if (get_is_capture_move(move)) {
-            return make_move(pos, move, all_moves);
+            return make_move(pos, move, all_moves,ply);
             // make_move(move, all_moves); // ORG < RBedit
         }
         else    
@@ -635,5 +637,4 @@ int make_move(thrawn::Position& pos, int move, int move_type)
     }
 
     return 0; // ORG : lacks < RBedit
-
 }

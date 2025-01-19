@@ -10,25 +10,26 @@ thrawn::Position::Position() : rook_attacks(64, std::vector<uint64_t>(4096)) {
     init_hashkeys(*this);
 }
 
-// Copy the board state
-// Copy the board state
-void thrawn::Position::copyBoard() {
-    piece_bitboards_copy = piece_bitboards;
-    occupancies_copy = occupancies;
-    colour_to_move_copy = colour_to_move;
-    enpassant_copy = enpassant;
-    castle_rights_copy = castle_rights;
-    zobristKey_copy = zobristKey;
-    fifty_move_copy = fifty_move;
+// Store current board into undo_stack[ply]
+void thrawn::Position::copyBoard(int ply)
+{
+    undo_stack[ply].piece_bitboards = piece_bitboards;
+    undo_stack[ply].occupancies     = occupancies;
+    undo_stack[ply].colour_to_move  = colour_to_move;
+    undo_stack[ply].enpassant       = enpassant;
+    undo_stack[ply].castle_rights   = castle_rights;
+    undo_stack[ply].zobristKey      = zobristKey;
+    undo_stack[ply].fifty_move      = fifty_move;
 }
 
-// Restore the board state
-void thrawn::Position::restoreBoard() {
-    piece_bitboards = piece_bitboards_copy;
-    occupancies = occupancies_copy;
-    colour_to_move = colour_to_move_copy;
-    enpassant = enpassant_copy;
-    castle_rights = castle_rights_copy;
-    zobristKey = zobristKey_copy;
-    fifty_move = fifty_move_copy;
+// Restore board state from undo_stack[ply]
+void thrawn::Position::restoreBoard(int ply)
+{
+    piece_bitboards = undo_stack[ply].piece_bitboards;
+    occupancies     = undo_stack[ply].occupancies;
+    colour_to_move  = undo_stack[ply].colour_to_move;
+    enpassant       = undo_stack[ply].enpassant;
+    castle_rights   = undo_stack[ply].castle_rights;
+    zobristKey      = undo_stack[ply].zobristKey;
+    fifty_move      = undo_stack[ply].fifty_move;
 }

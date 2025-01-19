@@ -31,7 +31,7 @@ void parse_fen(thrawn::Position& pos, const char* fen)
     pos.enpassant = null_sq;
     pos.castle_rights = 0;
     repetition_index = 0;
-    fifty_move = 0;
+    pos.fifty_move = 0;
     std::fill(std::begin(repetition_table), std::end(repetition_table), 0);
     
 

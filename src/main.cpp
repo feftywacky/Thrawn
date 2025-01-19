@@ -16,18 +16,15 @@ int main() {
     thrawn::Position pos;
     init_all();
 
-    bool dev_mode = true;
+    bool dev_mode = false;
     
     if (dev_mode)
     {
         cout<<"developer mode"<<endl;
-        parse_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
-        perft_test(pos,6);
-        // parse_fen("r3kb1r/3n1pp1/p6p/2pPp2q/Pp2N3/3B2PP/1PQ2P2/R3K2R w KQkq -");
-        // parse_fen(position_2);
-        // print_board(colour_to_move);
-
-        // search_position(10);
+        parse_fen(pos,start_position);
+        print_board(pos,pos.colour_to_move);
+        search_position(pos,10);
+        //search_position_threaded(pos,10,2);
 
     }
     else

@@ -1,103 +1,95 @@
-# Compiler and flags
-CXX = g++
-CXXFLAGS = -std=c++17 -Ofast -flto
+###############################################################################
+# Compiler and base flags
+###############################################################################
+CXX      := g++
+CXXFLAGS := -std=c++17
 
-# Determine operating system
+###############################################################################
+# Determine OS and set OS-specific variables
+###############################################################################
 ifeq ($(OS),Windows_NT)
     OS_NAME := Windows
-    RM = del /Q
-    MKDIR = mkdir
-    EXE = Thrawn.exe
+    RM      := del /Q
+    MKDIR   := mkdir
+    EXE     := Thrawn.exe
 else
-    OS := $(shell uname -s)
-    ifeq ($(OS),Linux)
+    UNAME_S := $(shell uname -s)
+    ifeq ($(UNAME_S),Linux)
         OS_NAME := Linux
-        RM = rm -f
-        MKDIR = mkdir -p
-    endif
-    ifeq ($(OS),Darwin)
+        RM      := rm -f
+        MKDIR   := mkdir -p
+    else ifeq ($(UNAME_S),Darwin)
         OS_NAME := macOS
-        RM = rm -f
-        MKDIR = mkdir -p
+        RM      := rm -f
+        MKDIR   := mkdir -p
     endif
-    EXE = Thrawn
+    EXE := Thrawn
 endif
 
+###############################################################################
 # Source and object files
-SOURCES = $(wildcard *.cpp)
-OBJECTS = $(SOURCES:.cpp=.o)
+###############################################################################
+SOURCES := $(wildcard *.cpp)
+OBJECTS := $(SOURCES:.cpp=.o)
 
-# Default optimization flags
-OPTIMIZE_FLAGS = -O3 -funroll-loops
+###############################################################################
+# Build type and flags
+###############################################################################
+BUILD ?= release
 
-# Architecture-specific flags
-ARCH_FLAGS =
+OPT_FLAGS  := -O3 -funroll-loops -Ofast -flto
+ARCH_FLAGS :=
 
 ifeq ($(OS_NAME),Linux)
-    ifeq ($(shell uname -m), x86_64)
-        ARCH_FLAGS += -mavx2 -msse4.1 -msse3 -msse2 -mmmx -msse -DUSE_AVX2 -DUSE_SSE41 -DUSE_SSE3 -DUSE_SSE2 -DUSE_SSE
-    else ifeq ($(shell uname -m), aarch64)
+    ARCH_DETECTED := $(shell uname -m)
+    ifeq ($(ARCH_DETECTED),x86_64)
+        ARCH_FLAGS += -mavx2 -msse4.1 -msse3 -msse2 -mmmx -msse \
+                      -DUSE_AVX2 -DUSE_SSE41 -DUSE_SSE3 -DUSE_SSE2 -DUSE_SSE
+    else ifeq ($(ARCH_DETECTED),aarch64)
         ARCH_FLAGS += -DARM64 -DUSE_NEON -DUSE_NEON_DOTPROD -flax-vector-conversions
     endif
 else ifeq ($(OS_NAME),macOS)
     ARCH_FLAGS += -mmacosx-version-min=10.15
-    ifeq ($(shell uname -m), arm64)
+    ARCH_DETECTED := $(shell uname -m)
+    ifeq ($(ARCH_DETECTED),arm64)
         ARCH_FLAGS += -DARM64 -DUSE_NEON -DUSE_NEON_DOTPROD -flax-vector-conversions
     else
-        ARCH_FLAGS += -mavx512bw -mavx2 -msse4.1 -msse3 -msse2 -mmmx -msse -DUSE_AVX2 -DUSE_SSE41 -DUSE_SSE3 -DUSE_SSE2 -DUSE_SSE
+        ARCH_FLAGS += -mavx2 -msse4.1 -msse3 -msse2 -mmmx -msse \
+                      -DUSE_AVX2 -DUSE_SSE41 -DUSE_SSE3 -DUSE_SSE2 -DUSE_SSE
     endif
 else ifeq ($(OS_NAME),Windows)
-    ARCH_FLAGS += -DWIN32
-    ifeq ($(PROCESSOR_ARCHITECTURE), AMD64)
-        ARCH_FLAGS += -mavx2 -msse4.1 -msse3 -msse2 -mmmx -msse -DUSE_AVX2 -DUSE_SSE41 -DUSE_SSE3 -DUSE_SSE2 -DUSE_SSE
-    else ifeq ($(PROCESSOR_ARCHITECTURE), ARM64)
+    ARCH_DETECTED := $(PROCESSOR_ARCHITECTURE)
+    ARCH_FLAGS    += -DWIN32
+    ifeq ($(ARCH_DETECTED),AMD64)
+        ARCH_FLAGS += -mavx2 -msse4.1 -msse3 -msse2 -mmmx -msse \
+                      -DUSE_AVX2 -DUSE_SSE41 -DUSE_SSE3 -DUSE_SSE2 -DUSE_SSE
+    else ifeq ($(ARCH_DETECTED),ARM64)
         ARCH_FLAGS += -DARM64 -DUSE_NEON -DUSE_NEON_DOTPROD -flax-vector-conversions
     endif
 endif
 
-# Default target
-all: $(EXE)
+ifeq ($(BUILD),debug)
+    CXXFLAGS += -g -DDEBUG_BUILD -DDLL_EXPORT
+else ifeq ($(BUILD),release)
+    CXXFLAGS += $(OPT_FLAGS) $(ARCH_FLAGS) -DRELEASE_BUILD -DDLL_EXPORT
+endif
 
-# Link object files to create the executable
+###############################################################################
+# Targets
+###############################################################################
+.PHONY: all release debug clean
+
+all: clean $(BUILD)
+
+release: clean $(EXE)
+
+debug: clean $(EXE)
+
 $(EXE): $(OBJECTS)
-	$(CXX) $(CXXFLAGS) $(ARCH_FLAGS) -o $@ $^
+	$(CXX) $(CXXFLAGS) -o $@ $^
 
-# Compile source files to object files
 %.o: %.cpp
-	$(CXX) $(CXXFLAGS) $(ARCH_FLAGS) -c -o $@ $<
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
-# Clean up generated files
 clean:
 	$(RM) $(OBJECTS) $(EXE)
-
-# Additional flags
-debug = no
-sanitize = none
-optimize = yes
-
-ifeq ($(optimize),yes)
-    CXXFLAGS += $(OPTIMIZE_FLAGS)
-endif
-
-ifeq ($(debug),yes)
-    CXXFLAGS += -g
-else
-    CXXFLAGS += -DNDEBUG
-endif
-
-ifneq ($(sanitize),none)
-    CXXFLAGS += -g3 $(addprefix -fsanitize=,$(sanitize))
-    LDFLAGS += $(addprefix -fsanitize=,$(sanitize))
-endif
-
-# Default architecture if not set
-ifeq ($(ARCH),)
-   ARCH = native
-endif
-
-# Allow overwriting CXX from command line
-ifdef COMPCXX
-    CXX=$(COMPCXX)
-endif
-
-.PHONY: all clean

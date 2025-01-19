@@ -237,7 +237,7 @@ void uci_parse_position(thrawn::Position& pos, const char *command) {
             repetition_index++;
             repetition_table[repetition_index] = pos.zobristKey;
 
-            make_move(pos, move, all_moves);
+            make_move(pos, move, all_moves,-1);
 
             // Move index to the end of the current move
             while (*curr_ch && *curr_ch != ' ')
@@ -344,8 +344,8 @@ void uci_parse_go(thrawn::Position& pos, const char* command)
               << " depth:" << depth << " timeset:" << timeset << std::endl;
 
     // Search position
-    // search_position(depth);
-    search_position_threaded(pos, depth, 2);
+    search_position(pos,depth);
+    // search_position_threaded(pos, depth, 2);
 }
 
 void uci_loop(thrawn::Position& pos)

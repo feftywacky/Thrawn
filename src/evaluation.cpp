@@ -362,5 +362,5 @@ int evaluate(thrawn::Position& pos)
 
     // (100-fifty_move) / 100 
     // taken from Cfish for fifty move scaling
-    return nnue_evaluate(pos.colour_to_move, pieces, squares) * (100-fifty_move) / 100;
+    return nnue_evaluate(pos.colour_to_move, pieces, squares) * (100-pos.fifty_move) / 100;
 }

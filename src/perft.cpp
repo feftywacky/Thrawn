@@ -22,15 +22,15 @@ void perft_search (thrawn::Position& pos, int depth)
     
     for (int move : moves)
     {
-        pos.copyBoard();   
+        pos.copyBoard(depth);   
 
 
-        if (!make_move(pos, move, all_moves))
+        if (!make_move(pos, move, all_moves,depth))
             continue;
 
         perft_search(pos, depth-1);
         
-        pos.restoreBoard();
+        pos.restoreBoard(depth);
 
         // uint64_t curr_hash = gen_hashkey(); // new hashkey after move made
         // if (curr_hash != zobristKey)
@@ -57,10 +57,10 @@ void perft_test(thrawn::Position& pos, int depth)
     for (int move : moves)
     {
         
-        pos.copyBoard();
+        pos.copyBoard(depth);
         
 
-        if (!make_move(pos, move, all_moves))
+        if (!make_move(pos, move, all_moves,depth))
             continue;
 
         long cumulative_nodes = leaf_nodes;
@@ -69,7 +69,7 @@ void perft_test(thrawn::Position& pos, int depth)
 
         long old_nodes = leaf_nodes - cumulative_nodes;
 
-        pos.restoreBoard();
+        pos.restoreBoard(depth);
 
         // Print move
         std::cout << "     move: " << square_to_coordinates[get_move_source(move)]
