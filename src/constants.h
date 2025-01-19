@@ -69,4 +69,13 @@ extern std::array<uint64_t, 64> bishop_magic_nums;
 // [attacker][victim]
 extern const std::array<std::array<int, 12>, 12> mvv_lva;
 
+// FEN position test cases
+extern const char* empty_board;
+extern const char* start_position;
+extern const char* position_2;
+extern const char* position_3;
+extern const char* position_4;
+extern const char* position_5;
+extern const char* position_6;
+
 #endif

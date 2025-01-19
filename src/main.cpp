@@ -16,14 +16,12 @@ int main() {
     thrawn::Position pos;
     init_all();
 
-    bool dev_mode = false;
+    bool dev_mode = true;
     
     if (dev_mode)
     {
         cout<<"developer mode"<<endl;
-        parse_fen(pos,start_position);
-        print_board(pos,pos.colour_to_move);
-        search_position(pos,10);
+        perft_run_unit_tests();
     }
     else
         uci_loop(pos);
