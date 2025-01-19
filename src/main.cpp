@@ -24,8 +24,6 @@ int main() {
         parse_fen(pos,start_position);
         print_board(pos,pos.colour_to_move);
         search_position(pos,10);
-        //search_position_threaded(pos,10,2);
-
     }
     else
         uci_loop(pos);
