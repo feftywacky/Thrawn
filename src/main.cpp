@@ -20,7 +20,9 @@ int main() {
     
     if (dev_mode)
     {
+        cout<<endl;
         cout<<"developer mode"<<endl;
+        cout<<endl;
         perft_run_unit_tests();
     }
     else

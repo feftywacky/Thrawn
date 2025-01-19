@@ -7,92 +7,92 @@
 #include "position.h"
 #include "fen.h"
 #include <chrono>
+#include <iomanip>
+#include <iostream>
 
 long leaf_nodes;
 
-void perft_search (thrawn::Position& pos, int depth)
-{
-    
-    if (depth == 0)
-    {
+void perft_search(thrawn::Position& pos, int depth) {
+    if (depth == 0) {
         leaf_nodes++;
         return;
-    }  
-
-    vector<int> moves = generate_moves(pos);
-    
-    for (int move : moves)
-    {
-        pos.copyBoard(depth);   
-
-
-        if (!make_move(pos, move, all_moves,depth))
-            continue;
-
-        perft_search(pos, depth-1);
-        
-        pos.restoreBoard(depth);
-
-        // uint64_t curr_hash = gen_hashkey(); // new hashkey after move made
-        // if (curr_hash != zobristKey)
-        // {
-        //     cout<<"undo_move()"<<"\n";
-        //     cout<<"move: ";
-        //     print_move(move);
-        //     cout<<"\n";
-        //     print_board(colour_to_move);
-        //     cout<<"correct hashkey: "<<std::hex<<curr_hash<<"\n";
-        //     cin.get();
-
-        // }
-
     }
 
+    vector<int> moves = generate_moves(pos);
+
+    for (int move : moves) {
+        pos.copyBoard(depth);
+
+        if (!make_move(pos, move, all_moves, depth))
+            continue;
+
+        perft_search(pos, depth - 1);
+
+        pos.restoreBoard(depth);
+    }
 }
 
-int perft_test(thrawn::Position& pos, int depth)
-{
-
+int perft_test(thrawn::Position& pos, int depth) {
     vector<int> moves = generate_moves(pos);
-    auto start = std::chrono::high_resolution_clock::now();
-    for (int move : moves)
-    {
-        
-        pos.copyBoard(depth);
-        
+    size_t total_moves = moves.size();
+    size_t moves_processed = 0;
 
-        if (!make_move(pos, move, all_moves,depth))
+    auto start = std::chrono::high_resolution_clock::now();
+
+    std::cout << "Depth: " << depth << "\n";
+    std::cout << "Progress: [";
+
+    for (int move : moves) {
+        pos.copyBoard(depth);
+
+        if (!make_move(pos, move, all_moves, depth))
             continue;
 
         long cumulative_nodes = leaf_nodes;
-        
-        perft_search(pos, depth-1);
 
-        long old_nodes = leaf_nodes - cumulative_nodes;
+        perft_search(pos, depth - 1);
 
         pos.restoreBoard(depth);
+        moves_processed++;
 
-        // Print move
-        std::cout << "     move: " << square_to_coordinates[get_move_source(move)]
-                  << square_to_coordinates[get_move_target(move)]
-                  << (get_promoted_piece(move) ? promoted_pieces.at(get_promoted_piece(move)) : ' ')
-                  << "  nodes: " << old_nodes <<"\n";
+        // Update the loading bar dynamically
+        int bar_width = 30; // Width of the loading bar
+        int progress = static_cast<int>((static_cast<float>(moves_processed) / total_moves) * bar_width);
+
+        std::cout << "\rProgress: [";
+        for (int i = 0; i < bar_width; ++i) {
+            if (i < progress) {
+                std::cout << "=";
+            } else if (i == progress) {
+                std::cout << ">";
+            } else {
+                std::cout << " ";
+            }
+        }
+        std::cout << "] " << (moves_processed * 100 / total_moves) << "%";
+        std::cout.flush();
     }
+    std::cout << "\n";
 
-    // Print results
     auto duration = std::chrono::high_resolution_clock::now() - start;
-    std::cout << "\n    Depth: " << depth << "\n";
-    std::cout << "    Nodes: " << leaf_nodes << "\n";
-    std::cout << "    Time: " << std::chrono::duration_cast<std::chrono::milliseconds>(duration).count()<< " ms" << "\n\n";
-    
+    auto duration_ms = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
+    double nodes_per_sec = (leaf_nodes * 1000.0) / duration_ms;
+
+    std::cout << "\n===== Perft Results =====\n";
+    std::cout << "Depth: " << depth << "\n";
+    std::cout << "Total Nodes: " << leaf_nodes << "\n";
+    std::cout << "Total Time: " << duration_ms << " ms\n";
+    std::cout << std::fixed << std::setprecision(2);
+    std::cout << "Nodes per Second: " << nodes_per_sec << "\n";
+    std::cout << "=========================\n\n";
+
     int result = leaf_nodes;
     leaf_nodes = 0;
 
     return result;
 }
 
-void perft_run_unit_tests()
-{
+void perft_run_unit_tests() {
     thrawn::Position p;
     int output_nodes = 0;
 
@@ -111,26 +111,52 @@ void perft_run_unit_tests()
         {position_6, 5, 164075551},
     };
 
+    // ANSI escape codes for colors
+    const std::string RESET = "\033[0m";
+    const std::string GREEN = "\033[32m";
+    const std::string RED = "\033[31m";
+
     int pass = 0;
+    long total_nodes = 0;
+    auto overall_start = std::chrono::high_resolution_clock::now();
+
+    std::cout << "Running Perft Unit Tests\n";
+    std::cout << "=========================\n";
 
     for (int i = 0; i < sizeof(tests) / sizeof(Test); i++) {
         parse_fen(p, tests[i].fen);
+
+        std::cout << "Test " << i + 1 << ": FEN = " << tests[i].fen << "\n";
+        std::cout << "Expected Nodes: " << tests[i].expected_nodes << "\n";
+
+        auto test_start = std::chrono::high_resolution_clock::now();
         output_nodes = perft_test(p, tests[i].depth);
+        auto test_duration = std::chrono::high_resolution_clock::now() - test_start;
+        auto test_duration_ms = std::chrono::duration_cast<std::chrono::milliseconds>(test_duration).count();
 
         if (output_nodes != tests[i].expected_nodes) {
-            std::cout << "Test " << i + 1 << " Failed\n";
-            std::cout << "  FEN: " << tests[i].fen << "\n";
-            std::cout << "  Output nodes: " << output_nodes << "\n";
-            std::cout << "  Expected nodes: " << tests[i].expected_nodes << "\n";
+            std::cout << "  Result: " << RED << "Failed" << RESET << "\n";
+            std::cout << "  Output Nodes: " << output_nodes << "\n";
         } else {
             pass++;
-            std::cout << "Test " << i + 1 << " Passed. Nodes: " << output_nodes << "\n";
+            std::cout << "  Result: " << GREEN << "Passed" << RESET << "\n";
         }
-        std::cout<<std::endl;
+
+        total_nodes += output_nodes;
+        std::cout << "  Test Time: " << test_duration_ms << " ms\n\n";
     }
 
-    if(pass==6)
-        std::cout << "All test cases passed! " << std::endl;
-        
-    std::cout<<std::endl;
+    auto overall_duration = std::chrono::high_resolution_clock::now() - overall_start;
+    auto overall_duration_ms = std::chrono::duration_cast<std::chrono::milliseconds>(overall_duration).count();
+    double overall_nodes_per_sec = (total_nodes * 1000.0) / overall_duration_ms;
+
+    std::cout << "=========================\n";
+    std::cout << "Perft Unit Test Summary:\n";
+    std::cout << "Passed: " << GREEN << pass << RESET << "/" << (sizeof(tests) / sizeof(Test)) << "\n";
+    std::cout << "Total Nodes: " << total_nodes << "\n";
+    std::cout << "Total Time: " << overall_duration_ms << " ms\n";
+    std::cout << std::fixed << std::setprecision(2);
+    std::cout << "Average Nodes per Second: " << overall_nodes_per_sec << "\n";
+    std::cout << "=========================\n";
 }
+
