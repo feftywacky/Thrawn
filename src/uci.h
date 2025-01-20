@@ -15,6 +15,7 @@ extern int starttime;
 extern int stoptime;
 extern int timeset;
 extern int stopped;
+extern int numThreads;
 
 // UCI PROTOCOL
 int uci_parse_move(thrawn::Position& pos, const char* move_str);

@@ -32,6 +32,9 @@ public:
     uint64_t zobristKey;
     int fifty_move;
 
+    std::array<uint64_t, 1028> repetition_table; 
+    int repetition_index;
+
     //============= ATTACK AND HASHING TABLES =============//
 
     std::array<std::array<uint64_t, 64>, 2> pawn_attacks;

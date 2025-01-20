@@ -25,9 +25,9 @@ void parse_fen(thrawn::Position& pos, const char* fen)
     pos.colour_to_move = white;
     pos.enpassant = null_sq;
     pos.castle_rights = 0;
-    repetition_index = 0;
+    pos.repetition_index = 0;
     pos.fifty_move = 0;
-    std::fill(std::begin(repetition_table), std::end(repetition_table), 0);
+    std::fill(std::begin(pos.repetition_table), std::end(pos.repetition_table), 0);
     
 
     // loop to parse pieces and empty squares from fen

@@ -56,6 +56,8 @@ int timeset = 0;
 // variable to flag when the time is up
 int stopped = 0;
 
+// Number of threads use for search
+int numThreads = 4;
 
 /*
 TIME CONTROL
@@ -234,8 +236,8 @@ void uci_parse_position(thrawn::Position& pos, const char *command) {
             if (move == 0)
                 break;
 
-            repetition_index++;
-            repetition_table[repetition_index] = pos.zobristKey;
+            pos.repetition_index++;
+            pos.repetition_table[pos.repetition_index] = pos.zobristKey;
 
             make_move(pos, move, all_moves,-1);
 
@@ -343,9 +345,11 @@ void uci_parse_go(thrawn::Position& pos, const char* command)
     std::cout << "time:" << uci_time << " start:" << static_cast<unsigned int>(starttime) << " stop:" << static_cast<unsigned int>(stoptime)
               << " depth:" << depth << " timeset:" << timeset << std::endl;
 
-    // Search position
-    search_position(pos,depth);
-    // search_position_threaded(pos, depth, 2);
+    if (numThreads > 1)
+        search_position_threaded(pos, depth, numThreads);
+    else
+        search_position_singlethreaded(pos,depth);
+    
 }
 
 void uci_loop(thrawn::Position& pos)
@@ -414,6 +418,7 @@ void uci_loop(thrawn::Position& pos)
             cout << "id name Thrawn"<< version << "\n";
             cout << "id author Feiyu Lin\n";
             cout << "option name Hash type spin default 128 min 4 max " << max_hashmap_size << "\n";
+            cout << "option name Threads type spin default 4 min 1 max 16" << "\n";
             cout << "uciok\n";
         }
         
@@ -428,6 +433,15 @@ void uci_loop(thrawn::Position& pos)
             // set hash table size in MB
             std::cout << "    Set hash table size to " << mb << "MB\n";
             init_hashmap(mb);
+        }
+
+        else if (!strncmp(input, "setoption name Threads value ", 29)) {
+            int t = 1;
+            sscanf(input, "%*s %*s %*s %*s %d", &t);
+            if (t < 1) t = 1;
+            if (t > 16) t = 16;
+            numThreads = t;
+            std::cout << "info string Set threads = " << numThreads << std::endl;
         }
     }
 }
