@@ -174,6 +174,17 @@ void search_position_threaded(const thrawn::Position &pos, int depth, int numThr
         threads.emplace_back(pos); // copy pos here
     }
 
+    // Initialize ThreadData repetition history from Position
+    for (int i = 0; i < numThreads; i++)
+    {
+        for (int j = 0; j <= pos.repetition_index && j < threads[i].td.repetition_table.size(); j++)
+        {
+            threads[i].td.repetition_table[j] = pos.repetition_table[j];
+        }
+        threads[i].td.repetition_index = pos.repetition_index;
+        threads[i].td.fifty_move = pos.fifty_move;
+    }
+
     // Launch system threads
     std::vector<std::thread> pool;
     pool.reserve(numThreads);

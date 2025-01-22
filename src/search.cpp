@@ -53,32 +53,27 @@ int quiescence(thrawn::Position& pos, ThreadData &td,
 
     nodes++;
 
-    // safety check for array bounds
-    if (ply >= MAX_DEPTH)
-    {
-        return evaluate(pos);
-    }
-
     int evaluation = evaluate(pos);
 
+    // safety check for array bounds
+    if (ply > MAX_DEPTH-1)
+    {
+        return evaluation;
+    }
+
+    // fail-hard beta cutoff
     if (evaluation >= beta)
-        return beta;
+        return beta; // fails high
 
+    // found better move
     if (evaluation > alpha)
-        alpha = evaluation;
+        alpha = evaluation; // principal variation PV node (best move)
 
-    // Generate all moves (captures + possibly quiet checks if you do that).
     std::vector<int> moves = generate_moves(pos);
-
-    // no bestMove needed at quiescence, so pass 0
     sort_moves(pos, td, moves, 0, ply);
 
     for (int move : moves)
     {
-        // only captures
-        if (!get_is_capture_move(move)) 
-            continue;
-
         pos.copyBoard(ply);
 
         // update repetition
@@ -100,14 +95,18 @@ int quiescence(thrawn::Position& pos, ThreadData &td,
         if (stopped == 1)
             return alpha;
 
+        // found better move
         if (score > alpha)
         {
-            alpha = score;
+            alpha = score; // principal variation PV node (best move)
+
+            // fail-hard beta cutoff
             if (score >= beta)
-                return beta;
+                return beta; // fails high
         }
     }
 
+    // move fails low (<= alpha)
     return alpha;
 }
 
@@ -142,9 +141,10 @@ int negamax(thrawn::Position& pos, ThreadData &td,
     }
 
     // determines if current node is a pv node
-    int pv_node = (beta - alpha) > 1;
+    int pv_node = (beta - alpha) > 1; // IMPORTANT FIXES TRANPOSITION TABLE PV BUG
 
     // retrieve from TT if possible
+    // if move has already been searched, return its score instantly
     if (ply && (score = probeHashMap(pos, depth, alpha, beta, &bestMove, ply)) != no_hashmap_entry && !pv_node)
     {
         return score;
@@ -185,8 +185,43 @@ int negamax(thrawn::Position& pos, ThreadData &td,
 
     static_eval = evaluate(pos);
 
+    // Reverse Futility Pruning / static null move pruning
+    if (depth < 3 && !pv_node && !inCheck && abs(beta - 1) > -INFINITY + 100)
+    {
+        int eval_margin = 120 * depth;
+
+        // evaluation margin substracted from static evaluation score fails high
+        if (static_eval - eval_margin >= beta)
+            return static_eval - eval_margin;
+    }
+
+    // razoring pruning
+    if (!inCheck && !pv_node && depth <= 3)
+    {
+        // apply bonus to score
+        score = static_eval + 125;
+        int razor_score;
+        if (score < beta)
+        {
+            if (depth == 1)
+            {
+                razor_score = quiescence(pos, td, alpha, beta, ply);
+                return (razor_score > score) ? razor_score : score;
+            }
+
+            // second bonus to score
+            score += 175;
+            if (score < beta && depth <= 2)
+            {
+                int razor_score = quiescence(pos, td, alpha, beta, ply);
+                if (razor_score < beta) // quiescence says score fail-low node
+                    return (razor_score > score) ? razor_score : score;
+            }
+        }
+    }
+
     // null move pruning
-    if (!inCheck && depth >= 3 && ply && !pv_node && !noMajorsOrMinorsPieces(pos))
+    if (!inCheck && depth >= 3 && allowNullMovePruning && !pv_node && !noMajorsOrMinorsPieces(pos))
     {
         pos.copyBoard(ply);
         td.repetition_index++;
@@ -199,8 +234,11 @@ int negamax(thrawn::Position& pos, ThreadData &td,
         pos.colour_to_move ^= 1;
         pos.zobristKey ^= pos.colour_to_move_hashkey;
 
+        // depth - 1 - R, R is reduction constant
         // do the reduced-depth search
+        allowNullMovePruning = false;
         score = -negamax(pos, td, depth - 1 - 2, -beta, -beta + 1, ply + 1);
+        allowNullMovePruning = true;
 
         td.repetition_index--;
         pos.restoreBoard(ply);
@@ -208,45 +246,34 @@ int negamax(thrawn::Position& pos, ThreadData &td,
         if (stopped == 1)
             return alpha;
 
+        // fail hard beta cut-off
         if (score >= beta)
             return beta;
     }
 
-    // razoring pruning
-    if (!inCheck && !pv_node && depth <= 3)
-    {
-        score = static_eval + 125;
-        if (score < beta)
-        {
-            if (depth == 1)
-            {
-                int razor_score = quiescence(pos, td, alpha, beta, ply);
-                return (razor_score > score) ? razor_score : score;
-            }
-            score += 175;
-            if (score < beta && depth <= 2)
-            {
-                int razor_score = quiescence(pos, td, alpha, beta, ply);
-                if (razor_score < beta)
-                    return (razor_score > score) ? razor_score : score;
-            }
-        }
-    }
+    // No-hashmove reduction (taken from Stockfish)
+    // If the position is not in TT, decrease depth by 1 (~3 Elo)
+    if (!inCheck && pv_node && (depth >= 3) && !bestMove)
+        depth--;
 
-    // generate moves
     std::vector<int> moves = generate_moves(pos);
 
     // first, see if the bestMove from TT or PV is present
     if (td.follow_pv_flag)
         score_pv(moves, td, ply);
 
-    // now sort them (with local ply)
     sort_moves(pos, td, moves, bestMove, ply);
 
     int moves_searched = 0;
 
     for (int move : moves)
     {
+        // Late Move Pruning (LMP)
+        if ((ply > 0) && (depth <= 3) && !pv_node && !inCheck && !get_is_capture_move(move) && (valid_moves > LateMovePruning_factors[depth]))
+        {
+            continue;
+        }
+
         pos.copyBoard(ply);
         td.repetition_index++;
         td.repetition_table[td.repetition_index] = pos.zobristKey;
@@ -258,18 +285,40 @@ int negamax(thrawn::Position& pos, ThreadData &td,
             continue;
         }
 
+        // used for avoiding reductions on moves that give check
+        bool givesCheck = is_square_under_attack(pos, (pos.colour_to_move == white) ? get_lsb_index(pos.piece_bitboards[K]) : get_lsb_index(pos.piece_bitboards[k]),
+                                                 pos.colour_to_move ^ 1);
+
         valid_moves++;
 
-        int move_score;
+        // full depth search
         if (moves_searched == 0)
         {
-            // full window search
-            move_score = -negamax(pos, td, depth - 1, -beta, -alpha, ply + 1);
+            score = -negamax(pos, td, depth - 1, -beta, -alpha, ply + 1);
         }
         else
         {
-            // late move reductions, PVS, etc.
-            move_score = alpha + 1;
+            // Futility Pruning on current move
+            // if (doFutility && valid_moves>1)
+            // {
+            //     if (!givesCheck && (killer_moves[0][ply] != move)
+            //                     && (killer_moves[1][ply] != move)
+            //                     && (get_move_piece(move) != P)
+            //                     && (get_move_piece(move) != p)
+            //                     && !get_promoted_piece(move)
+            //                     && !get_is_move_castling(move)
+            //                     && !get_is_capture_move(move))
+            //     {
+            //         // undo the current move and skip to the next one
+            //         // restoreBoard();
+            //         // ply--;
+            //         // repetition_index--;
+
+            //         break;
+            //     }
+            // }
+
+            // late move reduction (LMR)
             if (valid_moves >= full_depth_moves &&
                 depth >= reduction_limit &&
                 !inCheck &&
@@ -277,18 +326,23 @@ int negamax(thrawn::Position& pos, ThreadData &td,
                 get_promoted_piece(move) == 0)
             {
                 // do a reduced search
-                move_score = -negamax(pos, td, depth - 2, -alpha - 1, -alpha, ply + 1);
+                score = -negamax(pos, td, depth - 2, -alpha - 1, -alpha, ply + 1);
             }
+            // ensure that full-depth search is done
+            else
+                score = alpha + 1;
 
-            if (move_score > alpha)
+            // if found a better move during LMR
+            // PVS
+            if (score > alpha)
             {
                 // do a PVS search with narrow window
-                move_score = -negamax(pos, td, depth - 1, -alpha - 1, -alpha, ply + 1);
+                score = -negamax(pos, td, depth - 1, -alpha - 1, -alpha, ply + 1);
 
-                if (move_score > alpha && move_score < beta)
+                // if LMR fails re-search at full depth and full score bandwith
+                if (score > alpha && score < beta)
                 {
-                    // full window
-                    move_score = -negamax(pos, td, depth - 1, -beta, -alpha, ply + 1);
+                    score = -negamax(pos, td, depth - 1, -beta, -alpha, ply + 1);
                 }
             }
         }
@@ -302,11 +356,11 @@ int negamax(thrawn::Position& pos, ThreadData &td,
         moves_searched++;
 
         // check for new best move
-        if (move_score > alpha)
+        if (score > alpha)
         {
-            alpha = move_score;
+            alpha = score; // principal variation PV node (best move)
             bestMove = move;
-            hashFlag = hashFlagEXACT;
+            hashFlag = hashFlagEXACT; // pv node
 
             // update history
             if (get_is_capture_move(move) == 0)
@@ -316,13 +370,14 @@ int negamax(thrawn::Position& pos, ThreadData &td,
 
             // update PV
             td.pv_table[ply][ply] = move;
+            // store deeper ply move into current ply
             for (int nextPly = ply + 1; nextPly < td.pv_depth[ply + 1]; nextPly++)
             {
                 td.pv_table[ply][nextPly] = td.pv_table[ply + 1][nextPly];
             }
             td.pv_depth[ply] = td.pv_depth[ply + 1];
 
-            // beta cutoff
+             // fail-hard beta cutoff
             if (alpha >= beta)
             {
                 writeToHashMap(pos, depth, beta, hashFlagBETA, bestMove, ply);
@@ -333,7 +388,7 @@ int negamax(thrawn::Position& pos, ThreadData &td,
                     td.killer_moves[1][ply] = td.killer_moves[0][ply];
                     td.killer_moves[0][ply] = move;
                 }
-                return beta;
+                return beta; // fails high
             }
         }
     }
@@ -343,7 +398,8 @@ int negamax(thrawn::Position& pos, ThreadData &td,
         if (inCheck)
         {
             // mate score
-            return -mateVal + ply;
+            return -mateVal + ply; // +ply allows engine to find the smallest depth mate
+            // penalizing longer mates less than shorter ones
         }
         else
         {
@@ -353,6 +409,8 @@ int negamax(thrawn::Position& pos, ThreadData &td,
     }
 
     writeToHashMap(pos, depth, alpha, hashFlag, bestMove, ply);
+
+    // move fails low (<= alpha)
     return alpha;
 }
 
@@ -378,6 +436,14 @@ void search_position_singlethreaded(thrawn::Position& pos, int depth)
     // Create local thread data
     ThreadData td;
 
+    // Initialize repetition history in ThreadData from Position
+    for (int j = 0; j <= pos.repetition_index && j < td.repetition_table.size(); j++)
+    {
+        td.repetition_table[j] = pos.repetition_table[j];
+    }
+    td.repetition_index = pos.repetition_index;
+    td.fifty_move = pos.fifty_move;
+
     int score = 0;
     int alpha = -INFINITY;
     int beta  = INFINITY;
@@ -400,6 +466,7 @@ void search_position_singlethreaded(thrawn::Position& pos, int depth)
             continue;
         }
 
+        // set up the window for the next iteration
         alpha = score - 50;
         beta  = score + 50;
 
@@ -444,7 +511,7 @@ void search_position_singlethreaded(thrawn::Position& pos, int depth)
     print_move(td.pv_table[0][0]);
     std::cout << "\n";
 
-    stopped = 1;
+    stopped = 1; // fixes zero eval blundering bug
 }
 
 /*
@@ -463,7 +530,7 @@ int score_move(thrawn::Position& pos, ThreadData &td, int move, int ply)
         if (td.pv_table[0][ply] == move)
         {
             td.score_pv_flag = false;
-            return 20000;
+            return 20000; // give pv move priority
         }
     }
 
@@ -493,15 +560,14 @@ int score_move(thrawn::Position& pos, ThreadData &td, int move, int ply)
         }
         return mvv_lva[get_move_piece(move)][target] + 10000;
     }
-    else
+    else // quiet moves
     {
-        // quiet moves
         if (td.killer_moves[0][ply] == move)
             return 9000;
         else if (td.killer_moves[1][ply] == move)
             return 8000;
         else if (get_promoted_piece(move) == Q || get_promoted_piece(move) == q)
-            return 5000; // example
+            return mvv_lva[get_move_piece(move)][get_move_target(move)] + 100;
         else
             return td.history_moves[get_move_piece(move)][get_move_target(move)];
     }
@@ -576,7 +642,7 @@ void quicksort_moves(std::vector<int> &moves, std::vector<int> &move_scores,
 // repetition check
 int isRepetition(thrawn::Position& pos, ThreadData &td)
 {
-    for (int i = 0; i < td.repetition_index; i++)
+    for (int i = 0; i <= td.repetition_index; i++)
     {
         if (td.repetition_table[i] == pos.zobristKey)
             return 1;

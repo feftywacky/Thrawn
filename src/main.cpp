@@ -22,11 +22,13 @@ int main() {
     
     if (dev_mode)
     {
-        parse_fen(pos,start_position);
-        search_position_threaded(pos,13,4);
+        // parse_fen(pos2,start_position);
+        // search_position_singlethreaded(pos2,12);
 
-        parse_fen(pos2,start_position);
-        search_position_singlethreaded(pos2,13);
+        parse_fen(pos,start_position);
+        search_position_threaded(pos,14,4);
+
+        
     }
     else
     {
