@@ -101,7 +101,6 @@ static void search_thread_func(Thread &threadObj, int depth, int threadID)
                 globalBestScore = bestScore;
                 globalBestMove  = bestMove;
 
-                // <<< ADDED >>>
                 // Print an "info" line similar to single-thread logic
                 int currentTime = get_time_ms() - globalSearchStartTime;
                 std::cout << "info depth " << globalBestDepth;

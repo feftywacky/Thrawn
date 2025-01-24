@@ -61,18 +61,18 @@ void init_hashmap(int mb)
  * good enough, then see if we can return a 
  * stored score or bestMove.
  */
-int probeHashMap(thrawn::Position& pos, int depth,
-                 int alpha, int beta, int* best_move, int ply)
+int probeHashMap(thrawn::Position& pos, int depth, int alpha, int beta, int* bestMove, int ply)
 {
     TranspositionTable* hashEntryPtr = &hashmap[pos.zobristKey % hashmap_len];
-
-    if (hashEntryPtr->key == pos.zobristKey)
+    
+    uint64_t xor_key = hashEntryPtr->key ^ hashEntryPtr->score; // Reconstruct original key
+    if (xor_key == pos.zobristKey) // Check if the reconstructed key matches
     {
         if (hashEntryPtr->depth >= depth)
         {
             int score = hashEntryPtr->score;
 
-            // handle mate-scores so we can re-adjust them by ply
+            // Handle mate-scores so we can re-adjust them by ply
             if (score < -mateScore) 
                 score += ply;
             if (score > mateScore) 
@@ -85,8 +85,8 @@ int probeHashMap(thrawn::Position& pos, int depth,
             if (hashEntryPtr->hash_flag == hashFlagBETA && score >= beta)
                 return beta;
         }
-        // if we can't return a score, we at least update best_move
-        *best_move = hashEntryPtr->best_move;
+        // If we can't return a score, at least update bestMove
+        *bestMove = hashEntryPtr->best_move;
     }
     return no_hashmap_entry;
 }
@@ -97,17 +97,19 @@ int probeHashMap(thrawn::Position& pos, int depth,
  * or we do an always-replace approach. 
  * We also store mate-scores with an offset so we can recover it.
  */
-void writeToHashMap(thrawn::Position& pos, int depth,
-                    int score, int hashFlag, int bestMove, int ply)
+void writeToHashMap(thrawn::Position& pos, int depth, int score, int hashFlag, int bestMove, int ply)
 {
     TranspositionTable* hashEntryPtr = &hashmap[pos.zobristKey % hashmap_len];
 
     if (score < -mateScore) score -= ply;
     if (score > mateScore)  score += ply;
 
-    hashEntryPtr->key       = pos.zobristKey;
+    uint64_t xor_key = pos.zobristKey ^ score; // Store the key XORed with the score
+
+    hashEntryPtr->key       = xor_key;
     hashEntryPtr->depth     = depth;
     hashEntryPtr->hash_flag = hashFlag;
-    hashEntryPtr->score     = score;
+    hashEntryPtr->score     = score; // Store the score directly
     hashEntryPtr->best_move = bestMove;
 }
+

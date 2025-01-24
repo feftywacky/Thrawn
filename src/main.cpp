@@ -15,20 +15,14 @@ using namespace std;
 
 int main() {
     thrawn::Position pos;
-    thrawn::Position pos2;
     init_all();
-
     bool dev_mode = false;
     
     if (dev_mode)
     {
-        // parse_fen(pos2,start_position);
-        // search_position_singlethreaded(pos2,12);
+        parse_fen(pos,position_4);
+        search_position_threaded(pos,13,4);
 
-        parse_fen(pos,start_position);
-        search_position_threaded(pos,14,4);
-
-        
     }
     else
     {

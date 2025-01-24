@@ -345,11 +345,8 @@ void uci_parse_go(thrawn::Position& pos, const char* command)
     std::cout << "time:" << uci_time << " start:" << static_cast<unsigned int>(starttime) << " stop:" << static_cast<unsigned int>(stoptime)
               << " depth:" << depth << " timeset:" << timeset << std::endl;
 
-    if (numThreads > 1)
-        search_position_threaded(pos, depth, numThreads);
-    else
-        search_position_singlethreaded(pos,depth);
-    
+
+    search_position_threaded(pos, depth, numThreads);  
 }
 
 void uci_loop(thrawn::Position& pos)

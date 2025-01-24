@@ -29,7 +29,7 @@ uint64_t nodes = 0;
  Some global flags controlling pruning
 */
 bool allowNullMovePruning = true;
-bool allowFutilityPruning = false;
+bool allowFutilityPruning = true;
 
 /*
  Late Move Pruning factors
@@ -195,6 +195,36 @@ int negamax(thrawn::Position& pos, ThreadData &td,
             return static_eval - eval_margin;
     }
 
+    // null move pruning
+    if (!inCheck && depth >= 3 && !pv_node && !noMajorsOrMinorsPieces(pos) && ply)
+    {
+        pos.copyBoard(ply);
+        td.repetition_index++;
+        td.repetition_table[td.repetition_index] = pos.zobristKey;
+
+        if (pos.enpassant != null_sq)
+            pos.zobristKey ^= pos.enpassant_hashkey[pos.enpassant];
+        pos.enpassant = null_sq;
+
+        pos.colour_to_move ^= 1;
+        pos.zobristKey ^= pos.colour_to_move_hashkey;
+
+        // depth - 1 - R, R is reduction constant
+        int reduction = 2;
+        // do the reduced-depth search
+        score = -negamax(pos, td, depth - 1 - reduction, -beta, -beta + 1, ply + 1);
+
+        td.repetition_index--;
+        pos.restoreBoard(ply);
+
+        if (stopped == 1)
+            return alpha;
+
+        // fail hard beta cut-off
+        if (score >= beta)
+            return beta;
+    }
+
     // razoring pruning
     if (!inCheck && !pv_node && depth <= 3)
     {
@@ -220,42 +250,6 @@ int negamax(thrawn::Position& pos, ThreadData &td,
         }
     }
 
-    // null move pruning
-    if (!inCheck && depth >= 3 && allowNullMovePruning && !pv_node && !noMajorsOrMinorsPieces(pos))
-    {
-        pos.copyBoard(ply);
-        td.repetition_index++;
-        td.repetition_table[td.repetition_index] = pos.zobristKey;
-
-        if (pos.enpassant != null_sq)
-            pos.zobristKey ^= pos.enpassant_hashkey[pos.enpassant];
-        pos.enpassant = null_sq;
-
-        pos.colour_to_move ^= 1;
-        pos.zobristKey ^= pos.colour_to_move_hashkey;
-
-        // depth - 1 - R, R is reduction constant
-        // do the reduced-depth search
-        allowNullMovePruning = false;
-        score = -negamax(pos, td, depth - 1 - 2, -beta, -beta + 1, ply + 1);
-        allowNullMovePruning = true;
-
-        td.repetition_index--;
-        pos.restoreBoard(ply);
-
-        if (stopped == 1)
-            return alpha;
-
-        // fail hard beta cut-off
-        if (score >= beta)
-            return beta;
-    }
-
-    // No-hashmove reduction (taken from Stockfish)
-    // If the position is not in TT, decrease depth by 1 (~3 Elo)
-    if (!inCheck && pv_node && (depth >= 3) && !bestMove)
-        depth--;
-
     std::vector<int> moves = generate_moves(pos);
 
     // first, see if the bestMove from TT or PV is present
@@ -268,7 +262,7 @@ int negamax(thrawn::Position& pos, ThreadData &td,
 
     for (int move : moves)
     {
-        // Late Move Pruning (LMP)
+        //Late Move Pruning (LMP)
         if ((ply > 0) && (depth <= 3) && !pv_node && !inCheck && !get_is_capture_move(move) && (valid_moves > LateMovePruning_factors[depth]))
         {
             continue;
@@ -326,7 +320,8 @@ int negamax(thrawn::Position& pos, ThreadData &td,
                 get_promoted_piece(move) == 0)
             {
                 // do a reduced search
-                score = -negamax(pos, td, depth - 2, -alpha - 1, -alpha, ply + 1);
+                int reduction = 2;
+                score = -negamax(pos, td, depth - reduction, -alpha - 1, -alpha, ply + 1);
             }
             // ensure that full-depth search is done
             else
@@ -430,8 +425,8 @@ void search_position_singlethreaded(thrawn::Position& pos, int depth)
     stopped = 0;
 
     // for debugging
-    allowNullMovePruning = false;
-    allowFutilityPruning = false;
+    //allowNullMovePruning = false;
+    // allowFutilityPruning = false;
 
     // Create local thread data
     ThreadData td;
