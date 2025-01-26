@@ -2,6 +2,7 @@
 #include "search.h"     // for negamax, quiescence, etc.
 #include "uci.h"        // for 'stopped'
 #include "move_helpers.h"
+#include "transposition_table.h"
 #include <thread>
 #include <iostream>
 #include <mutex>
@@ -67,6 +68,8 @@ static void search_thread_func(Thread &threadObj, int depth, int threadID)
     {
         if (stop_threads.load() || stopped == 1)
             break;
+        
+        curr_hash_age++;
 
         // allow following PV in ordering
         td.follow_pv_flag = true;

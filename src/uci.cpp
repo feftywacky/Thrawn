@@ -7,6 +7,7 @@
 #include "fen.h"
 #include "search.h"
 #include "misc.h"
+#include "globals.h"
 #include <stdlib.h>
 #include <vector>
 #include <cstring>
@@ -390,15 +391,15 @@ void uci_loop(thrawn::Position& pos)
         // parse UCI "position" command
         else if (strncmp(input, "position", 8) == 0)
         {
+            tt.reset();
             uci_parse_position(pos, input);
-            reset_hashmap();
         }
 
         // parse UCI "ucinewgame" command
         else if (strncmp(input, "ucinewgame", 10) == 0)
         {
+            tt.reset();
             uci_parse_position(pos, "position startpos");
-            reset_hashmap();
         }
         // parse UCI "go" command
         else if (strncmp(input, "go", 2) == 0)
@@ -429,7 +430,7 @@ void uci_loop(thrawn::Position& pos)
             
             // set hash table size in MB
             std::cout << "    Set hash table size to " << mb << "MB\n";
-            init_hashmap(mb);
+            tt.initTable(mb);
         }
 
         else if (!strncmp(input, "setoption name Threads value ", 29)) {

@@ -3,6 +3,7 @@
 #include "transposition_table.h"
 #include "evaluation.h"
 #include "nnue.h"
+#include "globals.h"
 
 const std::string version = " v3.0";
 
@@ -17,7 +18,7 @@ void init_all()
 
     // init hashkeys
     // init_hashkeys();
-    init_hashmap(128); // default of 64 MB
+    tt.initTable(128); // default of 64 MB
 
     // init eval masks
     //init_eval_masks();

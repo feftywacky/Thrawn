@@ -6,6 +6,7 @@
 #include "transposition_table.h"
 #include "bitboard.h"
 #include "uci.h" // for 'stopped' and 'communicate()'
+#include "globals.h"
 #include <iostream>
 #include <vector>
 #include <algorithm>
@@ -145,7 +146,7 @@ int negamax(thrawn::Position& pos, ThreadData &td,
 
     // retrieve from TT if possible
     // if move has already been searched, return its score instantly
-    if (ply && (score = probeHashMap(pos, depth, alpha, beta, &bestMove, ply)) != no_hashmap_entry && !pv_node)
+    if (ply && (score = tt.probe(pos, depth, alpha, beta, bestMove, ply)) != no_hashmap_entry && !pv_node)
     {
         return score;
     }
@@ -375,7 +376,7 @@ int negamax(thrawn::Position& pos, ThreadData &td,
              // fail-hard beta cutoff
             if (alpha >= beta)
             {
-                writeToHashMap(pos, depth, beta, hashFlagBETA, bestMove, ply);
+                tt.store(pos, depth, beta, hashFlagBETA, bestMove, curr_hash_age, ply);
 
                 // killer move
                 if (get_is_capture_move(move) == 0)
@@ -403,7 +404,7 @@ int negamax(thrawn::Position& pos, ThreadData &td,
         }
     }
 
-    writeToHashMap(pos, depth, alpha, hashFlag, bestMove, ply);
+    tt.store(pos, depth, alpha, hashFlag, bestMove, curr_hash_age, ply);
 
     // move fails low (<= alpha)
     return alpha;

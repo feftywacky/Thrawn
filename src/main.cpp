@@ -5,7 +5,8 @@
 #include "perft.h"
 #include "uci.h"
 #include "search.h"
-#include "threading.h"       // new
+#include "threading.h"       
+#include "globals.h"
 #include "transposition_table.h"
 #include "misc.h"
 #include "position.h"
@@ -14,7 +15,6 @@
 using namespace std;
 
 int main() {
-    thrawn::Position pos;
     init_all();
     bool dev_mode = false;
     
@@ -29,6 +29,5 @@ int main() {
         uci_loop(pos);
     }
 
-    delete[] hashmap;
     return 0;
 }
