@@ -73,7 +73,7 @@ void TranspositionTable::reset()
 {
     curr_hash_age = 0;
     if (table && numEntries > 0)
-        std::memset(table, 0, numEntries * sizeof(TTEntry));
+        std::fill(table, table + numEntries, TTEntry{});
 }
 
 /*
