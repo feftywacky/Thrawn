@@ -36,6 +36,7 @@ public:
     // =========== FLAGS FOR PV ORDERING =========== //
     bool follow_pv_flag;
     bool score_pv_flag;
+    bool allowNullMovePruning;
 
     // Constructor
     ThreadData();

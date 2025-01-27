@@ -20,9 +20,7 @@ int main() {
     
     if (dev_mode)
     {
-        parse_fen(pos,position_4);
-        search_position_threaded(pos,13,4);
-
+        cout<<"dev mode"<<endl;
     }
     else
     {

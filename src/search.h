@@ -19,13 +19,6 @@ some notes for negamax
 extern uint64_t nodes;
 
 /*
-  flags controlling certain pruning (e.g., allowNullMovePruning, etc.).
-  This can remain global or be toggled by UCI if you want.
-*/
-extern bool allowNullMovePruning;
-extern bool allowFutilityPruning;
-
-/*
  Late Move Reductions or pruning factors
 */
 extern std::array<int, 4> LateMovePruning_factors;
@@ -46,7 +39,7 @@ extern int RFP_factor;
  * Now they accept a reference to ThreadData (td),
  * which holds PV arrays, killer moves, history, etc.
 */
-int negamax(thrawn::Position& pos, ThreadData &td, int depth, int alpha, int beta, int ply);
+int negamax(thrawn::Position& pos, ThreadData &td, int depth, int alpha, int beta, int ply, bool isPvNode);
 int quiescence(thrawn::Position& pos, ThreadData &td, int alpha, int beta, int ply);
 
 /*

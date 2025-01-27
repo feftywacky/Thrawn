@@ -12,11 +12,11 @@ static const int hashFlagEXACT    = 0;
 static const int hashFlagALPHA    = 1;
 static const int hashFlagBETA     = 2;
 
-static int curr_hash_age = 0;
+extern int curr_hash_age;
 
 /*
  * Each TT entry has two 64-bit fields used in the "lockless XOR" approach:
- *   - xor_key = posKey ^ smp_data
+ *   - xor_key = pos.zobristKey ^ smp_data
  *   - smp_data = a packed encoding of {score, depth, flags, move, etc.}
  *
  * We store 'age' as a separate int.  That is *not* part of the XOR packing.
@@ -35,7 +35,6 @@ struct TTEntry
 class TranspositionTable
 {
 public:
-    // Constructor / Destructor
     TranspositionTable();
     ~TranspositionTable();
 
