@@ -277,7 +277,6 @@ int negamax(thrawn::Position& pos, ThreadData &td,
             {
                 td.repetition_index--;
                 pos.restoreBoard(ply);
-                moves_searched++;
                 continue;
             }
 
@@ -292,7 +291,6 @@ int negamax(thrawn::Position& pos, ThreadData &td,
             {
                 td.repetition_index--;
                 pos.restoreBoard(ply);
-                moves_searched++;
                 continue;
             }
 
