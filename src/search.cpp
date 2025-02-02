@@ -7,6 +7,7 @@
 #include "bitboard.h"
 #include "uci.h" // for 'stopped' and 'communicate()'
 #include "globals.h"
+#include "constants.h"
 #include <iostream>
 #include <vector>
 #include <algorithm>
@@ -462,104 +463,7 @@ int quiescence(thrawn::Position& pos, ThreadData &td,
 }
 
 /*
- * SINGLE-THREAD SEARCH:
- * We replaced your old 'search_position(...)' with
- * 'search_position_singlethreaded(...)'.
- * 
- * This function sets up a local ThreadData instance,
- * does iterative deepening, calls negamax(...) with the 'td',
- * and finally prints "bestmove".
-*/
-void search_position_singlethreaded(thrawn::Position& pos, int depth)
-{
-    int start = get_time_ms();
-    nodes = 0;
-    stopped = 0;
-
-    // Create local thread data
-    ThreadData td;
-
-    // Initialize repetition history in ThreadData from Position
-    for (int j = 0; j <= pos.repetition_index && j < td.repetition_table.size(); j++)
-    {
-        td.repetition_table[j] = pos.repetition_table[j];
-    }
-    td.repetition_index = pos.repetition_index;
-    td.fifty_move = pos.fifty_move;
-
-    int score = 0;
-    int alpha = -INFINITY;
-    int beta  = INFINITY;
-
-    // iterative deepening
-    for (int curr_depth = 1; curr_depth <= depth; curr_depth++)
-    {
-        if (stopped == 1)
-            break;
-
-        // set up for PV sorting
-        td.follow_pv_flag = true;
-        score = negamax(pos, td, curr_depth, alpha, beta, 0, true);
-
-        // aspiration window
-        if (score <= alpha || score >= beta)
-        {
-            alpha = -INFINITY;
-            beta  = INFINITY;
-            continue;
-        }
-
-        // set up the window for the next iteration
-        alpha = score - 50;
-        beta  = score + 50;
-
-        // if pv exists
-        if (td.pv_depth[0])
-        {
-            if (score > -mateVal && score < -mateScore)
-            {
-                std::cout << "info score mate " << -(score + mateVal) / 2 - 1
-                          << " depth " << curr_depth
-                          << " nodes " << nodes
-                          << " time " << (get_time_ms() - start)
-                          << " pv ";
-            }
-            else if (score > mateScore && score < mateVal)
-            {
-                std::cout << "info score mate " << (mateVal - score) / 2 + 1
-                          << " depth " << curr_depth
-                          << " nodes " << nodes
-                          << " time " << (get_time_ms() - start)
-                          << " pv ";
-            }
-            else
-            {
-                std::cout << "info score cp " << score
-                          << " depth " << curr_depth
-                          << " nodes " << nodes
-                          << " time " << (get_time_ms() - start)
-                          << " pv ";
-            }
-
-            for (int i = 0; i < td.pv_depth[0]; i++)
-            {
-                print_move(td.pv_table[0][i]);
-                std::cout << " ";
-            }
-            std::cout << "\n";
-        }
-    }
-
-    std::cout << "bestmove ";
-    print_move(td.pv_table[0][0]);
-    std::cout << "\n";
-
-    stopped = 1; // fixes zero eval blundering bug
-}
-
-/*
  * MOVE ORDERING
- * We pass 'ThreadData &td' to access killer or history arrays
 */
 
 // ----------------------------------------------------------

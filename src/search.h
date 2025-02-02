@@ -24,16 +24,6 @@ extern uint64_t nodes;
 extern std::array<int, 4> LateMovePruning_factors;
 extern int RFP_factor;
 
-// ----------------------------------------
-// Some constants used in the search
-// ----------------------------------------
-#define full_depth_moves 4
-#define reduction_limit 3
-#define INFINITY 50000
-#define mateVal 49000
-#define mateScore 48000
-#define MAX_DEPTH 64
-
 /*
  * Negamax & Quiescence:
  * Now they accept a reference to ThreadData (td),
@@ -41,12 +31,6 @@ extern int RFP_factor;
 */
 int negamax(thrawn::Position& pos, ThreadData &td, int depth, int alpha, int beta, int ply, bool isPvNode);
 int quiescence(thrawn::Position& pos, ThreadData &td, int alpha, int beta, int ply);
-
-/*
- * Single-threaded search driver
- * (Replaces your old 'search_position(...)' function.)
-*/
-void search_position_singlethreaded(thrawn::Position& pos, int depth);
 
 /*
  * Move ordering utilities

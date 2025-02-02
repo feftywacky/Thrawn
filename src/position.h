@@ -4,8 +4,7 @@
 #include <array>
 #include <vector>
 #include <cstdint>
-
-const int MAX_DEPTH = 64; 
+#include "constants.h"
 
 namespace thrawn {
 

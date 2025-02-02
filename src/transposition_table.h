@@ -4,67 +4,50 @@
 #include <cstdint>
 #include "position.h"
 
-/*
-  Constants for the TT use
-*/
+// Constants for the TT.
 static const int no_hashmap_entry = 100000;  // sentinel for "TT miss"
 static const int hashFlagEXACT    = 0;
 static const int hashFlagALPHA    = 1;
 static const int hashFlagBETA     = 2;
 
-extern int curr_hash_age;
+extern int curr_hash_age;  // global TT age variable
 
-/*
- * Each TT entry has two 64-bit fields used in the "lockless XOR" approach:
- *   - xor_key = pos.zobristKey ^ smp_data
- *   - smp_data = a packed encoding of {score, depth, flags, move, etc.}
- *
- * We store 'age' as a separate int.  That is *not* part of the XOR packing.
- */
+// A TT entry storing the fields directly.
 struct TTEntry 
 {
-    uint64_t xor_key;   // = pos.zobristKey ^ smp_data
-    uint64_t smp_data;  // packed {score, depth, flags, move, etc.}
-    int      age;       // used for "age" replacement logic
+    uint64_t key;    // The Zobrist key for the position.
+    int depth;       // Search depth at which this entry was stored.
+    int score;       // Evaluation score.
+    int flag;        // TT flag (EXACT, ALPHA, BETA).
+    int bestMove;    // Best move (for move ordering).
+    int age;         // Age for replacement logic.
 };
 
-/*
- * The transposition table is an array of TTEntry plus
- * helper functions to init, store, probe, etc.
- */
+// A simple transposition table with thread-safe probe/store operations.
 class TranspositionTable
 {
 public:
     TranspositionTable();
     ~TranspositionTable();
 
-    // Create or resize the TT to 'mb' megabytes
+    // Initialize or resize the table to 'mb' megabytes.
     void initTable(int mb);
 
-    // Clears all entries
+    // Clears all entries.
     void reset();
 
-    // Lookup a position in TT. Returns an eval or 'no_hashmap_entry'
-    // If found, may fill bestMove if stored. 
+    // Lookup a position in the TT. Returns a score if the entry is valid, 
+    // or no_hashmap_entry if not. If a best move was stored, it is written into bestMove.
     int probe(const thrawn::Position &pos, int depth, int alpha, int beta,
               int &bestMove, int ply);
 
-    // Store (pos, depth, score, flag, bestMove), obeying age replacement
+    // Store an entry (pos, depth, score, flag, bestMove, age) in the TT.
     void store(const thrawn::Position &pos, int depth, int score,
-               int hashFlag, int bestMove, int age, int ply);
+               int flag, int bestMove, int newAge, int ply);
 
 private:
-    // Helper to pack score/depth/flag/move into smp_data
-    uint64_t encodeData(int depth, int score, int hashFlag,
-                        int bestMove, int ply);
-
-    // Helper to decode smp_data
-    void decodeData(uint64_t smp_data,
-                    int &depth, int &score, int &hashFlag, int &bestMove);
-
-private:
-    TTEntry*  table;      // pointer to TTEntry array
-    int       numEntries; // length of 'table'
+    TTEntry*  table;      // Array of TT entries.
+    int       numEntries; // Number of entries in the table.
 };
 
 #endif // TRANSPOSITION_TABLE_H

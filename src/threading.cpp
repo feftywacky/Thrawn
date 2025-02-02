@@ -9,25 +9,10 @@
 #include <vector>
 #include <atomic>
 
-/*
- * We define the atomic stop signal here.
- * All threads check stop_threads.load() to see if they must stop.
- */
 std::atomic<bool> stop_threads(false);
-
-/*
- * A global best move/score/depth protected by a mutex
- * for parallel search.
- */
+static std::mutex printMutex;
 static std::mutex bestMoveMutex;
 static int globalBestMove  = 0;
-static int globalBestScore = -INFINITY;
-static int globalBestDepth = 0;
-
-/*
- * We'll track the global start time of the search so each thread
- * can print "time = ..." in the "info" lines consistently.
- */
 static int globalSearchStartTime = 0;
 
 /*
@@ -51,168 +36,117 @@ ThreadData::ThreadData()
     allowNullMovePruning = true;
 }
 
-/*
- * Worker function for each thread.
+/**
+ * smp_worker_thread_func
  *
- * Each thread runs an iterative deepening loop from depth=1..(maxDepth).
- *   - They check the global stop_threads flag.
- *   - If not stopping, they call negamax at the new iteration depth.
- *   - If they improve upon the global best data, they:
- *       1) Acquire a lock
- *       2) Update the global best depth, score, move
- *       3) Print an "info" line with the new PV
+ * Each thread makes its own copy of the root Position and does an iterative deepening
+ * search from depth=1..maxDepth. The master thread (threadID=0) reports the best
+ * move at each iteration. Other threads share the same transposition table to aid thread 0 to search
+ *
+ * Lazy SMP does not require a sophisticated split at the root;
+ * we simply let multiple threads run the same iterative deepening and share the TT.
  */
-static void search_thread_func(Thread &threadObj, int maxDepth, int threadID)
+static void smp_worker_thread_func(const thrawn::Position& rootPos, ThreadData td, int threadID, int maxDepth)
 {
-    thrawn::Position &pos = threadObj.rootPos;
-    ThreadData &td        = threadObj.td;
-
+    thrawn::Position pos = rootPos;
     int alpha = -INFINITY;
-    int beta  = INFINITY;
-
-    // iterative deepening from 1..maxDepth
-    for (int depth = 1; depth <= maxDepth; depth++)
+    int beta  =  INFINITY;
+    int score = 0;
+    
+    // Iterative deepening from 1..maxDepth
+    for (int curr_depth = 1; curr_depth <= maxDepth; curr_depth++)
     {
         if (stop_threads.load() || stopped == 1)
             break;
-
-        // Age is incremented once per iteration so that TT entries
-        // from deeper iteration can replace older entries.
-        curr_hash_age++;
-
+        
         // For PV ordering
         td.follow_pv_flag = true;
-
-        int score = negamax(pos, td, depth, alpha, beta, 0, true);
-
-        // aspiration window logic
-        if (score <= alpha || score >= beta)
+        
+        // Call negamax with the board (pos) and the thread's SearchData.
+        score = negamax(pos, td, curr_depth, alpha, beta, 0, true);
+        
+        // Only thread 0 logs the result.
+        if (threadID == 0)
         {
-            alpha = -INFINITY;
-            beta  = INFINITY;
-            // re-search at the same depth
-            depth--;
-            if (depth < 1) depth = 1; 
-            continue;
-        }
-
-        alpha = score - 50;
-        beta  = score + 50;
-
-        // If the thread found a new PV at ply=0
-        if (td.pv_depth[0] > 0)
-        {
-            std::lock_guard<std::mutex> lock(bestMoveMutex);
-
-            // if this depth is better than the global or same depth but better score
-            if (depth > globalBestDepth ||
-               (depth == globalBestDepth && score > globalBestScore))
+            globalBestMove = td.pv_table[0][0];
+            
+            if (td.pv_depth[0])
             {
-                globalBestDepth = depth;
-                globalBestScore = score;
-                globalBestMove  = td.pv_table[0][0];
-
-                // Print an "info" line like in single-thread
                 int currentTime = get_time_ms() - globalSearchStartTime;
-                std::cout << "info depth " << globalBestDepth;
-
-                // Format the mate or cp score
                 if (score > -mateVal && score < -mateScore)
                 {
-                    // negative mate
-                    int mate_in = -(score + mateVal)/2 - 1;
-                    std::cout << " score mate " << mate_in;
+                    std::cout << "info score mate " << -(score + mateVal) / 2 - 1
+                            << " depth " << curr_depth
+                            << " nodes " << nodes
+                            << " time " << currentTime
+                            << " pv ";
                 }
                 else if (score > mateScore && score < mateVal)
                 {
-                    // positive mate
-                    int mate_in = (mateVal - score)/2 + 1;
-                    std::cout << " score mate " << mate_in;
+                    std::cout << "info score mate " << (mateVal - score) / 2 + 1
+                            << " depth " << curr_depth
+                            << " nodes " << nodes
+                            << " time " << currentTime
+                            << " pv ";
                 }
                 else
                 {
-                    // normal centipawn
-                    std::cout << " score cp " << score;
+                    std::cout << "info score cp " << score
+                            << " depth " << curr_depth
+                            << " nodes " << nodes
+                            << " time " << currentTime
+                            << " pv ";
                 }
 
-                std::cout << " nodes " << nodes
-                          << " time " << currentTime
-                          << " thread " << threadID
-                          << " pv ";
-
-                // print the new PV
                 for (int i = 0; i < td.pv_depth[0]; i++)
                 {
                     print_move(td.pv_table[0][i]);
                     std::cout << " ";
                 }
-                std::cout << std::endl;
+                std::cout << "\n";
             }
         }
     }
 }
 
-/*
- * search_position_threaded:
- *  1) Reset global best data
- *  2) Create 'Thread' objects, each with a COPY of 'pos'
- *  3) Launch them in parallel
- *  4) Joins them
- *  5) Print final best move
+/**
+ * search_position_threaded
+ *
+ * Creates 'numThreads' worker threads. The master thread (ID=0) eventually
+ * prints out "bestmove X" after all threads are done or a stop is triggered.
  */
-void search_position_threaded(const thrawn::Position &pos, int depth, int numThreads)
+void search_position_threaded(const thrawn::Position &rootPos, int maxDepth, int numThreads)
 {
-    {
-        std::lock_guard<std::mutex> lk(bestMoveMutex);
-        globalBestMove  = 0;
-        globalBestScore = -INFINITY;
-        globalBestDepth = 0;
-    }
+    globalBestMove  = 0;
+
+    // Reset stop flags and counters
     stop_threads.store(false);
     stopped = 0;
     nodes   = 0;
-
     globalSearchStartTime = get_time_ms();
+    curr_hash_age++;
 
-    // Create local thread objects
-    std::vector<Thread> threads;
-    threads.reserve(numThreads);
+    // Spawn threads
+    std::vector<std::thread> workerPool;
+    workerPool.reserve(numThreads);
+
     for (int i = 0; i < numThreads; i++)
     {
-        threads.emplace_back(pos); // copy constructor
-    }
-
-    // Initialize repetition info from the main pos
-    for (int i = 0; i < numThreads; i++)
-    {
-        for (int j = 0; j <= pos.repetition_index && j < (int)threads[i].td.repetition_table.size(); j++)
-        {
-            threads[i].td.repetition_table[j] = pos.repetition_table[j];
-        }
-        threads[i].td.repetition_index = pos.repetition_index;
-        threads[i].td.fifty_move       = pos.fifty_move;
-    }
-
-    // Launch system threads
-    std::vector<std::thread> pool;
-    pool.reserve(numThreads);
-    for (int i = 0; i < numThreads; i++)
-    {
-        pool.emplace_back(search_thread_func, std::ref(threads[i]), depth, i);
+        workerPool.emplace_back(smp_worker_thread_func, rootPos, ThreadData(), i, maxDepth);
     }
 
     // Wait for all threads
-    for (auto &t : pool)
+    for (auto &t : workerPool)
         t.join();
 
-    // Print the final bestmove from global data
+    // After all threads finish, output the final best move (from thread 0’s results).
     {
-        std::lock_guard<std::mutex> lk(bestMoveMutex);
+        std::lock_guard<std::mutex> lock(printMutex);
         std::cout << "bestmove ";
         print_move(globalBestMove);
         std::cout << std::endl;
     }
 
-    stop_threads.store(true);
+    // Signal that we are done
     stopped = 1;
 }
