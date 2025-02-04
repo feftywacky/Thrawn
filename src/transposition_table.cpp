@@ -1,16 +1,10 @@
 #include "transposition_table.h"
-#include "constants.h"
+#include "constants.h"  // for mateScore, etc.
 #include <cstring>
 #include <iostream>
-#include <mutex>
-
-int curr_hash_age = 0;  // global TT age
-
-// A global mutex protecting all transposition table accesses.
-static std::mutex ttMutex;
 
 TranspositionTable::TranspositionTable()
-  : table(nullptr), numEntries(0)
+    : table(nullptr), numEntries(0), currentAge(0)
 {
 }
 
@@ -24,17 +18,15 @@ TranspositionTable::~TranspositionTable()
 
 void TranspositionTable::initTable(int mb)
 {
-    int bytes = mb * 1024 * 1024;  // convert MB to bytes
+    int bytes = mb * 1024 * 1024;  // Convert MB to bytes
     numEntries = bytes / sizeof(TTEntry);
 
-    if (table)
-    {
+    if (table) {
         delete[] table;
         table = nullptr;
     }
 
-    if (numEntries < 1)
-    {
+    if (numEntries < 1) {
         std::cerr << "TT init: table too small, forcing 1 MB.\n";
         initTable(1);
         return;
@@ -43,76 +35,81 @@ void TranspositionTable::initTable(int mb)
     table = new TTEntry[numEntries];
     reset();
 
-    std::cout << "TT: allocated " << mb << " MB, entries = "
-              << numEntries << std::endl;
+    std::cout << "TT: allocated " << mb << " MB, entries = " << numEntries << std::endl;
 }
 
 void TranspositionTable::reset()
 {
-    curr_hash_age = 0;
-    if (table && numEntries > 0)
-    {
-        std::lock_guard<std::mutex> lock(ttMutex);
+    if (table && numEntries > 0) {
         std::memset(table, 0, numEntries * sizeof(TTEntry));
     }
+    currentAge = 0; // Reset the age as well.
 }
 
 int TranspositionTable::probe(const thrawn::Position &pos, int depth, int alpha, int beta,
-                              int &bestMove, int ply)
+                                int &bestMove, int ply)
 {
     if (!table || numEntries <= 0)
         return no_hashmap_entry;
 
     uint64_t key = pos.zobristKey;
-    int index = (int)(key % numEntries);
+    int index = static_cast<int>(key % numEntries);
 
-    std::lock_guard<std::mutex> lock(ttMutex);
     TTEntry entry = table[index];
 
-    if (entry.key != key)
+    bestMove = entry.best_move;
+
+    // Check for a matching key and sufficient search depth.
+    if (entry.key != key || entry.depth < depth)
         return no_hashmap_entry;
 
-    // Only use the entry if it was searched deep enough.
-    if (entry.depth < depth)
-        return no_hashmap_entry;
+    int score = entry.score;
 
-    bestMove = entry.bestMove;
+    if (score < -mateScore) 
+        score += ply;
+    if (score > mateScore) 
+        score -= ply;
 
-    if (entry.flag == hashFlagEXACT)
-        return entry.score;
-    if (entry.flag == hashFlagALPHA && entry.score <= alpha)
+    if (entry.hash_flag == hashFlagEXACT)
+        return score;
+    if (entry.hash_flag == hashFlagALPHA && score <= alpha)
         return alpha;
-    if (entry.flag == hashFlagBETA  && entry.score >= beta)
+    if (entry.hash_flag == hashFlagBETA  && score >= beta)
         return beta;
 
     return no_hashmap_entry;
 }
 
 void TranspositionTable::store(const thrawn::Position &pos, int depth, int score,
-                               int flag, int bestMove, int newAge, int ply)
+                                 int flag, int bestMove, int ply)
 {
     if (!table || numEntries <= 0)
         return;
 
     uint64_t key = pos.zobristKey;
-    int index = (int)(key % numEntries);
+    int index = static_cast<int>(key % numEntries);
 
-    std::lock_guard<std::mutex> lock(ttMutex);
-    TTEntry &entry = table[index];
+    // Replacement logic: Replace if the entry is unused or if its stored age is older,
+    // or if the stored search depth is less than or equal to the new depth.
+    bool replace = false;
+    if (table[index].key == 0)
+        replace = true;
+    else if (table[index].age < currentAge || table[index].depth <= depth)
+        replace = true;
 
-    // Replacement logic: always replace if the entry is empty, or if it is older,
-    // or if the same age but the new search was as deep or deeper.
-    if (entry.key == 0 || entry.age < newAge || (entry.age == newAge && entry.depth <= depth))
-    {
-        entry.key = key;
-        entry.depth = depth;
+    if (!replace)
+        return;
 
-        if (score < -mateScore) score -= ply;
-        if (score > mateScore) score += ply;
-        
-        entry.score = score;
-        entry.flag = flag;
-        entry.bestMove = bestMove;
-        entry.age = newAge;
-    }
+    // Adjust mate scores using ply if necessary.
+    if (score < -mateScore)
+        score -= ply;
+    if (score > mateScore)
+        score += ply;
+
+    table[index].key = key;
+    table[index].depth = depth;
+    table[index].score = score;
+    table[index].hash_flag = flag;
+    table[index].best_move = bestMove;
+    table[index].age = currentAge;
 }

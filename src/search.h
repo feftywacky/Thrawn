@@ -42,7 +42,7 @@ void score_pv(std::vector<int>& moves, ThreadData &td, int ply);
 /*
  * Repetition check
  */
-int isRepetition(thrawn::Position& pos, ThreadData &td);
+int isRepetition(thrawn::Position& pos);
 
 /*
  * A helper for quicksort-based move ordering

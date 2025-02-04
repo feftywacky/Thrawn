@@ -47,27 +47,30 @@ int RFP_factor = 64;
  *  - storing in TT
  */
 int negamax(thrawn::Position& pos, ThreadData &td,
-            int depth, int alpha, int beta, int ply, bool isPvNode)
+            int depth, int alpha, int beta, int ply, bool isPvNodeTEMP)
 {
     int score = 0;
     int bestMove = 0;
     int hashFlag = hashFlagALPHA;
     int static_eval = 0;
 
+    int isPvNode = ((beta - alpha) > 1);
+
     // init local pv
     td.pv_depth[ply] = ply;
 
     // 1) Check repetition or 50-move draw
-    if (ply && (isRepetition(pos, td) || td.fifty_move >= 100))
+    if (ply && (isRepetition(pos) || pos.fifty_move >= 100))
     {
         return 0;
     }
 
     // 2) Transposition Table lookup
     //    If something is found that fits within alpha/beta, return
-    if (ply && (score = tt.probe(pos, depth, alpha, beta, bestMove, ply)) != no_hashmap_entry)
+    if (ply && !isPvNode && (score = tt.probe(pos, depth, alpha, beta, bestMove, ply)) != no_hashmap_entry)
     {
-        return score;
+        if (pos.fifty_move < 90)
+            return score;
     }
 
     // For periodic UCI output / time check
@@ -106,13 +109,28 @@ int negamax(thrawn::Position& pos, ThreadData &td,
     if (inCheck)
     {
         depth++;
+        goto full_search;
     }
 
     // 7) Compute static evaluation
     static_eval = evaluate(pos);
 
     // --------------------------------------
-    // 8) Razoring (shallow depth, not in check, non-PV)
+    // 8) Reverse Futility Pruning (RFP)
+    //    Often called "static-nullmove" or "futility"
+    // --------------------------------------
+    if (!inCheck && !isPvNode && depth < 3)
+    {
+        int eval_margin = 120 * depth;
+        // if static eval already big enough to exceed beta
+        if (static_eval - eval_margin >= beta)
+        {
+            return static_eval - eval_margin;
+        }
+    }
+
+    // --------------------------------------
+    // 9) Razoring (shallow depth, not in check, non-PV)
     // --------------------------------------
     if (!inCheck && !isPvNode && depth <= 3)
     {
@@ -142,20 +160,6 @@ int negamax(thrawn::Position& pos, ThreadData &td,
     }
 
     // --------------------------------------
-    // 9) Reverse Futility Pruning (RFP)
-    //    Often called "static-nullmove" or "futility"
-    // --------------------------------------
-    if (!inCheck && !isPvNode && depth < 3)
-    {
-        int eval_margin = 64 * depth;
-        // if static eval already big enough to exceed beta
-        if (static_eval - eval_margin >= beta)
-        {
-            return static_eval - eval_margin;
-        }
-    }
-
-    // --------------------------------------
     // 10) Null-move pruning
     // --------------------------------------
     // Conditions to do a null-move:
@@ -164,11 +168,11 @@ int negamax(thrawn::Position& pos, ThreadData &td,
     // - not a PV node
     // - side to move has enough material (not in an endgame with no minors/majors)
     // - allowNullMovePruning not disabled
-    if (!inCheck && depth >= 3 && !isPvNode && !noMajorsOrMinorsPieces(pos) && ply && td.allowNullMovePruning)
+    if (!inCheck && depth >= 3 && !isPvNode && !noMajorsOrMinorsPieces(pos) && td.allowNullMovePruning)
     {
         pos.copyBoard(ply);
-        td.repetition_index++;
-        td.repetition_table[td.repetition_index] = pos.zobristKey;
+        pos.repetition_index++;
+        pos.repetition_table[pos.repetition_index] = pos.zobristKey;
 
         // Remove en-passant possibility from the key
         if (pos.enpassant != null_sq)
@@ -180,12 +184,12 @@ int negamax(thrawn::Position& pos, ThreadData &td,
         pos.zobristKey ^= pos.colour_to_move_hashkey;
 
         // Null-move search with reduced depth
-        int reduction = 2+(depth/6);
+        int reduction = 2;
         td.allowNullMovePruning = false;
         score = -negamax(pos, td, depth - 1 - reduction, -beta, -beta + 1, ply + 1, isPvNode);
         td.allowNullMovePruning = true;
 
-        td.repetition_index--;
+        pos.repetition_index--;
         pos.restoreBoard(ply);
 
         if (stopped == 1)
@@ -198,23 +202,15 @@ int negamax(thrawn::Position& pos, ThreadData &td,
         }
     }
 
+    // No-hashmove reduction (taken from Stockfish)
+    // If the position is not in TT, decrease depth by 1 (~3 Elo)
+    // if (!inCheck && isPvNode && (depth >= 3) && !bestMove)
+    //     depth--;
+
+full_search:
+
     // 11) Generate moves
     std::vector<int> moves = generate_moves(pos);
-
-    // If no moves, it's either checkmate or stalemate
-    if (moves.empty())
-    {
-        if (inCheck)
-        {
-            // mate score (negative perspective => lost position)
-            return -mateVal + ply;
-        }
-        else
-        {
-            // stalemate
-            return 0;
-        }
-    }
 
     // 12) If we had a best move from TT, ensure it gets sorted first
     if (td.follow_pv_flag)
@@ -230,12 +226,12 @@ int negamax(thrawn::Position& pos, ThreadData &td,
     for (int move : moves)
     {
         pos.copyBoard(ply);
-        td.repetition_index++;
-        td.repetition_table[td.repetition_index] = pos.zobristKey;
+        pos.repetition_index++;
+        pos.repetition_table[pos.repetition_index] = pos.zobristKey;
 
         if (make_move(pos, move, all_moves, ply) == 0)
         {
-            td.repetition_index--;
+            pos.repetition_index--;
             pos.restoreBoard(ply);
             continue;
         }
@@ -255,30 +251,30 @@ int negamax(thrawn::Position& pos, ThreadData &td,
             // (A) Basic Futility on quiet moves
             //     e.g. if depth is small, not giving check, not a capture, etc.
             // -----------------------------
-            bool givesCheck = is_square_under_attack(
-                                 pos,
-                                 (pos.colour_to_move == white) ? get_lsb_index(pos.piece_bitboards[K])
-                                                               : get_lsb_index(pos.piece_bitboards[k]),
-                                 pos.colour_to_move ^ 1);
+            // bool givesCheck = is_square_under_attack(
+            //                      pos,
+            //                      (pos.colour_to_move == white) ? get_lsb_index(pos.piece_bitboards[K])
+            //                                                    : get_lsb_index(pos.piece_bitboards[k]),
+            //                      pos.colour_to_move ^ 1);
 
-            bool allowFutilityPrune = false;
-            if (ply && !isPvNode && (depth <= 3))
-            {
-                if ((static_eval + futility_margin(depth)) <= alpha)
-                {
-                    allowFutilityPrune = true;
-                }
-            }
+            // bool allowFutilityPrune = false;
+            // if (ply && !isPvNode && (depth <= 3))
+            // {
+            //     if ((static_eval + futility_margin(depth)) <= alpha)
+            //     {
+            //         allowFutilityPrune = true;
+            //     }
+            // }
 
-            if (allowFutilityPrune && !givesCheck &&
-                (get_move_piece(move) != P) && (get_move_piece(move) != p) &&
-                !get_promoted_piece(move) && !get_is_move_castling(move) &&
-                !get_is_capture_move(move))
-            {
-                td.repetition_index--;
-                pos.restoreBoard(ply);
-                continue;
-            }
+            // if (allowFutilityPrune && !givesCheck &&
+            //     (get_move_piece(move) != P) && (get_move_piece(move) != p) &&
+            //     !get_promoted_piece(move) && !get_is_move_castling(move) &&
+            //     !get_is_capture_move(move))
+            // {
+            //     pos.repetition_index--;
+            //     pos.restoreBoard(ply);
+            //     continue;
+            // }
 
             // -----------------------------
             // (B) Late Move Pruning (LMP)
@@ -289,7 +285,7 @@ int negamax(thrawn::Position& pos, ThreadData &td,
                 !get_is_capture_move(move) &&
                 (valid_moves > LateMovePruning_factors[depth]))
             {
-                td.repetition_index--;
+                pos.repetition_index--;
                 pos.restoreBoard(ply);
                 continue;
             }
@@ -304,7 +300,7 @@ int negamax(thrawn::Position& pos, ThreadData &td,
                 get_promoted_piece(move) == 0)
             {
                 // Reduced search
-                int reduction = (depth >= 5) ? 2 : 1;
+                int reduction = 2;
                 score = -negamax(pos, td, depth - reduction, -alpha - 1, -alpha, ply + 1, false);
             }
             else
@@ -327,7 +323,7 @@ int negamax(thrawn::Position& pos, ThreadData &td,
             }
         }
 
-        td.repetition_index--;
+        pos.repetition_index--;
         pos.restoreBoard(ply);
         moves_searched++;
 
@@ -358,7 +354,7 @@ int negamax(thrawn::Position& pos, ThreadData &td,
             // Fail-hard beta cutoff
             if (alpha >= beta)
             {
-                tt.store(pos, depth, beta, hashFlagBETA, bestMove, curr_hash_age, ply);
+                tt.store(pos, depth, beta, hashFlagBETA, bestMove, ply);
 
                 // killer move
                 if (get_is_capture_move(move) == 0)
@@ -383,7 +379,7 @@ int negamax(thrawn::Position& pos, ThreadData &td,
     }
 
     // 14) Store in TT and return
-    tt.store(pos, depth, alpha, hashFlag, bestMove, curr_hash_age, ply);
+    tt.store(pos, depth, alpha, hashFlag, bestMove, ply);
     return alpha;
 }
 
@@ -427,19 +423,19 @@ int quiescence(thrawn::Position& pos, ThreadData &td,
         pos.copyBoard(ply);
 
         // update repetition
-        td.repetition_index++;
-        td.repetition_table[td.repetition_index] = pos.zobristKey;
+        pos.repetition_index++;
+        pos.repetition_table[pos.repetition_index] = pos.zobristKey;
 
         if (!make_move(pos, move, only_captures, ply))
         {
-            td.repetition_index--;
+            pos.repetition_index--;
             pos.restoreBoard(ply);
             continue;
         }
 
         int score = -quiescence(pos, td, -beta, -alpha, ply + 1);
 
-        td.repetition_index--;
+        pos.repetition_index--;
         pos.restoreBoard(ply);
 
         if (stopped == 1)
@@ -585,11 +581,11 @@ void quicksort_moves(std::vector<int> &moves, std::vector<int> &move_scores,
 }
 
 // repetition check
-int isRepetition(thrawn::Position& pos, ThreadData &td)
+int isRepetition(thrawn::Position& pos)
 {
-    for (int i = 0; i <= td.repetition_index; i++)
+    for (int i = 0; i <= pos.repetition_index; i++)
     {
-        if (td.repetition_table[i] == pos.zobristKey)
+        if (pos.repetition_table[i] == pos.zobristKey)
             return 1;
     }
     return 0;

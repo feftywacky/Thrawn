@@ -3,6 +3,7 @@
 #include "uci.h"        // for 'stopped', 'communicate()'
 #include "move_helpers.h"
 #include "transposition_table.h"
+#include "globals.h"
 #include <thread>
 #include <iostream>
 #include <mutex>
@@ -27,12 +28,22 @@ ThreadData::ThreadData()
     killer_moves.resize(2, std::vector<int>(64, 0));
     history_moves.resize(12, std::vector<int>(64, 0));
 
-    repetition_table.resize(1028, 0ULL);
-    repetition_index = 0;
-    fifty_move       = 0;
-
     follow_pv_flag = false;
     score_pv_flag  = false;
+    allowNullMovePruning = true;
+}
+
+void ThreadData::resetThreadData() {
+    std::fill(pv_depth.begin(), pv_depth.end(), 0);
+    for (auto &row : pv_table)
+        std::fill(row.begin(), row.end(), 0);
+    for (auto &row : killer_moves)
+        std::fill(row.begin(), row.end(), 0);
+    for (auto &row : history_moves)
+        std::fill(row.begin(), row.end(), 0);
+
+    follow_pv_flag = false;
+    score_pv_flag = false;
     allowNullMovePruning = true;
 }
 
@@ -59,11 +70,22 @@ static void smp_worker_thread_func(const thrawn::Position& rootPos, ThreadData t
         if (stop_threads.load() || stopped == 1)
             break;
         
-        // For PV ordering
         td.follow_pv_flag = true;
         
         // Call negamax with the board (pos) and the thread's SearchData.
         score = negamax(pos, td, curr_depth, alpha, beta, 0, true);
+
+        // aspiration window
+        if ((score <= alpha) || (score >= beta))
+        {
+            alpha = -INFINITY;
+            beta = INFINITY;
+            continue;
+        }
+
+        // set up the window for the next iteration
+        alpha = score - 50;
+        beta = score + 50;
         
         // Only thread 0 logs the result.
         if (threadID == 0)
@@ -124,7 +146,8 @@ void search_position_threaded(const thrawn::Position &rootPos, int maxDepth, int
     stopped = 0;
     nodes   = 0;
     globalSearchStartTime = get_time_ms();
-    curr_hash_age++;
+
+    tt.incrementAge();
 
     // Spawn threads
     std::vector<std::thread> workerPool;

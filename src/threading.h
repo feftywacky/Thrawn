@@ -28,11 +28,6 @@ public:
     std::vector<std::vector<int>> killer_moves;      // killer_moves[2][depth]
     std::vector<std::vector<int>> history_moves;     // history_moves[piece][square]
 
-    // =========== REPETITION =========== //
-    std::vector<uint64_t> repetition_table;          // records zobrist keys for repetition
-    int repetition_index;
-    int fifty_move;
-
     // =========== FLAGS FOR PV ORDERING =========== //
     bool follow_pv_flag;
     bool score_pv_flag;
@@ -40,6 +35,8 @@ public:
 
     // Constructor
     ThreadData();
+
+    void resetThreadData();
 };
 
 /*
