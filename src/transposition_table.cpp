@@ -41,72 +41,56 @@ void TranspositionTable::initTable(int mb)
 void TranspositionTable::reset()
 {
     if (table && numEntries > 0) {
-        std::memset(table, 0, numEntries * sizeof(TTEntry));
+        for (int i = 0; i < numEntries; i++) {
+            table[i].key       = 0ULL;
+            table[i].depth     = 0;
+            table[i].score     = 0;
+            table[i].hash_flag = 0;     
+            table[i].best_move = 0;      
+            table[i].age       = 0;     
+        }
     }
-    currentAge = 0; // Reset the age as well.
+    currentAge = 0;
 }
 
-int TranspositionTable::probe(const thrawn::Position &pos, int depth, int alpha, int beta,
-                                int &bestMove, int ply)
+int TranspositionTable::probe(const thrawn::Position &pos, int depth, int alpha, int beta, int &bestMove, int ply)
 {
-    if (!table || numEntries <= 0)
-        return no_hashmap_entry;
-
-    uint64_t key = pos.zobristKey;
-    int index = static_cast<int>(key % numEntries);
+    int index = static_cast<int>(pos.zobristKey % numEntries);
 
     TTEntry entry = table[index];
 
+    if(entry.key == pos.zobristKey)
+    {
+        if(entry.depth >= depth)
+        {
+            int score = entry.score;
+
+            if (score < -mateScore)
+                score += ply;
+            if (score > mateScore) 
+                score -= ply;
+
+            if (entry.hash_flag == hashFlagEXACT) // pv node
+                return score;
+            if (entry.hash_flag == hashFlagALPHA && score <= alpha) // fail-low score
+                return alpha;
+            if (entry.hash_flag == hashFlagBETA && score >= beta) // fail-high score
+                return beta;
+        }
+    }
     bestMove = entry.best_move;
-
-    // Check for a matching key and sufficient search depth.
-    if (entry.key != key || entry.depth < depth)
-        return no_hashmap_entry;
-
-    int score = entry.score;
-
-    if (score < -mateScore) 
-        score += ply;
-    if (score > mateScore) 
-        score -= ply;
-
-    if (entry.hash_flag == hashFlagEXACT)
-        return score;
-    if (entry.hash_flag == hashFlagALPHA && score <= alpha)
-        return alpha;
-    if (entry.hash_flag == hashFlagBETA  && score >= beta)
-        return beta;
 
     return no_hashmap_entry;
 }
 
-void TranspositionTable::store(const thrawn::Position &pos, int depth, int score,
-                                 int flag, int bestMove, int ply)
+void TranspositionTable::store(const thrawn::Position &pos, int depth, int score, int flag, int bestMove, int ply)
 {
-    if (!table || numEntries <= 0)
-        return;
+    int index = static_cast<int>(pos.zobristKey % numEntries);
 
-    uint64_t key = pos.zobristKey;
-    int index = static_cast<int>(key % numEntries);
+    if (score < -mateScore) score -= ply;
+    if (score > mateScore) score += ply;
 
-    // Replacement logic: Replace if the entry is unused or if its stored age is older,
-    // or if the stored search depth is less than or equal to the new depth.
-    bool replace = false;
-    if (table[index].key == 0)
-        replace = true;
-    else if (table[index].age < currentAge || table[index].depth <= depth)
-        replace = true;
-
-    if (!replace)
-        return;
-
-    // Adjust mate scores using ply if necessary.
-    if (score < -mateScore)
-        score -= ply;
-    if (score > mateScore)
-        score += ply;
-
-    table[index].key = key;
+    table[index].key = pos.zobristKey;
     table[index].depth = depth;
     table[index].score = score;
     table[index].hash_flag = flag;

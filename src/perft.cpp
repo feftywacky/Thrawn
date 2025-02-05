@@ -21,14 +21,12 @@ void perft_search(thrawn::Position& pos, int depth) {
     vector<int> moves = generate_moves(pos);
 
     for (int move : moves) {
-        pos.copyBoard(depth);
-
         if (!make_move(pos, move, all_moves, depth))
             continue;
 
         perft_search(pos, depth - 1);
 
-        pos.restoreBoard(depth);
+        unmake_move(pos, depth);
     }
 }
 
@@ -43,8 +41,6 @@ int perft_test(thrawn::Position& pos, int depth) {
     std::cout << "Progress: [";
 
     for (int move : moves) {
-        pos.copyBoard(depth);
-
         if (!make_move(pos, move, all_moves, depth))
             continue;
 
@@ -52,7 +48,7 @@ int perft_test(thrawn::Position& pos, int depth) {
 
         perft_search(pos, depth - 1);
 
-        pos.restoreBoard(depth);
+        unmake_move(pos, depth);
         moves_processed++;
 
         // Update the loading bar dynamically
@@ -99,7 +95,7 @@ void perft_run_unit_tests() {
     struct Test {
         const char* fen;
         int depth;
-        int expected_nodes;
+        long long expected_nodes;
     };
 
     Test tests[] = {

@@ -14,6 +14,7 @@ vector<int> generate_moves(thrawn::Position& pos);
 
 
 int make_move(thrawn::Position& pos, int move, int move_type, int ply);
+void unmake_move(thrawn::Position& pos, int ply);
     
     
 void parse_white_pawn_moves(thrawn::Position& pos,uint64_t& curr, vector<int>& moves);

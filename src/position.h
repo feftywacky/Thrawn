@@ -9,14 +9,13 @@
 namespace thrawn {
 
 // Holds all data needed to restore a position
-struct BoardState {
-    std::array<uint64_t, 12> piece_bitboards;
-    std::array<uint64_t, 3>  occupancies;
-    int colour_to_move;
-    int enpassant;
-    int castle_rights;
-    uint64_t zobristKey;
-    int fifty_move;
+struct UndoData {
+    int move;             // the packed move itself: source, target, etc.
+    int captured_piece;   // which piece got captured (if any)
+    int castle_rights;    // old castle rights before move
+    int enpassant;        // old en-passant square
+    int fifty_move;       // old halfmove clock
+    uint64_t zobristKey;  // old zobrist key (optional but convenient)
 };
 
 class Position {
@@ -51,13 +50,10 @@ public:
     uint64_t colour_to_move_hashkey;
 
     //============= UNDO STACK =============//
-    BoardState undo_stack[MAX_DEPTH];
+    UndoData undo_stack[MAX_DEPTH];
 
     //============= CONSTRUCTORS & METHODS =============//
     Position();
-
-    void copyBoard(int ply);
-    void restoreBoard(int ply);
 };
 
 } // namespace thrawn

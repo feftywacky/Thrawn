@@ -2,72 +2,74 @@
 #define THREADING_H
 
 #include <atomic>
-#include <vector>
 #include <mutex>
 #include "position.h"
+#include "constants.h"
 
 /*
  * ThreadData:
- *  Holds all per-thread arrays and data that were previously global:
+ *  Holds all per-thread arrays and data previously global:
  *    - PV arrays
  *    - Killer moves
  *    - History tables
- *    - Repetition data
  *    - Flags for move ordering (follow_pv_flag, etc.)
- * 
- *  We use a class here for clarity; there's no performance issue 
- *  compared to a struct. The overhead is minimal compared to overall search.
  */
 class ThreadData {
 public:
-    // =========== PV STORAGE =========== //
-    std::vector<int> pv_depth;                       // PV length array
-    std::vector<std::vector<int>> pv_table;          // PV lines
+    // PV storage: one array for PV lengths and a 2D array for the PV lines.
+    std::array<int, MAX_DEPTH> pv_depth;
+    std::array<std::array<int, MAX_DEPTH>, MAX_DEPTH> pv_table;
 
-    // =========== KILLER / HISTORY =========== //
-    std::vector<std::vector<int>> killer_moves;      // killer_moves[2][depth]
-    std::vector<std::vector<int>> history_moves;     // history_moves[piece][square]
+    // Killer moves and history moves.
+    std::array<std::array<int, MAX_DEPTH>, KILLER_MOVES> killer_moves;
+    std::array<std::array<int, MAX_DEPTH>, HISTORY_SIZE> history_moves;
 
-    // =========== FLAGS FOR PV ORDERING =========== //
+    // Flags used for move ordering and search heuristics.
     bool follow_pv_flag;
     bool score_pv_flag;
     bool allowNullMovePruning;
 
-    // Constructor
+    // Constructor initializes all arrays to zero and flags to false (or true where needed).
     ThreadData();
 
+    // Reset the thread data between searches.
     void resetThreadData();
 };
 
 /*
- * Thread class:
- *  Each worker thread owns:
- *   - a local rootPos (copy of the main root position)
- *   - a local ThreadData object for storing search heuristics
+ * Thread:
+ *  A convenience class that groups together the per-thread state:
+ *    - a local copy of the root position
+ *    - the local search data (ThreadData)
  */
-class Thread {
+class SMP_Thread {
 public:
-    // The position copy for this thread
     thrawn::Position rootPos;
-
-    // The local search data
     ThreadData td;
 
-    // Constructor that copies the initial position
-    Thread(const thrawn::Position &pos) : rootPos(pos), td() {}
+    // Default constructor (required for stack allocation).
+    SMP_Thread();
+
+    // Parameterized constructor that initializes the root position.
+    SMP_Thread(const thrawn::Position &pos);
 };
 
 /*
- * stop_threads: 
- *  an atomic flag for the threads to check if they should stop (time up, etc.)
+ * An atomic flag to signal threads to stop (time up, etc.)
  */
 extern std::atomic<bool> stop_threads;
 
 /*
- * search_position_threaded:
- *  The multi-threaded search entry point. 
- *  We pass the updated root position (from UCI) by reference, 
- *  then create 'numThreads' local copies for the workers.
+ * Worker thread function:
+ *  Each thread receives a pointer to its Thread object, so it can use its own copy
+ *  of the position (rootPos) and search data (td).
+ */
+void smp_worker_thread_func(SMP_Thread* threadObj, int threadID, int maxDepth);
+
+/*
+ * Threaded search entry point:
+ *  Creates numThreads Thread objects (each with its own copy of the root position)
+ *  and spawns a worker thread for each.
  */
 void search_position_threaded(const thrawn::Position &pos, int depth, int numThreads);
 

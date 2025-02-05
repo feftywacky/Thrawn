@@ -1,81 +1,95 @@
 #include "threading.h"
-#include "search.h"     // for negamax, quiescence, etc.
-#include "uci.h"        // for 'stopped', 'communicate()'
+#include "search.h"         // for negamax, quiescence, etc.
+#include "uci.h"            // for 'stopped', 'communicate()', etc.
 #include "move_helpers.h"
 #include "transposition_table.h"
 #include "globals.h"
 #include <thread>
 #include <iostream>
-#include <mutex>
-#include <vector>
 #include <atomic>
 
+// Global flag and timing variable.
 std::atomic<bool> stop_threads(false);
-static std::mutex printMutex;
-static std::mutex bestMoveMutex;
-static int globalBestMove  = 0;
 static int globalSearchStartTime = 0;
 
 /*
- * ThreadData constructor: 
- * Allocates the arrays to the needed sizes for up to MAX_DEPTH=64.
+ * ThreadData constructor:
+ * Initializes all fixed‑size arrays to zero and sets flags.
  */
-ThreadData::ThreadData()
-{
-    pv_depth.resize(64, 0);
-    pv_table.resize(64, std::vector<int>(64, 0));
-
-    killer_moves.resize(2, std::vector<int>(64, 0));
-    history_moves.resize(12, std::vector<int>(64, 0));
+ThreadData::ThreadData() {
+    pv_depth.fill(0);
+    for (auto &row : pv_table)
+        row.fill(0);
+    for (auto &row : killer_moves)
+        row.fill(0);
+    for (auto &row : history_moves)
+        row.fill(0);
 
     follow_pv_flag = false;
     score_pv_flag  = false;
     allowNullMovePruning = true;
 }
 
+/*
+ * Reset the thread data between searches.
+ */
 void ThreadData::resetThreadData() {
-    std::fill(pv_depth.begin(), pv_depth.end(), 0);
+    pv_depth.fill(0);
     for (auto &row : pv_table)
-        std::fill(row.begin(), row.end(), 0);
+        row.fill(0);
     for (auto &row : killer_moves)
-        std::fill(row.begin(), row.end(), 0);
+        row.fill(0);
     for (auto &row : history_moves)
-        std::fill(row.begin(), row.end(), 0);
+        row.fill(0);
 
     follow_pv_flag = false;
-    score_pv_flag = false;
+    score_pv_flag  = false;
     allowNullMovePruning = true;
+}
+
+/*
+ * SMP_Thread default constructor.
+ * This is needed for allocating an array of SMP_Thread objects on the stack.
+ */
+SMP_Thread::SMP_Thread() : rootPos(), td() {
+    // Default construction of rootPos and td.
+}
+
+/*
+ * SMP_Thread parameterized constructor.
+ * Copies the given root position.
+ */
+SMP_Thread::SMP_Thread(const thrawn::Position &pos) : rootPos(pos), td() {
 }
 
 /**
  * smp_worker_thread_func
  *
- * Each thread makes its own copy of the root Position and does an iterative deepening
- * search from depth=1..maxDepth. The master thread (threadID=0) reports the best
- * move at each iteration. Other threads share the same transposition table to aid thread 0 to search
- *
- * Lazy SMP does not require a sophisticated split at the root;
- * we simply let multiple threads run the same iterative deepening and share the TT.
+ * Each worker thread uses its own SMP_Thread object (which contains a local copy
+ * of the root position and its search data) to perform iterative deepening.
  */
-static void smp_worker_thread_func(const thrawn::Position& rootPos, ThreadData td, int threadID, int maxDepth)
+void smp_worker_thread_func(SMP_Thread* threadObj, int threadID, int maxDepth)
 {
-    thrawn::Position pos = rootPos;
+    // Use the local copy of the position and the thread's search data.
+    thrawn::Position& pos = threadObj->rootPos;
+    ThreadData* td = &threadObj->td;
+
     int alpha = -INFINITY;
     int beta  =  INFINITY;
     int score = 0;
     
-    // Iterative deepening from 1..maxDepth
+    // Perform iterative deepening from depth 1 to maxDepth.
     for (int curr_depth = 1; curr_depth <= maxDepth; curr_depth++)
     {
         if (stop_threads.load() || stopped == 1)
             break;
         
-        td.follow_pv_flag = true;
+        td->follow_pv_flag = true;
         
-        // Call negamax with the board (pos) and the thread's SearchData.
+        // Perform the search at the current depth.
         score = negamax(pos, td, curr_depth, alpha, beta, 0, true);
 
-        // aspiration window
+        // If the score falls outside the aspiration window, widen the window and continue.
         if ((score <= alpha) || (score >= beta))
         {
             alpha = -INFINITY;
@@ -83,46 +97,43 @@ static void smp_worker_thread_func(const thrawn::Position& rootPos, ThreadData t
             continue;
         }
 
-        // set up the window for the next iteration
+        // Update the aspiration window.
         alpha = score - 50;
         beta = score + 50;
         
-        // Only thread 0 logs the result.
+        // Only thread 0 prints the search info.
         if (threadID == 0)
-        {
-            globalBestMove = td.pv_table[0][0];
-            
-            if (td.pv_depth[0])
+        {   
+            if (td->pv_depth[0])
             {
                 int currentTime = get_time_ms() - globalSearchStartTime;
                 if (score > -mateVal && score < -mateScore)
                 {
                     std::cout << "info score mate " << -(score + mateVal) / 2 - 1
-                            << " depth " << curr_depth
-                            << " nodes " << nodes
-                            << " time " << currentTime
-                            << " pv ";
+                              << " depth " << curr_depth
+                              << " nodes " << nodes
+                              << " time " << currentTime
+                              << " pv ";
                 }
                 else if (score > mateScore && score < mateVal)
                 {
                     std::cout << "info score mate " << (mateVal - score) / 2 + 1
-                            << " depth " << curr_depth
-                            << " nodes " << nodes
-                            << " time " << currentTime
-                            << " pv ";
+                              << " depth " << curr_depth
+                              << " nodes " << nodes
+                              << " time " << currentTime
+                              << " pv ";
                 }
                 else
                 {
                     std::cout << "info score cp " << score
-                            << " depth " << curr_depth
-                            << " nodes " << nodes
-                            << " time " << currentTime
-                            << " pv ";
+                              << " depth " << curr_depth
+                              << " nodes " << nodes
+                              << " time " << currentTime
+                              << " pv ";
                 }
-
-                for (int i = 0; i < td.pv_depth[0]; i++)
+                for (int i = 0; i < td->pv_depth[0]; i++)
                 {
-                    print_move(td.pv_table[0][i]);
+                    print_move(td->pv_table[0][i]);
                     std::cout << " ";
                 }
                 std::cout << "\n";
@@ -134,42 +145,50 @@ static void smp_worker_thread_func(const thrawn::Position& rootPos, ThreadData t
 /**
  * search_position_threaded
  *
- * Creates 'numThreads' worker threads. The master thread (ID=0) eventually
- * prints out "bestmove X" after all threads are done or a stop is triggered.
+ * Creates up to MAX_THREADS SMP_Thread objects (each with its own copy of the root position)
+ * on the stack and spawns a worker thread for each. After all threads finish, the best move is printed.
  */
 void search_position_threaded(const thrawn::Position &rootPos, int maxDepth, int numThreads)
 {
-    globalBestMove  = 0;
-
-    // Reset stop flags and counters
+    // Reset stop flags and counters.
     stop_threads.store(false);
     stopped = 0;
-    nodes   = 0;
+    nodes = 0;
     globalSearchStartTime = get_time_ms();
 
     tt.incrementAge();
 
-    // Spawn threads
-    std::vector<std::thread> workerPool;
-    workerPool.reserve(numThreads);
+    // Limit the number of threads to MAX_THREADS.
+    if (numThreads > MAX_THREADS)
+        numThreads = MAX_THREADS;
 
+    // Allocate SMP_Thread objects on the stack.
+    std::vector<SMP_Thread> threadObjs;
+    threadObjs.reserve(numThreads);
     for (int i = 0; i < numThreads; i++)
     {
-        workerPool.emplace_back(smp_worker_thread_func, rootPos, ThreadData(), i, maxDepth);
+        threadObjs.emplace_back(rootPos);
     }
 
-    // Wait for all threads
-    for (auto &t : workerPool)
-        t.join();
-
-    // After all threads finish, output the final best move (from thread 0’s results).
+    // Create an array of std::thread objects (also on the stack).
+    std::vector<std::thread> workerPool;
+    workerPool.reserve(numThreads);
+    for (int i = 0; i < numThreads; i++)
     {
-        std::lock_guard<std::mutex> lock(printMutex);
-        std::cout << "bestmove ";
-        print_move(globalBestMove);
-        std::cout << std::endl;
+        workerPool.emplace_back(smp_worker_thread_func, &threadObjs[i], i, maxDepth);
     }
 
-    // Signal that we are done
+    // Wait for all worker threads to complete.
+    for (int i = 0; i < numThreads; i++)
+    {
+        workerPool[i].join();
+    }
+
+    // After all threads finish, output the best move (taken from thread 0’s search data).
+    std::cout << "bestmove ";
+    print_move(threadObjs[0].td.pv_table[0][0]);
+    std::cout << std::endl;
+
+    // Signal that the search is complete.
     stopped = 1;
 }

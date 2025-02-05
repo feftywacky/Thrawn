@@ -21,6 +21,8 @@ int main() {
     if (dev_mode)
     {
         cout<<"dev mode"<<endl;
+        parse_fen(pos,start_position);
+        search_position_threaded(pos,12,1);
     }
     else
     {

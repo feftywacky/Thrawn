@@ -18,6 +18,10 @@ using namespace std;
 #define mateScore 48000
 #define MAX_DEPTH 64
 
+constexpr int KILLER_MOVES   = 2;
+constexpr int HISTORY_SIZE   = 12;
+constexpr int MAX_THREADS    = 32;
+
 enum{
     white,
     black,
