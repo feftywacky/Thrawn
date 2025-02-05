@@ -59,7 +59,7 @@ SMP_Thread::SMP_Thread() : rootPos(), td() {
  * SMP_Thread parameterized constructor.
  * Copies the given root position.
  */
-SMP_Thread::SMP_Thread(const thrawn::Position &pos) : rootPos(pos), td() {
+SMP_Thread::SMP_Thread(const thrawn::Position* pos) : rootPos(*pos), td() {
 }
 
 /**
@@ -71,7 +71,7 @@ SMP_Thread::SMP_Thread(const thrawn::Position &pos) : rootPos(pos), td() {
 void smp_worker_thread_func(SMP_Thread* threadObj, int threadID, int maxDepth)
 {
     // Use the local copy of the position and the thread's search data.
-    thrawn::Position& pos = threadObj->rootPos;
+    thrawn::Position* pos = &threadObj->rootPos;
     ThreadData* td = &threadObj->td;
 
     int alpha = -INFINITY;
@@ -148,7 +148,7 @@ void smp_worker_thread_func(SMP_Thread* threadObj, int threadID, int maxDepth)
  * Creates up to MAX_THREADS SMP_Thread objects (each with its own copy of the root position)
  * on the stack and spawns a worker thread for each. After all threads finish, the best move is printed.
  */
-void search_position_threaded(const thrawn::Position &rootPos, int maxDepth, int numThreads)
+void search_position_threaded(const thrawn::Position* rootPos, int maxDepth, int numThreads)
 {
     // Reset stop flags and counters.
     stop_threads.store(false);
@@ -156,7 +156,7 @@ void search_position_threaded(const thrawn::Position &rootPos, int maxDepth, int
     nodes = 0;
     globalSearchStartTime = get_time_ms();
 
-    tt.incrementAge();
+    tt->incrementAge();
 
     // Limit the number of threads to MAX_THREADS.
     if (numThreads > MAX_THREADS)

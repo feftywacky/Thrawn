@@ -4,7 +4,7 @@
 #include <cstdint>
 #include "position.h"
 
-// Constants for the TT.
+// Constants for the tt->
 static const int no_hashmap_entry = 100000;  // Sentinel for "TT miss"
 static const int hashFlagEXACT    = 0;
 static const int hashFlagALPHA    = 1;
@@ -35,12 +35,12 @@ public:
     // Increments the current age (to be called at the start of a new search)
     void incrementAge() { currentAge++; }
 
-    // Lookup a position in the TT.
-    int probe(const thrawn::Position &pos, int depth, int alpha, int beta,
+    // Lookup a position in the tt->
+    int probe(const thrawn::Position* pos, int depth, int alpha, int beta,
               int &bestMove, int ply);
 
-    // Store an entry in the TT.
-    void store(const thrawn::Position &pos, int depth, int score,
+    // Store an entry in the tt->
+    void store(const thrawn::Position* pos, int depth, int score,
                int flag, int bestMove, int ply);
 
 private:

@@ -42,7 +42,7 @@ public:
     std::array<uint64_t, 64> bishop_masks;
     std::array<std::array<uint64_t, 512>, 64> bishop_attacks;
     std::array<uint64_t, 64> rook_masks;
-    std::vector<std::vector<uint64_t>> rook_attacks;
+    std::array<std::array<uint64_t, 4096>, 64> rook_attacks;
 
     uint64_t piece_hashkey[12][64];
     uint64_t enpassant_hashkey[64];

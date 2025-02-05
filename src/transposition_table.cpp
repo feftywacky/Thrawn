@@ -1,5 +1,5 @@
 #include "transposition_table.h"
-#include "constants.h"  // for mateScore, etc.
+#include "constants.h"
 #include <cstring>
 #include <iostream>
 
@@ -41,25 +41,18 @@ void TranspositionTable::initTable(int mb)
 void TranspositionTable::reset()
 {
     if (table && numEntries > 0) {
-        for (int i = 0; i < numEntries; i++) {
-            table[i].key       = 0ULL;
-            table[i].depth     = 0;
-            table[i].score     = 0;
-            table[i].hash_flag = 0;     
-            table[i].best_move = 0;      
-            table[i].age       = 0;     
-        }
+        memset(table, 0, numEntries * sizeof(TTEntry));
     }
     currentAge = 0;
 }
 
-int TranspositionTable::probe(const thrawn::Position &pos, int depth, int alpha, int beta, int &bestMove, int ply)
+int TranspositionTable::probe(const thrawn::Position* pos, int depth, int alpha, int beta, int &bestMove, int ply)
 {
-    int index = static_cast<int>(pos.zobristKey % numEntries);
+    int index = static_cast<int>(pos->zobristKey % numEntries);
 
     TTEntry entry = table[index];
 
-    if(entry.key == pos.zobristKey)
+    if(entry.key == pos->zobristKey)
     {
         if(entry.depth >= depth)
         {
@@ -83,14 +76,14 @@ int TranspositionTable::probe(const thrawn::Position &pos, int depth, int alpha,
     return no_hashmap_entry;
 }
 
-void TranspositionTable::store(const thrawn::Position &pos, int depth, int score, int flag, int bestMove, int ply)
+void TranspositionTable::store(const thrawn::Position* pos, int depth, int score, int flag, int bestMove, int ply)
 {
-    int index = static_cast<int>(pos.zobristKey % numEntries);
+    int index = static_cast<int>(pos->zobristKey % numEntries);
 
     if (score < -mateScore) score -= ply;
     if (score > mateScore) score += ply;
 
-    table[index].key = pos.zobristKey;
+    table[index].key = pos->zobristKey;
     table[index].depth = depth;
     table[index].score = score;
     table[index].hash_flag = flag;

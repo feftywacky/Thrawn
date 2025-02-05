@@ -16,18 +16,21 @@ using namespace std;
 
 int main() {
     init_all();
-    bool dev_mode = false;
+    bool dev_mode = true;
     
     if (dev_mode)
     {
         cout<<"dev mode"<<endl;
+        //perft_run_unit_tests();
         parse_fen(pos,start_position);
-        search_position_threaded(pos,12,1);
+        search_position_threaded(pos,13,1);
     }
     else
     {
         uci_loop(pos);
     }
+
+    delete pos;
 
     return 0;
 }

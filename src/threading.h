@@ -51,7 +51,7 @@ public:
     SMP_Thread();
 
     // Parameterized constructor that initializes the root position.
-    SMP_Thread(const thrawn::Position &pos);
+    SMP_Thread(const thrawn::Position* pos);
 };
 
 /*
@@ -71,6 +71,6 @@ void smp_worker_thread_func(SMP_Thread* threadObj, int threadID, int maxDepth);
  *  Creates numThreads Thread objects (each with its own copy of the root position)
  *  and spawns a worker thread for each.
  */
-void search_position_threaded(const thrawn::Position &pos, int depth, int numThreads);
+void search_position_threaded(const thrawn::Position* pos, int depth, int numThreads);
 
 #endif // THREADING_H

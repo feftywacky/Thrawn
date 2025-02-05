@@ -18,7 +18,7 @@ void init_all()
 
     // init hashkeys
     // init_hashkeys();
-    tt.initTable(128); // default of 64 MB
+    tt->initTable(128); // default of 64 MB
 
     // init eval masks
     //init_eval_masks();

@@ -12,7 +12,7 @@
 
 long leaf_nodes;
 
-void perft_search(thrawn::Position& pos, int depth) {
+void perft_search(thrawn::Position* pos, int depth) {
     if (depth == 0) {
         leaf_nodes++;
         return;
@@ -30,7 +30,7 @@ void perft_search(thrawn::Position& pos, int depth) {
     }
 }
 
-int perft_test(thrawn::Position& pos, int depth) {
+int perft_test(thrawn::Position* pos, int depth) {
     vector<int> moves = generate_moves(pos);
     size_t total_moves = moves.size();
     size_t moves_processed = 0;
@@ -120,13 +120,13 @@ void perft_run_unit_tests() {
     std::cout << "=========================\n";
 
     for (int i = 0; i < sizeof(tests) / sizeof(Test); i++) {
-        parse_fen(p, tests[i].fen);
+        parse_fen(&p, tests[i].fen);
 
         std::cout << "Test " << i + 1 << ": FEN = " << tests[i].fen << "\n";
         std::cout << "Expected Nodes: " << tests[i].expected_nodes << "\n";
 
         auto test_start = std::chrono::high_resolution_clock::now();
-        output_nodes = perft_test(p, tests[i].depth);
+        output_nodes = perft_test(&p, tests[i].depth);
         auto test_duration = std::chrono::high_resolution_clock::now() - test_start;
         auto test_duration_ms = std::chrono::duration_cast<std::chrono::milliseconds>(test_duration).count();
 

@@ -157,7 +157,7 @@ void communicate() {
 UCI PROTOCOL
 */
 
-int uci_parse_move(thrawn::Position& pos, const char *move_str)
+int uci_parse_move(thrawn::Position* pos, const char *move_str)
 {
     std::vector<int> moves = generate_moves(pos);
     
@@ -193,7 +193,7 @@ int uci_parse_move(thrawn::Position& pos, const char *move_str)
     return 0;
 }
 
-void uci_parse_position(thrawn::Position& pos, const char *command) {
+void uci_parse_position(thrawn::Position* pos, const char *command) {
     // Create a non-const pointer for manipulation
     cout<<command<<endl;
     const char *non_const_command = command;
@@ -237,8 +237,8 @@ void uci_parse_position(thrawn::Position& pos, const char *command) {
             if (move == 0)
                 break;
 
-            pos.repetition_index++;
-            pos.repetition_table[pos.repetition_index] = pos.zobristKey;
+            pos->repetition_index++;
+            pos->repetition_table[pos->repetition_index] = pos->zobristKey;
 
             make_move(pos, move, all_moves,-1);
 
@@ -257,7 +257,7 @@ void uci_parse_position(thrawn::Position& pos, const char *command) {
 
 }
 
-void uci_parse_go(thrawn::Position& pos, const char* command)
+void uci_parse_go(thrawn::Position* pos, const char* command)
 {
     reset_time_control();
     int depth = -1;
@@ -266,25 +266,25 @@ void uci_parse_go(thrawn::Position& pos, const char* command)
     if (strstr(command, "infinite") != nullptr) {}
 
     // Match UCI "binc" command
-    if (strstr(command, "binc") != nullptr && pos.colour_to_move == 1) {
+    if (strstr(command, "binc") != nullptr && pos->colour_to_move == 1) {
         // Parse black time increment
         inc = atoi(strstr(command, "binc") + 5);
     }
 
     // Match UCI "winc" command
-    if (strstr(command, "winc") != nullptr && pos.colour_to_move == 0) {
+    if (strstr(command, "winc") != nullptr && pos->colour_to_move == 0) {
         // Parse white time increment
         inc = atoi(strstr(command, "winc") + 5);
     }
 
     // Match UCI "wtime" command
-    if (strstr(command, "wtime") != nullptr && pos.colour_to_move == 0) {
+    if (strstr(command, "wtime") != nullptr && pos->colour_to_move == 0) {
         // Parse white time limit
         uci_time = atoi(strstr(command, "wtime") + 6);
     }
 
     // Match UCI "btime" command
-    if (strstr(command, "btime") != nullptr && pos.colour_to_move == 1) {
+    if (strstr(command, "btime") != nullptr && pos->colour_to_move == 1) {
         // Parse black time limit
         uci_time = atoi(strstr(command, "btime") + 6);
     }
@@ -350,7 +350,7 @@ void uci_parse_go(thrawn::Position& pos, const char* command)
     search_position_threaded(pos, depth, numThreads);  
 }
 
-void uci_loop(thrawn::Position& pos)
+void uci_loop(thrawn::Position* pos)
 {
     // just make it big enough
     #define INPUT_BUFFER 20000
@@ -391,14 +391,14 @@ void uci_loop(thrawn::Position& pos)
         // parse UCI "position" command
         else if (strncmp(input, "position", 8) == 0)
         {
-            tt.reset();
+            tt->reset();
             uci_parse_position(pos, input);
         }
 
         // parse UCI "ucinewgame" command
         else if (strncmp(input, "ucinewgame", 10) == 0)
         {
-            tt.reset();
+            tt->reset();
             uci_parse_position(pos, "position startpos");
         }
         // parse UCI "go" command
@@ -430,7 +430,7 @@ void uci_loop(thrawn::Position& pos)
             
             // set hash table size in MB
             std::cout << "    Set hash table size to " << mb << "MB\n";
-            tt.initTable(mb);
+            tt->initTable(mb);
         }
 
         else if (!strncmp(input, "setoption name Threads value ", 29)) {

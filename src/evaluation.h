@@ -56,7 +56,7 @@ extern const int get_rank_from_sq[64];
 extern int nnue_pieces[12];
 extern int nnue_squares[64];
 
-int evaluate(thrawn::Position& pos);
+int evaluate(thrawn::Position* pos);
 
 //void init_eval_masks();
 //uint64_t set_eval_masks(int rankNum, int fileNum);

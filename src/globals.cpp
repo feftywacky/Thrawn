@@ -1,4 +1,4 @@
 #include "globals.h"
 
-TranspositionTable tt;
-thrawn::Position pos;
+TranspositionTable* tt = new TranspositionTable();
+thrawn::Position* pos = new thrawn::Position();

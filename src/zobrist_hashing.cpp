@@ -10,7 +10,7 @@
 //
 //uint64_t zobristKey;
 
-void init_hashkeys(thrawn::Position& pos)
+void init_hashkeys(thrawn::Position* pos)
 {
     random_state = 1804289383;
     // piece hashkey
@@ -18,49 +18,49 @@ void init_hashkeys(thrawn::Position& pos)
     {
         for (int sq = 0; sq<64; sq++)
         {
-            pos.piece_hashkey[piece][sq] = get_random_U64();
+            pos->piece_hashkey[piece][sq] = get_random_U64();
         }
     }
 
     // enpassant hashkey
     for (int sq=0;sq<64;sq++)
     {
-        pos.enpassant_hashkey[sq] = get_random_U64();
+        pos->enpassant_hashkey[sq] = get_random_U64();
     }
 
     // castling hashkey
     for (int i=0;i<16;i++)
     {
-        pos.castling_hashkey[i] = get_random_U64();
+        pos->castling_hashkey[i] = get_random_U64();
     }
 
-    pos.colour_to_move_hashkey = get_random_U64();
+    pos->colour_to_move_hashkey = get_random_U64();
 }
 
-uint64_t gen_hashkey(thrawn::Position& pos)
+uint64_t gen_hashkey(thrawn::Position* pos)
 {
     uint64_t hashkey = 0ULL;
     uint64_t bitboard;
 
     for (int piece=P;piece<=k;piece++)
     {
-        bitboard = pos.piece_bitboards[piece];
+        bitboard = pos->piece_bitboards[piece];
         while(bitboard)
         {
             int sq = get_lsb_index(bitboard);
-            hashkey ^= pos.piece_hashkey[piece][sq];
+            hashkey ^= pos->piece_hashkey[piece][sq];
             pop_bit(bitboard, sq);
 
         }
     }
 
-    if (pos.enpassant!=null_sq)
-        hashkey ^= pos.enpassant_hashkey[pos.enpassant];
+    if (pos->enpassant!=null_sq)
+        hashkey ^= pos->enpassant_hashkey[pos->enpassant];
     
-    hashkey ^= pos.castling_hashkey[pos.castle_rights];
+    hashkey ^= pos->castling_hashkey[pos->castle_rights];
 
-    if (pos.colour_to_move == black)
-        hashkey ^= pos.colour_to_move_hashkey;
+    if (pos->colour_to_move == black)
+        hashkey ^= pos->colour_to_move_hashkey;
     
     return hashkey;
 }

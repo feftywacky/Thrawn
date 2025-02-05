@@ -29,20 +29,20 @@ extern int RFP_factor;
  * Now they accept a reference to ThreadData (td),
  * which holds PV arrays, killer moves, history, etc.
 */
-int negamax(thrawn::Position& pos, ThreadData* td, int depth, int alpha, int beta, int ply, bool isPvNode);
-int quiescence(thrawn::Position& pos, ThreadData* td, int alpha, int beta, int ply);
+int negamax(thrawn::Position* pos, ThreadData* td, int depth, int alpha, int beta, int ply, bool isPvNode);
+int quiescence(thrawn::Position* pos, ThreadData* td, int alpha, int beta, int ply);
 
 /*
  * Move ordering utilities
  */
-int score_move(thrawn::Position& pos, ThreadData* td, int move, int ply);
-void sort_moves(thrawn::Position& pos, ThreadData* td, std::vector<int>& moves, int bestMove, int ply);
+int score_move(thrawn::Position* pos, ThreadData* td, int move, int ply);
+void sort_moves(thrawn::Position* pos, ThreadData* td, std::vector<int>& moves, int bestMove, int ply);
 void score_pv(std::vector<int>& moves, ThreadData* td, int ply);
 
 /*
  * Repetition check
  */
-int isRepetition(thrawn::Position& pos);
+int isRepetition(thrawn::Position* pos);
 
 /*
  * A helper for quicksort-based move ordering

@@ -2,7 +2,7 @@
 # Compiler and base flags
 ###############################################################################
 CXX      := g++
-CXXFLAGS := -std=c++17
+CXXFLAGS := -std=c++17 
 
 ###############################################################################
 # Determine OS and set OS-specific variables
@@ -12,6 +12,7 @@ ifeq ($(OS),Windows_NT)
     RM      := del /Q
     MKDIR   := mkdir
     EXE     := Thrawn.exe
+    STACK_FLAG := -Wl,--stack,8388608
 else
     UNAME_S := $(shell uname -s)
     ifeq ($(UNAME_S),Linux)
@@ -24,6 +25,7 @@ else
         MKDIR   := mkdir -p
     endif
     EXE := Thrawn
+    STACK_FLAG := # No stack flag for Linux/macOS
 endif
 
 ###############################################################################
@@ -86,12 +88,10 @@ release: clean $(EXE)
 debug: clean $(EXE)
 
 $(EXE): $(OBJECTS)
-	$(CXX) $(CXXFLAGS) -o $@ $^
+	$(CXX) $(CXXFLAGS) $(STACK_FLAG) -o $@ $^
 
 %.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 clean:
-
 	$(RM) $(OBJECTS) $(EXE)
-  

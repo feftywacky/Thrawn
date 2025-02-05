@@ -17,8 +17,8 @@
 //
 //extern uint64_t zobristKey;
 
-void init_hashkeys(thrawn::Position& pos);
-uint64_t gen_hashkey(thrawn::Position& pos);
+void init_hashkeys(thrawn::Position* pos);
+uint64_t gen_hashkey(thrawn::Position* pos);
 
 
 #endif 
