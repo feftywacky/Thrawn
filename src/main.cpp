@@ -16,14 +16,15 @@ using namespace std;
 
 int main() {
     init_all();
-    bool dev_mode = true;
+    bool dev_mode = false;
     
     if (dev_mode)
     {
         cout<<"dev mode"<<endl;
         //perft_run_unit_tests();
         parse_fen(pos,start_position);
-        search_position_threaded(pos,13,1);
+        //search_pos_single(pos,12);
+        search_position_threaded(pos,12,4);
     }
     else
     {

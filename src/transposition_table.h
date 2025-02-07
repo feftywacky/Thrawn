@@ -12,12 +12,14 @@ static const int hashFlagBETA     = 2;
 
 struct TTEntry 
 {
-    uint64_t key;    // The Zobrist key for the position.
-    int depth;       // Search depth at which this entry was stored.
-    int score;       // Evaluation score.
-    int hash_flag;   // TT flag (EXACT, ALPHA, BETA)
-    int best_move;   // Best move (for move ordering)
-    int age;         // Age for replacement logic
+    // uint64_t key;      // The Zobrist key for the position.
+    // int depth;         // Search depth at which this entry was stored.
+    // int score;         // Evaluation score.
+    // int hash_flag;     // TT flag (EXACT, ALPHA, BETA)
+    // int best_move;     // Best move (for move ordering)
+    // int age;           // Age for replacement logic
+    uint64_t smp_key;  // This will be zobrist key xor data
+    uint64_t smp_data; // Encoding depth, score, hash_flag and best_move into a U64
 };
 
 class TranspositionTable
@@ -40,8 +42,14 @@ public:
               int &bestMove, int ply);
 
     // Store an entry in the tt->
-    void store(const thrawn::Position* pos, int depth, int score,
-               int flag, int bestMove, int ply);
+    void store(const thrawn::Position* pos, int depth, int score, int flag, int bestMove, int ply);
+    
+    uint64_t encodeTTData(int bestMove, int depth, int score, int hash_flag);
+
+    int extractTTBestMove(uint64_t data);
+    int extractTTDepth(uint64_t data);
+    int extractTTScore(uint64_t data);
+    int extractTTHashFlag(uint64_t data);
 
 private:
     TTEntry* table;      // Array of TT entries.

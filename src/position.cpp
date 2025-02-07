@@ -3,7 +3,7 @@
 #include "bitboard.h"
 
 // Default constructor
-thrawn::Position::Position() : repetition_index(0) {
+thrawn::Position::Position() : repetition_index(0), ply(0) {
     init_leaping_attacks(this);
     init_sliding_attacks(this,bishop);
     init_sliding_attacks(this,rook);

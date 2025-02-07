@@ -37,40 +37,18 @@ public:
 };
 
 /*
- * Thread:
- *  A convenience class that groups together the per-thread state:
- *    - a local copy of the root position
- *    - the local search data (ThreadData)
- */
-class SMP_Thread {
-public:
-    thrawn::Position rootPos;
-    ThreadData td;
-
-    // Default constructor (required for stack allocation).
-    SMP_Thread();
-
-    // Parameterized constructor that initializes the root position.
-    SMP_Thread(const thrawn::Position* pos);
-};
-
-/*
- * An atomic flag to signal threads to stop (time up, etc.)
- */
-extern std::atomic<bool> stop_threads;
-
-/*
  * Worker thread function:
  *  Each thread receives a pointer to its Thread object, so it can use its own copy
  *  of the position (rootPos) and search data (td).
  */
-void smp_worker_thread_func(SMP_Thread* threadObj, int threadID, int maxDepth);
+void smp_worker_thread_func(thrawn::Position pos, int threadID, int maxDepth);
 
 /*
  * Threaded search entry point:
  *  Creates numThreads Thread objects (each with its own copy of the root position)
  *  and spawns a worker thread for each.
  */
-void search_position_threaded(const thrawn::Position* pos, int depth, int numThreads);
+void search_position_threaded(thrawn::Position* pos, int depth, int numThreads);
+void search_pos_single(thrawn::Position* pos, int depth);
 
 #endif // THREADING_H

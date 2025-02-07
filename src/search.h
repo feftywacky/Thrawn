@@ -17,6 +17,7 @@ some notes for negamax
 
 // global node counter
 extern uint64_t nodes;
+extern int testply;
 
 /*
  Late Move Reductions or pruning factors
@@ -29,15 +30,15 @@ extern int RFP_factor;
  * Now they accept a reference to ThreadData (td),
  * which holds PV arrays, killer moves, history, etc.
 */
-int negamax(thrawn::Position* pos, ThreadData* td, int depth, int alpha, int beta, int ply, bool isPvNode);
-int quiescence(thrawn::Position* pos, ThreadData* td, int alpha, int beta, int ply);
+int negamax(thrawn::Position* pos, ThreadData* td, int depth, int alpha, int beta);
+int quiescence(thrawn::Position* pos, ThreadData* td, int alpha, int beta);
 
 /*
  * Move ordering utilities
  */
-int score_move(thrawn::Position* pos, ThreadData* td, int move, int ply);
-void sort_moves(thrawn::Position* pos, ThreadData* td, std::vector<int>& moves, int bestMove, int ply);
-void score_pv(std::vector<int>& moves, ThreadData* td, int ply);
+int score_move(thrawn::Position* pos, ThreadData* td, int move);
+void sort_moves(thrawn::Position* pos, ThreadData* td, std::vector<int>& moves, int bestMove);
+void score_pv(std::vector<int>& moves, ThreadData* td);
 
 /*
  * Repetition check

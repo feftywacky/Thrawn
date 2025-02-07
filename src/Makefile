@@ -39,7 +39,7 @@ OBJECTS := $(SOURCES:.cpp=.o)
 ###############################################################################
 BUILD ?= release
 
-OPT_FLAGS  := -Ofast -funroll-loops -flto -march=native
+OPT_FLAGS  := -O3 -flto -march=native
 ARCH_FLAGS :=
 
 ifeq ($(OS_NAME),Linux)

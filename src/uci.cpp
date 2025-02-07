@@ -58,7 +58,7 @@ int timeset = 0;
 int stopped = 0;
 
 // Number of threads use for search
-int numThreads = 1;
+int numThreads = 4;
 
 /*
 TIME CONTROL

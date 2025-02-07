@@ -33,6 +33,8 @@ public:
     std::array<uint64_t, 1028> repetition_table; 
     int repetition_index;
 
+    int ply;
+
     //============= ATTACK AND HASHING TABLES =============//
 
     std::array<std::array<uint64_t, 64>, 2> pawn_attacks;
@@ -55,6 +57,33 @@ public:
     //============= CONSTRUCTORS & METHODS =============//
     Position();
 };
+
+// copying and restoring for move take backs
+#define copyBoard(pos) \
+    array<uint64_t, 12> piece_bitboards_copy; \
+    array<uint64_t, 3> occupancies_copy; \
+    int colour_to_move_copy; \
+    int enpassant_copy; \
+    int castle_rights_copy; \
+    uint64_t zobristKey_copy; \
+    int fifty_move_copy; \
+    piece_bitboards_copy = pos->piece_bitboards; \
+    occupancies_copy = pos->occupancies; \
+    colour_to_move_copy = pos->colour_to_move; \
+    enpassant_copy = pos->enpassant; \
+    castle_rights_copy = pos->castle_rights; \
+    zobristKey_copy = pos->zobristKey; \
+    fifty_move_copy = pos->fifty_move; \
+
+// Restore board state
+#define restoreBoard(pos) \
+    pos->piece_bitboards = piece_bitboards_copy; \
+    pos->occupancies = occupancies_copy; \
+    pos->colour_to_move = colour_to_move_copy; \
+    pos->enpassant = enpassant_copy; \
+    pos->castle_rights = castle_rights_copy; \
+    pos->zobristKey = zobristKey_copy; \
+    pos->fifty_move = fifty_move_copy; \
 
 } // namespace thrawn
 
