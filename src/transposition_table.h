@@ -17,9 +17,9 @@ struct TTEntry
     // int score;         // Evaluation score.
     // int hash_flag;     // TT flag (EXACT, ALPHA, BETA)
     // int best_move;     // Best move (for move ordering)
-    // int age;           // Age for replacement logic
     uint64_t smp_key;  // This will be zobrist key xor data
     uint64_t smp_data; // Encoding depth, score, hash_flag and best_move into a U64
+    int age;           // Age for replacement logic
 };
 
 class TranspositionTable
@@ -37,11 +37,11 @@ public:
     // Increments the current age (to be called at the start of a new search)
     void incrementAge() { currentAge++; }
 
-    // Lookup a position in the tt->
+    // Lookup a position in the tt
     int probe(const thrawn::Position* pos, int depth, int alpha, int beta,
               int &bestMove, int ply);
 
-    // Store an entry in the tt->
+    // Store an entry in the tt
     void store(const thrawn::Position* pos, int depth, int score, int flag, int bestMove, int ply);
     
     uint64_t encodeTTData(int bestMove, int depth, int score, int hash_flag);

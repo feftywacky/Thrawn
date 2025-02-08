@@ -26,6 +26,8 @@ ThreadData::ThreadData() {
     follow_pv_flag = false;
     score_pv_flag  = false;
     allowNullMovePruning = true;
+
+    nodes = 0;
 }
 
 /*
@@ -43,20 +45,18 @@ void ThreadData::resetThreadData() {
     follow_pv_flag = false;
     score_pv_flag  = false;
     allowNullMovePruning = true;
+
+    nodes = 0;
 }
 
 /**
  * smp_worker_thread_func
- *
- * Each worker thread uses its own SMP_Thread object (which contains a local copy
- * of the root position and its search data) to perform iterative deepening.
+ * Each worker thread performw iterative deepening.
+ * Use the local copy of the position and the thread's search data.
  */
 void smp_worker_thread_func(thrawn::Position pos, int threadID, int maxDepth)
 {
-    // Use the local copy of the position and the thread's search data.
-    // thrawn::Position* pos = &threadObj->rootPos;
-    // ThreadData* td = &threadObj->td;
-    ThreadData* td = new ThreadData();
+    ThreadData td;
 
     if(threadID==0)
         stopped = 0;
@@ -70,10 +70,10 @@ void smp_worker_thread_func(thrawn::Position pos, int threadID, int maxDepth)
         if (stopped == 1)
             break;
         
-        td->follow_pv_flag = true;
+        td.follow_pv_flag = true;
         
         // Perform the search at the current depth.
-        score = negamax(&pos, td, curr_depth, alpha, beta);
+        score = negamax(&pos, &td, curr_depth, alpha, beta);
 
         // If the score falls outside the aspiration window, widen the window and continue.
         if ((score <= alpha) || (score >= beta))
@@ -88,14 +88,14 @@ void smp_worker_thread_func(thrawn::Position pos, int threadID, int maxDepth)
         beta = score + 50;
         
         // Only thread 0 prints the search info.
-        if (threadID == 0 && td->pv_depth[0])
+        if (threadID == 0 && td.pv_depth[0])
         {   
             int currentTime = get_time_ms() - globalSearchStartTime;
             if (score > -mateVal && score < -mateScore)
             {
                 std::cout << "info score mate " << -(score + mateVal) / 2 - 1
                             << " depth " << curr_depth
-                            << " nodes " << nodes
+                            << " nodes " << td.nodes
                             << " time " << currentTime
                             << " pv ";
             }
@@ -103,7 +103,7 @@ void smp_worker_thread_func(thrawn::Position pos, int threadID, int maxDepth)
             {
                 std::cout << "info score mate " << (mateVal - score) / 2 + 1
                             << " depth " << curr_depth
-                            << " nodes " << nodes
+                            << " nodes " << td.nodes
                             << " time " << currentTime
                             << " pv ";
             }
@@ -111,38 +111,35 @@ void smp_worker_thread_func(thrawn::Position pos, int threadID, int maxDepth)
             {
                 std::cout << "info score cp " << score
                             << " depth " << curr_depth
-                            << " nodes " << nodes
+                            << " nodes " << td.nodes
                             << " time " << currentTime
                             << " pv ";
             }
-            for (int i = 0; i < td->pv_depth[0]; i++)
+            for (int i = 0; i < td.pv_depth[0]; i++)
             {
-                print_move(td->pv_table[0][i]);
+                print_move(td.pv_table[0][i]);
                 std::cout << " ";
             }
             std::cout << "\n";
         }
     }
-
     if(threadID==0)
     {
-        std::cout << "bestmove ";
-        print_move(td->pv_table[0][0]);
-        std::cout << std::endl;
         stopped = 1;
+        cout<<"total nodes across all threads "<<total_nodes<<std::endl;
+        std::cout << "bestmove ";
+        print_move(td.pv_table[0][0]);
+        std::cout << std::endl;
     }
 }
 
 /**
- * search_position_threaded
- *
- * Creates up to MAX_THREADS SMP_Thread objects (each with its own copy of the root position)
- * on the stack and spawns a worker thread for each. After all threads finish, the best move is printed.
+ * entry point to search
  */
 void search_position_threaded(thrawn::Position* rootPos, int maxDepth, int numThreads)
 {
     // Reset stop flags and counters.
-    nodes = 0;
+    total_nodes = 0;
     globalSearchStartTime = get_time_ms();
 
     tt->incrementAge();
@@ -157,7 +154,6 @@ void search_position_threaded(thrawn::Position* rootPos, int maxDepth, int numTh
     for (int i = 0; i < numThreads; i++)
     {
         workerPool.emplace_back(smp_worker_thread_func, *rootPos, i, maxDepth);
-        //workerPool.emplace_back(search_pos_single, rootPos, maxDepth);
     }
 
     // Wait for all worker threads to complete.
@@ -171,7 +167,7 @@ void search_pos_single(thrawn::Position* pos, int depth)
 {
     
     ThreadData* td = new ThreadData();
-    nodes = 0;
+    total_nodes = 0;
     stopped = 0;
     int score = 0;
     int alpha = -INFINITY;
@@ -209,19 +205,19 @@ void search_pos_single(thrawn::Position* pos, int depth)
             if (score > -mateVal && score < -mateScore)
                 std::cout << "info score mate " << -(score + mateVal) / 2 - 1
                           << " depth " << curr_depth
-                          << " nodes " << nodes
+                          << " nodes " << total_nodes
                           << " time " << static_cast<unsigned int>(get_time_ms() - start)
                           << " pv ";
             else if (score > mateScore && score < mateVal)
                 std::cout << "info score mate " << (mateVal - score) / 2 + 1
                           << " depth " << curr_depth
-                          << " nodes " << nodes
+                          << " nodes " << total_nodes
                           << " time " << static_cast<unsigned int>(get_time_ms() - start)
                           << " pv ";
             else
                 std::cout << "info score cp " << score
                           << " depth " << curr_depth
-                          << " nodes " << nodes
+                          << " nodes " << total_nodes
                           << " time " << static_cast<unsigned int>(get_time_ms() - start)
                           << " pv ";
 
@@ -233,7 +229,7 @@ void search_pos_single(thrawn::Position* pos, int depth)
             std::cout << "\n";
         }
 
-        std::cout<<"ply: "<<testply<<endl;
+        std::cout<<"ply: "<<total_nodes<<endl;
     }
 
     std::cout << "bestmove ";

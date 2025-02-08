@@ -18,11 +18,10 @@ void init_all()
 
     // init hashkeys
     // init_hashkeys();
-    tt->initTable(128); // default of 64 MB
 
-    // init eval masks
-    //init_eval_masks();
+    tt->initTable(256); // default of 256 MB
 
-    // init NNUE
+    init_eval_masks();
+
     nnue_init("nn-62ef826d1a6d.nnue");
 }

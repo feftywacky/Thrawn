@@ -356,7 +356,7 @@ void uci_loop(thrawn::Position* pos)
     #define INPUT_BUFFER 20000
     
     int max_hashmap_size = 1024; // 1GB
-    int mb = 128; // default 128 MB
+    int mb = 256; // default 256 MB
 
     // reset STDIN & STDOUT buffers
     setbuf(stdin, NULL);
@@ -415,7 +415,7 @@ void uci_loop(thrawn::Position* pos)
             // print engine info
             cout << "id name Thrawn"<< version << "\n";
             cout << "id author Feiyu Lin\n";
-            cout << "option name Hash type spin default 128 min 4 max " << max_hashmap_size << "\n";
+            cout << "option name Hash type spin default 256 min 4 max 1024" << max_hashmap_size << "\n";
             cout << "option name Threads type spin default 4 min 1 max 16" << "\n";
             cout << "uciok\n";
         }

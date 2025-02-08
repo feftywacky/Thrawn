@@ -22,30 +22,11 @@ some notes for negamax
 - pv nodes: increase alpha
 */
 
-// -------------------------------------------
-// Global node counter
-// -------------------------------------------
-uint64_t nodes = 0;
+std::atomic<uint64_t> total_nodes(0);
 
-/*
- Late Move Pruning factors
-*/
 std::array<int, 4> LateMovePruning_factors = {0, 8, 12, 24};
 int RFP_factor = 64;
 
-/*
- * NEGAMAX
- * Contains all your logic for:
- *  - repetition checks
- *  - TT probe
- *  - null move pruning
- *  - razoring
- *  - generate moves
- *  - move ordering (including killer, history)
- *  - LMR / PVS
- *  - storing best moves in PV
- *  - storing in TT
- */
 int negamax(thrawn::Position* pos, ThreadData* td, int depth, int alpha, int beta)
 {
     int score = 0;
@@ -72,13 +53,14 @@ int negamax(thrawn::Position* pos, ThreadData* td, int depth, int alpha, int bet
     }
 
     // For periodic UCI output / time check
-    if ((nodes & 2047) == 0)
+    if ((td->nodes & 2047) == 0)
     {
         communicate();
     }
 
     // 5) Increment node counter
-    nodes++;
+    td->nodes++;
+    total_nodes.fetch_add(1, std::memory_order_relaxed);
 
     // 6) Are we in check?
     bool inCheck = is_square_under_attack(
@@ -155,19 +137,9 @@ int negamax(thrawn::Position* pos, ThreadData* td, int depth, int alpha, int bet
     // --------------------------------------
     // 10) Null-move pruning
     // --------------------------------------
-    // Conditions to do a null-move:
-    // - not in check
-    // - depth >= a threshold (e.g., 3)
-    // - not a PV node
-    // - side to move has enough material (not in an endgame with no minors/majors)
-    // - allowNullMovePruning not disabled
     if (!inCheck && depth >= 3 && !isPvNode && !noMajorsOrMinorsPieces(pos) && td->allowNullMovePruning)
     {
         // we make a null move
-        // uint64_t oldKey      = pos->zobristKey;
-        // int      oldEp       = pos->enpassant;
-        // int      oldFifty    = pos->fifty_move;
-        // int      oldCastling = pos->castle_rights;
         copyBoard(pos);
 
         pos->ply++;
@@ -193,11 +165,6 @@ int negamax(thrawn::Position* pos, ThreadData* td, int depth, int alpha, int bet
         pos->repetition_index--;
         
         restoreBoard(pos);
-        // pos->colour_to_move ^= 1;
-        // pos->zobristKey      = oldKey;
-        // pos->enpassant       = oldEp;
-        // pos->fifty_move      = oldFifty;
-        // pos->castle_rights   = oldCastling;
 
         if (stopped == 1)
             return alpha;
@@ -259,30 +226,31 @@ full_search:
             // (A) Basic Futility on quiet moves
             //     e.g. if depth is small, not giving check, not a capture, etc.
             // -----------------------------
-            // bool givesCheck = is_square_under_attack(
-            //                      pos,
-            //                      (pos->colour_to_move == white) ? get_lsb_index(pos->piece_bitboards[K])
-            //                                                    : get_lsb_index(pos->piece_bitboards[k]),
-            //                      pos->colour_to_move ^ 1);
+            bool givesCheck = is_square_under_attack(
+                                 pos,
+                                 (pos->colour_to_move == white) ? get_lsb_index(pos->piece_bitboards[K])
+                                                               : get_lsb_index(pos->piece_bitboards[k]),
+                                 pos->colour_to_move ^ 1);
 
-            // bool allowFutilityPrune = false;
-            // if (ply && !isPvNode && (depth <= 3))
-            // {
-            //     if ((static_eval + futility_margin(depth)) <= alpha)
-            //     {
-            //         allowFutilityPrune = true;
-            //     }
-            // }
+            bool allowFutilityPrune = false;
+            if (pos->ply && !isPvNode && (depth <= 3))
+            {
+                if ((static_eval + futility_margin(depth)) <= alpha)
+                {
+                    allowFutilityPrune = true;
+                }
+            }
 
-            // if (allowFutilityPrune && !givesCheck &&
-            //     (get_move_piece(move) != P) && (get_move_piece(move) != p) &&
-            //     !get_promoted_piece(move) && !get_is_move_castling(move) &&
-            //     !get_is_capture_move(move))
-            // {
-            //     pos->repetition_index--;
-            //     pos->restoreBoard(ply);
-            //     continue;
-            // }
+            if (allowFutilityPrune && !givesCheck &&
+                (get_move_piece(move) != P) && (get_move_piece(move) != p) &&
+                !get_promoted_piece(move) && !get_is_move_castling(move) &&
+                !get_is_capture_move(move))
+            {
+                restoreBoard(pos);
+                pos->ply--;
+                pos->repetition_index--;
+                continue;
+            }
 
             // -----------------------------
             // (B) Late Move Pruning (LMP)
@@ -335,7 +303,6 @@ full_search:
 
         pos->ply--;
         pos->repetition_index--;
-        //unmake_move(pos,pos->ply);
         restoreBoard(pos);
         moves_searched++;
 
@@ -396,21 +363,16 @@ full_search:
     return alpha;
 }
 
-/*
- * QUISCENCE
- * This function has a changed signature to accept (ThreadData* td).
- * We call 'score_move' and 'sort_moves' passing td,
- * so that we can reference killer moves, history, etc. if needed.
-*/
 int quiescence(thrawn::Position* pos, ThreadData* td,
                int alpha, int beta)
 {
-    if ((nodes & 2047) == 0)
+    if ((td->nodes & 2047) == 0)
     {
         communicate();
     }
 
-    nodes++;
+    td->nodes++;
+    total_nodes.fetch_add(1, std::memory_order_relaxed);
 
     // safety check for array bounds
     if (pos->ply > MAX_DEPTH-1)
@@ -449,7 +411,6 @@ int quiescence(thrawn::Position* pos, ThreadData* td,
 
         pos->ply--;
         pos->repetition_index--;
-        // unmake_move(pos,ply);
         restoreBoard(pos);
 
         if (stopped == 1)
@@ -470,13 +431,6 @@ int quiescence(thrawn::Position* pos, ThreadData* td,
     return alpha;
 }
 
-/*
- * MOVE ORDERING
-*/
-
-// ----------------------------------------------------------
-// Score a single move with local ply
-// ----------------------------------------------------------
 int score_move(thrawn::Position* pos, ThreadData* td, int move)
 {
     // scoring pv
@@ -529,9 +483,6 @@ int score_move(thrawn::Position* pos, ThreadData* td, int move)
     return 0;
 }
 
-// ---------------------------------------------------------
-// For ordering the PV move
-// ---------------------------------------------------------
 void score_pv(std::vector<int> &moves, ThreadData* td)
 {
     td->follow_pv_flag = false;
@@ -545,9 +496,6 @@ void score_pv(std::vector<int> &moves, ThreadData* td)
     }
 }
 
-// ---------------------------------------------------------
-// Sort moves with local pos->ply
-// ---------------------------------------------------------
 void sort_moves(thrawn::Position* pos, ThreadData* td,
                 std::vector<int> &moves, int bestMove)
 {

@@ -86,22 +86,40 @@ int TranspositionTable::probe(const thrawn::Position* pos, int depth, int alpha,
 void TranspositionTable::store(const thrawn::Position* pos, int depth, int score, int flag, int bestMove, int ply)
 {
     int index = static_cast<int>(pos->zobristKey % numEntries);
+    TTEntry &entry = table[index];
+
+    bool shouldReplace = false;
+    if (entry.smp_data == 0)
+    {
+        shouldReplace = true;
+    }
+    else
+    {
+        if (currentAge > entry.age)
+            shouldReplace = true;
+        else if ( depth >= extractTTDepth(entry.smp_data))
+            shouldReplace = true;
+    }
+
+    if (!shouldReplace)
+        return;
 
     if (score < -mateScore) score -= ply;
     if (score > mateScore) score += ply;
 
     uint64_t data = encodeTTData(bestMove,depth,score,flag);
     uint64_t key = pos->zobristKey ^ data;
-
+    
     table[index].smp_key = key;
     table[index].smp_data = data;
+    entry.age = currentAge;
 }
 
 // bit allocations:
-// - best_move: 24 bits (mask: 0xFFFFFF)
-// - depth:      16 bits (mask: 0xFFFF)
-// - score:      17 bits (mask: 0x1FFFF) after adding an offset of 50000
-// - hash_flag:   2 bits (mask: 0x3)
+// best_move: 24 bits (mask: 0xFFFFFF)
+// depth:      16 bits (mask: 0xFFFF)
+// score:      17 bits (mask: 0x1FFFF) after adding an offset of 50000
+// hash_flag:   2 bits (mask: 0x3)
 //
 // Note: Score is encoded as score + INFINITY so that the range -50000...+50000 becomes 0...100000.
 

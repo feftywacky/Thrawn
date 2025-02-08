@@ -16,8 +16,7 @@ some notes for negamax
 */
 
 // global node counter
-extern uint64_t nodes;
-extern int testply;
+extern std::atomic<uint64_t> total_nodes;
 
 /*
  Late Move Reductions or pruning factors

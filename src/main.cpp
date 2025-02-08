@@ -7,6 +7,7 @@
 #include "search.h"
 #include "threading.h"       
 #include "globals.h"
+#include "evaluation.h"
 #include "transposition_table.h"
 #include "misc.h"
 #include "position.h"
@@ -16,15 +17,11 @@ using namespace std;
 
 int main() {
     init_all();
-    bool dev_mode = false;
+    bool dev = false;
     
-    if (dev_mode)
+    if (dev)
     {
         cout<<"dev mode"<<endl;
-        //perft_run_unit_tests();
-        parse_fen(pos,start_position);
-        //search_pos_single(pos,12);
-        search_position_threaded(pos,12,4);
     }
     else
     {
@@ -32,6 +29,5 @@ int main() {
     }
 
     delete pos;
-
     return 0;
 }

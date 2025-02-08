@@ -6,14 +6,6 @@
 #include "position.h"
 #include "constants.h"
 
-/*
- * ThreadData:
- *  Holds all per-thread arrays and data previously global:
- *    - PV arrays
- *    - Killer moves
- *    - History tables
- *    - Flags for move ordering (follow_pv_flag, etc.)
- */
 class ThreadData {
 public:
     // PV storage: one array for PV lengths and a 2D array for the PV lines.
@@ -29,6 +21,8 @@ public:
     bool score_pv_flag;
     bool allowNullMovePruning;
 
+    long long nodes;
+
     // Constructor initializes all arrays to zero and flags to false (or true where needed).
     ThreadData();
 
@@ -36,19 +30,12 @@ public:
     void resetThreadData();
 };
 
-/*
- * Worker thread function:
- *  Each thread receives a pointer to its Thread object, so it can use its own copy
- *  of the position (rootPos) and search data (td).
- */
 void smp_worker_thread_func(thrawn::Position pos, int threadID, int maxDepth);
 
-/*
- * Threaded search entry point:
- *  Creates numThreads Thread objects (each with its own copy of the root position)
- *  and spawns a worker thread for each.
- */
+// search position entry point
 void search_position_threaded(thrawn::Position* pos, int depth, int numThreads);
+
+// for testing purposes
 void search_pos_single(thrawn::Position* pos, int depth);
 
 #endif // THREADING_H
