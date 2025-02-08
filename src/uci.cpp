@@ -5,6 +5,7 @@
 #include "transposition_table.h"
 #include "bitboard.h"
 #include "fen.h"
+#include "perft.h"
 #include "search.h"
 #include "misc.h"
 #include "globals.h"
@@ -440,6 +441,11 @@ void uci_loop(thrawn::Position* pos)
             if (t > 16) t = 16;
             numThreads = t;
             std::cout << "info string Set threads = " << numThreads << std::endl;
+        }
+
+        else if (strncmp(input, "perft", 5) == 0)
+        {
+            perft_run_unit_tests();
         }
     }
 }
