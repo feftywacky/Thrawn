@@ -37,11 +37,12 @@ void perft_search(thrawn::Position* pos, int depth) {
 
     vector<int> moves = generate_moves(pos);
     for (int move : moves) {
+        copyBoard(pos);
         if (!make_move(pos, move, all_moves, depth))
             continue;
 
         perft_search(pos, depth - 1);
-        unmake_move(pos, depth);
+        restoreBoard(pos);
     }
 }
 
@@ -55,11 +56,12 @@ int perft_test(thrawn::Position* pos, int depth) {
     cout << BLUE << "\n===== PERFT TEST (Depth: " << depth << ") =====" << RESET << "\n";
 
     for (int move : moves) {
+        copyBoard(pos);
         if (!make_move(pos, move, all_moves, depth))
             continue;
 
         perft_search(pos, depth - 1);
-        unmake_move(pos, depth);
+        restoreBoard(pos);
         moves_processed++;
 
         // Update the progress bar

@@ -439,15 +439,16 @@ int make_move(thrawn::Position* pos, int move, int move_type, int ply)
 {
     if (move_type == all_moves)
     {
-        if(ply!=-1)
-        {
-            pos->undo_stack[ply].move           = move;
-            pos->undo_stack[ply].captured_piece = -1;
-            pos->undo_stack[ply].castle_rights  = pos->castle_rights;
-            pos->undo_stack[ply].enpassant      = pos->enpassant;
-            pos->undo_stack[ply].fifty_move     = pos->fifty_move;
-            pos->undo_stack[ply].zobristKey     = pos->zobristKey;
-        }
+        copyBoard(pos);
+        // if(ply!=-1)
+        // {
+        //     pos->undo_stack[ply].move           = move;
+        //     pos->undo_stack[ply].captured_piece = -1;
+        //     pos->undo_stack[ply].castle_rights  = pos->castle_rights;
+        //     pos->undo_stack[ply].enpassant      = pos->enpassant;
+        //     pos->undo_stack[ply].fifty_move     = pos->fifty_move;
+        //     pos->undo_stack[ply].zobristKey     = pos->zobristKey;
+        // }
 
         // move parsing
         int source = get_move_source(move);
@@ -628,8 +629,7 @@ int make_move(thrawn::Position* pos, int move, int move_type, int ply)
         // handle illegal moves. if move causes king to check, restore previous position and return illegal move
         if (is_square_under_attack(pos,(pos->colour_to_move==white) ? get_lsb_index(pos->piece_bitboards[k]) : get_lsb_index(pos->piece_bitboards[K]), pos->colour_to_move))
         {   
-            if(ply!=-1)
-                unmake_move(pos, ply);
+            restoreBoard(pos);
             return 0;
         }
         else 
@@ -640,97 +640,96 @@ int make_move(thrawn::Position* pos, int move, int move_type, int ply)
     {
         if (get_is_capture_move(move)) {
             return make_move(pos, move, all_moves, ply);
-            // make_move(move, all_moves); // ORG < RBedit
         }
         else    
             return 0;
     }
 
-    return 0; // ORG : lacks < RBedit
+    return 0;
 }
 
-void unmake_move(thrawn::Position* pos, int ply)
-{
-    thrawn::UndoData& ud = pos->undo_stack[ply];
-    int move = ud.move;
+// void unmake_move(thrawn::Position* pos, int ply)
+// {
+//     thrawn::UndoData& ud = pos->undo_stack[ply];
+//     int move = ud.move;
 
-    int source         = get_move_source(move);
-    int target         = get_move_target(move);
-    int piece          = get_move_piece(move);
-    int promoted_piece = get_promoted_piece(move);
-    int is_capture     = get_is_capture_move(move);
-    int enpassant_move = get_is_move_enpassant(move);
-    int castling_move  = get_is_move_castling(move);
+//     int source         = get_move_source(move);
+//     int target         = get_move_target(move);
+//     int piece          = get_move_piece(move);
+//     int promoted_piece = get_promoted_piece(move);
+//     int is_capture     = get_is_capture_move(move);
+//     int enpassant_move = get_is_move_enpassant(move);
+//     int castling_move  = get_is_move_castling(move);
 
-    pos->colour_to_move ^= 1;
+//     pos->colour_to_move ^= 1;
 
-    // Restore old Zobrist, castle rights, enpassant, halfmove from undo stack
-    pos->zobristKey    = ud.zobristKey;
-    pos->castle_rights = ud.castle_rights;
-    pos->enpassant     = ud.enpassant;
-    pos->fifty_move    = ud.fifty_move;
+//     // Restore old Zobrist, castle rights, enpassant, halfmove from undo stack
+//     pos->zobristKey    = ud.zobristKey;
+//     pos->castle_rights = ud.castle_rights;
+//     pos->enpassant     = ud.enpassant;
+//     pos->fifty_move    = ud.fifty_move;
 
-    if (promoted_piece)
-    {
-        // Remove the new piece from target
-        pop_bit(pos->piece_bitboards[promoted_piece], target);
-        // Put the original pawn back on source
-        set_bit(pos->piece_bitboards[piece], source);
-    }
-    else
-    {
-        // No promotion: occupant on target was 'piece', so remove it
-        pop_bit(pos->piece_bitboards[piece], target);
-        // Return it to source
-        set_bit(pos->piece_bitboards[piece], source);
-    }
+//     if (promoted_piece)
+//     {
+//         // Remove the new piece from target
+//         pop_bit(pos->piece_bitboards[promoted_piece], target);
+//         // Put the original pawn back on source
+//         set_bit(pos->piece_bitboards[piece], source);
+//     }
+//     else
+//     {
+//         // No promotion: occupant on target was 'piece', so remove it
+//         pop_bit(pos->piece_bitboards[piece], target);
+//         // Return it to source
+//         set_bit(pos->piece_bitboards[piece], source);
+//     }
 
-    // If there was a capture, restore the captured piece
-    if (is_capture)
-    {
-        int captured = ud.captured_piece; // e.g. black knight, black rook, etc.
-        if (captured != -1) {
-            set_bit(pos->piece_bitboards[captured], target);
-        }
-    }
+//     // If there was a capture, restore the captured piece
+//     if (is_capture)
+//     {
+//         int captured = ud.captured_piece; // e.g. black knight, black rook, etc.
+//         if (captured != -1) {
+//             set_bit(pos->piece_bitboards[captured], target);
+//         }
+//     }
 
-    // If enpassant capture, restore the captured pawn
-    if (enpassant_move) {
-        // figure out the square of the captured pawn
-        if (pos->colour_to_move == white) {
-            // black pawn was captured
-            set_bit(pos->piece_bitboards[p], target + 8);
-        } else {
-            // white pawn was captured
-            set_bit(pos->piece_bitboards[P], target - 8);
-        }
-    }
+//     // If enpassant capture, restore the captured pawn
+//     if (enpassant_move) {
+//         // figure out the square of the captured pawn
+//         if (pos->colour_to_move == white) {
+//             // black pawn was captured
+//             set_bit(pos->piece_bitboards[p], target + 8);
+//         } else {
+//             // white pawn was captured
+//             set_bit(pos->piece_bitboards[P], target - 8);
+//         }
+//     }
 
-    // If castling, move the rook back
-    if (castling_move) {
-        if (target == g1) {
-            // White O-O
-            pop_bit(pos->piece_bitboards[R], f1);
-            set_bit(pos->piece_bitboards[R], h1);
-        }
-        else if (target == c1) {
-            // White O-O-O
-            pop_bit(pos->piece_bitboards[R], d1);
-            set_bit(pos->piece_bitboards[R], a1);
-        }
-        else if (target == g8) {
-            // Black O-O
-            pop_bit(pos->piece_bitboards[r], f8);
-            set_bit(pos->piece_bitboards[r], h8);
-        }
-        else if (target == c8) {
-            // Black O-O-O
-            pop_bit(pos->piece_bitboards[r], d8);
-            set_bit(pos->piece_bitboards[r], a8);
-        }
-    }
+//     // If castling, move the rook back
+//     if (castling_move) {
+//         if (target == g1) {
+//             // White O-O
+//             pop_bit(pos->piece_bitboards[R], f1);
+//             set_bit(pos->piece_bitboards[R], h1);
+//         }
+//         else if (target == c1) {
+//             // White O-O-O
+//             pop_bit(pos->piece_bitboards[R], d1);
+//             set_bit(pos->piece_bitboards[R], a1);
+//         }
+//         else if (target == g8) {
+//             // Black O-O
+//             pop_bit(pos->piece_bitboards[r], f8);
+//             set_bit(pos->piece_bitboards[r], h8);
+//         }
+//         else if (target == c8) {
+//             // Black O-O-O
+//             pop_bit(pos->piece_bitboards[r], d8);
+//             set_bit(pos->piece_bitboards[r], a8);
+//         }
+//     }
 
-    pos->occupancies[white] = get_white_occupancy(pos);
-    pos->occupancies[black] = get_black_occupancy(pos);
-    pos->occupancies[both]  = pos->occupancies[white] | pos->occupancies[black];
-}
+//     pos->occupancies[white] = get_white_occupancy(pos);
+//     pos->occupancies[black] = get_black_occupancy(pos);
+//     pos->occupancies[both]  = pos->occupancies[white] | pos->occupancies[black];
+// }
