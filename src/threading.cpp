@@ -70,7 +70,8 @@ void smp_worker_thread_func(thrawn::Position pos, int threadID, int maxDepth)
         if (stopped == 1)
             break;
         
-        td.follow_pv_flag = true;
+        if(threadID==0)
+            td.follow_pv_flag = true;
         
         // Perform the search at the current depth.
         score = negamax(&pos, &td, curr_depth, alpha, beta);
