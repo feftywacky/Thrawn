@@ -357,7 +357,7 @@ void uci_loop(thrawn::Position* pos)
     #define INPUT_BUFFER 20000
     
     int max_hashmap_size = 1024; // 1GB
-    int mb = 256; // default 256 MB
+    int mb = 128; // default 128 MB
 
     // reset STDIN & STDOUT buffers
     setbuf(stdin, NULL);

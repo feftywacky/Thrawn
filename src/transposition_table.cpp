@@ -27,8 +27,8 @@ void TranspositionTable::initTable(int mb)
     }
 
     if (numEntries < 1) {
-        std::cerr << "TT init: table too small, forcing 1 MB.\n";
-        initTable(1);
+        std::cerr << "TT init: table too small, forcing 4 MB.\n";
+        initTable(4);
         return;
     }
 
