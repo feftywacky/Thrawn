@@ -155,8 +155,12 @@ void perft_run_unit_tests() {
 
     double overall_avg_nps = (total_nodes_accumulated * 1000.0) / total_time_ms_accumulated;
     string performance_rating;
-    if (overall_avg_nps >= 50e6)
-        performance_rating = "Superhuman";
+    if (overall_avg_nps >= 200e6)
+        performance_rating = "FUCKING FAST ALRIGHT";
+    else if (overall_avg_nps >= 100e6)
+        performance_rating = "Blazingly FAST";
+    else if (overall_avg_nps >= 50e6)
+        performance_rating = "ABOVE Excellent";
     else if (overall_avg_nps >= 20e6)
         performance_rating = "Excellent";
     else if (overall_avg_nps >= 10e6)
