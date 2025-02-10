@@ -138,7 +138,7 @@ void print_bitboard(uint64_t bitboard)
     std::cout << "     Bitboard as unsigned decimal: " << bitboard << std::endl;
 }
 
-void print_board(thrawn::Position& pos, int side) 
+void print_board(thrawn::Position* pos, int side) 
 {
     // print offset
     std::cout << "\n";
@@ -158,7 +158,7 @@ void print_board(thrawn::Position& pos, int side)
 
             // loop over all piece bitboards
             for (int bb_piece = P; bb_piece <= k; bb_piece++) {
-                if (get_bit(pos.piece_bitboards[bb_piece], square))
+                if (get_bit(pos->piece_bitboards[bb_piece], square))
                     piece = bb_piece;
             }
 
@@ -177,13 +177,13 @@ void print_board(thrawn::Position& pos, int side)
     std::cout << "     Side:     " << (!side ? "white" : "black") << "\n";
 
     // print enpassant square
-    std::cout << "     Enpassant:   " << ((pos.enpassant != null_sq) ? square_to_coordinates[pos.enpassant] : "no") << "\n";
+    std::cout << "     Enpassant:   " << ((pos->enpassant != null_sq) ? square_to_coordinates[pos->enpassant] : "no") << "\n";
 
     // print castling rights
-    std::cout << "     Castling:  " << ((pos.castle_rights & wks) ? 'K' : '-') << ((pos.castle_rights & wqs) ? 'Q' : '-')
-              << ((pos.castle_rights & bks) ? 'k' : '-') << ((pos.castle_rights & bqs) ? 'q' : '-') << "\n";
+    std::cout << "     Castling:  " << ((pos->castle_rights & wks) ? 'K' : '-') << ((pos->castle_rights & wqs) ? 'Q' : '-')
+              << ((pos->castle_rights & bks) ? 'k' : '-') << ((pos->castle_rights & bqs) ? 'q' : '-') << "\n";
     
-    std::cout << "     ZobristKey:   " << std::hex <<pos.zobristKey << "\n\n";
+    std::cout << "     ZobristKey:   " << std::hex <<pos->zobristKey << "\n\n";
     std::cout<<std::dec;
 }
 

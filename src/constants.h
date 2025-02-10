@@ -8,6 +8,20 @@
 
 using namespace std;
 
+// ----------------------------------------
+// Some constants used in the search
+// ----------------------------------------
+#define full_depth_moves 4
+#define reduction_limit 3
+#define INFINITY 50000
+#define mateVal 49000
+#define mateScore 48000
+#define MAX_DEPTH 64
+
+constexpr int KILLER_MOVES   = 2;
+constexpr int HISTORY_SIZE   = 12;
+constexpr int MAX_THREADS    = 16;
+
 enum{
     white,
     black,

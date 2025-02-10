@@ -11,23 +11,23 @@ using namespace std;
 
 class Bitboard;
 
-void parse_fen(thrawn::Position& pos, const char* fen)
+void parse_fen(thrawn::Position* pos, const char* fen)
 {
 
     // reset piece bitboards and occupancies
-    for (int i = 0; i < pos.piece_bitboards.size(); i++)
-        pos.piece_bitboards[i] = 0ULL;
+    for (int i = 0; i < pos->piece_bitboards.size(); i++)
+        pos->piece_bitboards[i] = 0ULL;
 
-    for (int i = 0; i < pos.occupancies.size(); i++)
-        pos.occupancies[i] = 0ULL;
+    for (int i = 0; i < pos->occupancies.size(); i++)
+        pos->occupancies[i] = 0ULL;
     
     // reset gameState variables
-    pos.colour_to_move = white;
-    pos.enpassant = null_sq;
-    pos.castle_rights = 0;
-    repetition_index = 0;
-    pos.fifty_move = 0;
-    std::fill(std::begin(repetition_table), std::end(repetition_table), 0);
+    pos->colour_to_move = white;
+    pos->enpassant = null_sq;
+    pos->castle_rights = 0;
+    pos->repetition_index = 0;
+    pos->fifty_move = 0;
+    std::fill(std::begin(pos->repetition_table), std::end(pos->repetition_table), 0);
     
 
     // loop to parse pieces and empty squares from fen
@@ -41,7 +41,7 @@ void parse_fen(thrawn::Position& pos, const char* fen)
             if ( (*fen >= 'a' && *fen<='z') || (*fen>='A' && *fen<='Z') )
             {
                 int piece = char_pieces.at(*fen);
-                set_bit(pos.piece_bitboards[piece], square);
+                set_bit(pos->piece_bitboards[piece], square);
                 *fen++;
             }
 
@@ -54,7 +54,7 @@ void parse_fen(thrawn::Position& pos, const char* fen)
                 // loops over all the pieces (white pawn -> black king)
                 for (int i=P;i<=k;i++)
                 {
-                    if (get_bit(pos.piece_bitboards[i], square))
+                    if (get_bit(pos->piece_bitboards[i], square))
                         piece = i;
                 }
                 
@@ -75,7 +75,7 @@ void parse_fen(thrawn::Position& pos, const char* fen)
     fen++;
 
     // parsing colour_to_move
-    *fen == 'w' ? (pos.colour_to_move = white) : (pos.colour_to_move = black);
+    *fen == 'w' ? (pos->colour_to_move = white) : (pos->colour_to_move = black);
 
     // go to parse castling rights value in fen string
     fen += 2;
@@ -84,13 +84,13 @@ void parse_fen(thrawn::Position& pos, const char* fen)
     while(*fen != ' ')
     {
         if (*fen == 'K')
-            pos.castle_rights |= wks;
+            pos->castle_rights |= wks;
         else if (*fen == 'Q')
-            pos.castle_rights |= wqs;
+            pos->castle_rights |= wqs;
         else if (*fen == 'k')
-            pos.castle_rights |= bks;
+            pos->castle_rights |= bks;
         else if (*fen == 'q')
-            pos.castle_rights |= bqs;
+            pos->castle_rights |= bqs;
         else if (*fen == '-')
             break;
         
@@ -112,17 +112,17 @@ void parse_fen(thrawn::Position& pos, const char* fen)
         cout<<"fen2: "<<*fen<<endl;
         int row = 8- (*fen -'0');
 
-        pos.enpassant = row*8+col;
+        pos->enpassant = row*8+col;
 
     }
     else
-        pos.enpassant = null_sq;
+        pos->enpassant = null_sq;
     
     // setting white, black, and both occupancies
-    pos.occupancies[0] = get_white_occupancy(pos);
-    pos.occupancies[1] = get_black_occupancy(pos);
-    pos.occupancies[2] = get_both_occupancy(pos);
+    pos->occupancies[0] = get_white_occupancy(pos);
+    pos->occupancies[1] = get_black_occupancy(pos);
+    pos->occupancies[2] = get_both_occupancy(pos);
     
     // init hashkeys
-    pos.zobristKey = gen_hashkey(pos);
+    pos->zobristKey = gen_hashkey(pos);
 }

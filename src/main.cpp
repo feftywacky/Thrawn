@@ -5,6 +5,9 @@
 #include "perft.h"
 #include "uci.h"
 #include "search.h"
+#include "threading.h"       
+#include "globals.h"
+#include "evaluation.h"
 #include "transposition_table.h"
 #include "misc.h"
 #include "position.h"
@@ -13,22 +16,19 @@
 using namespace std;
 
 int main() {
-    thrawn::Position pos;
     init_all();
-
-    bool dev_mode = true;
+    bool dev = false;
     
-    if (dev_mode)
+    if (dev)
     {
-        cout<<endl;
-        cout<<"developer mode"<<endl;
-        cout<<endl;
-        perft_run_unit_tests();
+        cout<<"dev mode"<<endl;
     }
     else
+    {
         uci_loop(pos);
-    
-    delete[] hashmap;
+    }
 
+    delete pos;
+    delete tt;
     return 0;
 }

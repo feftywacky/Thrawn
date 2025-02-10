@@ -5,8 +5,6 @@
 #include <cstdint>
 #include "position.h"
 
-using namespace std;
-
 // constants
 enum {opening, endgame, middlegame};
 enum {PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING};
@@ -56,11 +54,12 @@ extern const int get_rank_from_sq[64];
 extern int nnue_pieces[12];
 extern int nnue_squares[64];
 
-int evaluate(thrawn::Position& pos);
+int evaluate_HCE(thrawn::Position* pos);
+int evaluate(thrawn::Position* pos); // neural network eval
 
-//void init_eval_masks();
-//uint64_t set_eval_masks(int rankNum, int fileNum);
-//
-//int get_gamePhase_score();
+void init_eval_masks();
+uint64_t set_eval_masks(int rankNum, int fileNum);
+
+int get_gamePhase_score(thrawn::Position* pos);
 
 #endif

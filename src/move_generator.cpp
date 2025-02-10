@@ -12,7 +12,7 @@
 using namespace std;
 
 
-vector<int> generate_moves(thrawn::Position& pos)
+vector<int> generate_moves(thrawn::Position* pos)
 {
     vector<int> moves;
 
@@ -27,11 +27,11 @@ vector<int> generate_moves(thrawn::Position& pos)
     // loop over all piece types for both black and white
     for (int piece = P; piece<=k; piece++)
     {
-        uint64_t curr = pos.piece_bitboards[piece];
+        uint64_t curr = pos->piece_bitboards[piece];
 
         // to distinguish betweem white and black specific moves
         // includes pawns and castling
-        if (pos.colour_to_move == white)
+        if (pos->colour_to_move == white)
         {
             // generate pawn moves
             if (piece==P)
@@ -64,31 +64,31 @@ vector<int> generate_moves(thrawn::Position& pos)
 
         // generate for the rest of the pieces that are not colour specific
         // knight
-        if ( (pos.colour_to_move == white) ? piece == N : piece == n )
+        if ( (pos->colour_to_move == white) ? piece == N : piece == n )
         {
             parse_knight_moves(pos,curr, piece, moves);
         }
 
         // bishop
-        if ( (pos.colour_to_move == white) ? piece == B : piece == b )
+        if ( (pos->colour_to_move == white) ? piece == B : piece == b )
         {
             parse_bishop_moves(pos,curr, piece, moves);
         }
         
         // rook
-        if ( (pos.colour_to_move == white) ? piece == R : piece == r )
+        if ( (pos->colour_to_move == white) ? piece == R : piece == r )
         {
            parse_rook_moves(pos,curr, piece, moves);
         }
 
         // queen
-        if ( (pos.colour_to_move == white) ? piece == Q : piece == q )
+        if ( (pos->colour_to_move == white) ? piece == Q : piece == q )
         {
             parse_queen_moves(pos,curr, piece, moves);
         }
 
         // king
-        if ( (pos.colour_to_move == white) ? piece == K : piece == k )
+        if ( (pos->colour_to_move == white) ? piece == K : piece == k )
         {
             parse_king_moves(pos,curr, piece, moves);
         }
@@ -100,14 +100,14 @@ vector<int> generate_moves(thrawn::Position& pos)
 
 }
 
-void parse_white_pawn_moves(thrawn::Position& pos, uint64_t& curr, vector<int>& moves)
+void parse_white_pawn_moves(thrawn::Position* pos, uint64_t& curr, vector<int>& moves)
 {
     while (curr)
     {
         int source = get_lsb_index(curr);
         int target = source - 8; // go up one square
 
-        if (target>=a8 && !get_bit(pos.occupancies[both], target))
+        if (target>=a8 && !get_bit(pos->occupancies[both], target))
         {
             // pawn promotion by going up one square (NOT TAKING A PIECE)
             if (source>=a7 && source<=h7)
@@ -125,14 +125,14 @@ void parse_white_pawn_moves(thrawn::Position& pos, uint64_t& curr, vector<int>& 
                 moves.push_back(parse_move(source, target, P, 0, 0, 0, 0, 0));
 
                 // two square
-                if (source>=a2 && source<=h2 && !get_bit(pos.occupancies[both], target-8))
+                if (source>=a2 && source<=h2 && !get_bit(pos->occupancies[both], target-8))
                 {
                     moves.push_back(parse_move(source, target-8, P, 0, 0, 1, 0, 0));
                 }
             }
         }
 
-        uint64_t attacks = pos.pawn_attacks[pos.colour_to_move][source]  & pos.occupancies[black];
+        uint64_t attacks = pos->pawn_attacks[pos->colour_to_move][source]  & pos->occupancies[black];
 
         while (attacks) // while attacks squares are present on the board
         {   
@@ -156,10 +156,10 @@ void parse_white_pawn_moves(thrawn::Position& pos, uint64_t& curr, vector<int>& 
         }
 
         // enpassant
-        if (pos.enpassant!=null_sq)
+        if (pos->enpassant!=null_sq)
         {
             
-            uint64_t enpassant_attacks = pos.pawn_attacks[pos.colour_to_move][source] & (1ULL << pos.enpassant);
+            uint64_t enpassant_attacks = pos->pawn_attacks[pos->colour_to_move][source] & (1ULL << pos->enpassant);
             if (enpassant_attacks)
             {
                 int enpassant_target = get_lsb_index(enpassant_attacks);
@@ -172,11 +172,11 @@ void parse_white_pawn_moves(thrawn::Position& pos, uint64_t& curr, vector<int>& 
     }
 }
 
-void parse_white_castle_moves(thrawn::Position& pos, vector<int>& moves)
+void parse_white_castle_moves(thrawn::Position* pos, vector<int>& moves)
 {
-    if (pos.castle_rights & wks)
+    if (pos->castle_rights & wks)
     {
-        if (!get_bit(pos.occupancies[both], f1) && !get_bit(pos.occupancies[both], g1))
+        if (!get_bit(pos->occupancies[both], f1) && !get_bit(pos->occupancies[both], g1))
         {
             // make sure can't castle through check
             // if (!is_square_under_attack(e8, white) && !is_square_under_attack(f1, black) && !is_square_under_attack(g1, black))
@@ -184,9 +184,9 @@ void parse_white_castle_moves(thrawn::Position& pos, vector<int>& moves)
                 moves.push_back(parse_move(e1, g1, K, 0, 0, 0, 0, 1));
         }
     }
-    if (pos.castle_rights & wqs)
+    if (pos->castle_rights & wqs)
     {
-        if (!get_bit(pos.occupancies[both], b1) && !get_bit(pos.occupancies[both], c1) && !get_bit(pos.occupancies[both], d1))
+        if (!get_bit(pos->occupancies[both], b1) && !get_bit(pos->occupancies[both], c1) && !get_bit(pos->occupancies[both], d1))
         {
             // make sure can't castle through check
             // if (!is_square_under_attack(e1, black) && !is_square_under_attack(c1, black) && !is_square_under_attack(d1, black))
@@ -196,14 +196,14 @@ void parse_white_castle_moves(thrawn::Position& pos, vector<int>& moves)
     }
 }
 
-void parse_black_pawn_moves(thrawn::Position& pos, uint64_t& curr, vector<int>& moves)
+void parse_black_pawn_moves(thrawn::Position* pos, uint64_t& curr, vector<int>& moves)
 {
     while(curr) // while white pawns are present on the board
     {
         int source = get_lsb_index(curr);
         int target = source + 8; // go down one square
 
-        if (target<=h1 && !get_bit(pos.occupancies[both], target))
+        if (target<=h1 && !get_bit(pos->occupancies[both], target))
         {
             // pawn promotion by going down one square (NOT TAKING A PIECE)
             if (source>=a2 && source<=h2)
@@ -221,12 +221,12 @@ void parse_black_pawn_moves(thrawn::Position& pos, uint64_t& curr, vector<int>& 
                 moves.push_back(parse_move(source, target, p, 0, 0, 0, 0, 0));
 
                 // two square
-                if (source>=a7 && source<=h7 && !get_bit(pos.occupancies[both], target+8))
+                if (source>=a7 && source<=h7 && !get_bit(pos->occupancies[both], target+8))
                     moves.push_back(parse_move(source, target+8, p, 0, 0, 1, 0, 0));
             }
         }
 
-        uint64_t attacks = pos.pawn_attacks[pos.colour_to_move][source] & pos.occupancies[white];
+        uint64_t attacks = pos->pawn_attacks[pos->colour_to_move][source] & pos->occupancies[white];
 
         while (attacks) // while attacks squares are present on the board
         {   
@@ -250,9 +250,9 @@ void parse_black_pawn_moves(thrawn::Position& pos, uint64_t& curr, vector<int>& 
         }
 
         // enpassant
-        if (pos.enpassant!=null_sq)
+        if (pos->enpassant!=null_sq)
         {   
-            uint64_t enpassant_attacks = pos.pawn_attacks[pos.colour_to_move][source] & (1ULL << pos.enpassant);
+            uint64_t enpassant_attacks = pos->pawn_attacks[pos->colour_to_move][source] & (1ULL << pos->enpassant);
             if (enpassant_attacks)
             {
                 int enpassant_target = get_lsb_index(enpassant_attacks);
@@ -265,11 +265,11 @@ void parse_black_pawn_moves(thrawn::Position& pos, uint64_t& curr, vector<int>& 
     }
 }
 
-void parse_black_castle_moves(thrawn::Position& pos, vector<int>& moves)
+void parse_black_castle_moves(thrawn::Position* pos, vector<int>& moves)
 {
-    if (pos.castle_rights & bks)
+    if (pos->castle_rights & bks)
     {
-        if (!get_bit(pos.occupancies[both], f8) && !get_bit(pos.occupancies[both], g8))
+        if (!get_bit(pos->occupancies[both], f8) && !get_bit(pos->occupancies[both], g8))
         {
             // pruend by make_move() for g8
             // if (!is_square_under_attack(e8, white) && !is_square_under_attack(f8, white) && !is_square_under_attack(g8, white))
@@ -277,9 +277,9 @@ void parse_black_castle_moves(thrawn::Position& pos, vector<int>& moves)
                 moves.push_back(parse_move(e8, g8, k, 0, 0, 0, 0, 1));
         }
     }
-    if (pos.castle_rights & bqs)
+    if (pos->castle_rights & bqs)
     {
-        if (!get_bit(pos.occupancies[both], b8) && !get_bit(pos.occupancies[both], c8) && !get_bit(pos.occupancies[both], d8))
+        if (!get_bit(pos->occupancies[both], b8) && !get_bit(pos->occupancies[both], c8) && !get_bit(pos->occupancies[both], d8))
         {
             // pruend by make_move() 
             // if (!is_square_under_attack(e8, white) && !is_square_under_attack(c8, white) && !is_square_under_attack(d8, white))
@@ -289,20 +289,20 @@ void parse_black_castle_moves(thrawn::Position& pos, vector<int>& moves)
     }
 }
 
-void parse_knight_moves(thrawn::Position& pos, uint64_t& curr, const int& piece, vector<int>& moves)
+void parse_knight_moves(thrawn::Position* pos, uint64_t& curr, const int& piece, vector<int>& moves)
 {
     while (curr)
     {
         int source = get_lsb_index(curr);
 
-        uint64_t attacks = pos.knight_attacks[source] & ( (pos.colour_to_move==white) ? ~pos.occupancies[white] : ~pos.occupancies[black]);
+        uint64_t attacks = pos->knight_attacks[source] & ( (pos->colour_to_move==white) ? ~pos->occupancies[white] : ~pos->occupancies[black]);
 
         while (attacks)
         {
             int target = get_lsb_index(attacks);
             
             // non-capture move
-            if ( !get_bit( (pos.colour_to_move==white) ? pos.occupancies[black] : pos.occupancies[white], target ) )
+            if ( !get_bit( (pos->colour_to_move==white) ? pos->occupancies[black] : pos->occupancies[white], target ) )
             {
                 moves.push_back(parse_move(source, target, piece, 0, 0, 0, 0, 0));
             }
@@ -318,20 +318,20 @@ void parse_knight_moves(thrawn::Position& pos, uint64_t& curr, const int& piece,
     }
 }
 
-void parse_bishop_moves(thrawn::Position& pos, uint64_t& curr, const int& piece, vector<int>& moves)
+void parse_bishop_moves(thrawn::Position* pos, uint64_t& curr, const int& piece, vector<int>& moves)
 {
     while(curr)
     {
         int source = get_lsb_index(curr);
 
-        uint64_t attacks = get_bishop_attacks(pos, source, pos.occupancies[both]) & ( (pos.colour_to_move==white) ? ~pos.occupancies[white] : ~pos.occupancies[black]);
+        uint64_t attacks = get_bishop_attacks(pos, source, pos->occupancies[both]) & ( (pos->colour_to_move==white) ? ~pos->occupancies[white] : ~pos->occupancies[black]);
         while (attacks)
         {
             
             int target = get_lsb_index(attacks);
             
             // non-capture move
-            if ( !get_bit( (pos.colour_to_move==white) ? pos.occupancies[black] : pos.occupancies[white], target ) )
+            if ( !get_bit( (pos->colour_to_move==white) ? pos->occupancies[black] : pos->occupancies[white], target ) )
             {
                 moves.push_back(parse_move(source, target, piece, 0, 0, 0, 0, 0));
             }
@@ -348,20 +348,20 @@ void parse_bishop_moves(thrawn::Position& pos, uint64_t& curr, const int& piece,
     } 
 }
 
-void parse_rook_moves(thrawn::Position& pos, uint64_t& curr, const int& piece, vector<int>& moves)
+void parse_rook_moves(thrawn::Position* pos, uint64_t& curr, const int& piece, vector<int>& moves)
 {
     while(curr)
     {
         int source = get_lsb_index(curr);
 
-        uint64_t attacks = get_rook_attacks(pos, source, pos.occupancies[both]) & ( (pos.colour_to_move==white) ? ~pos.occupancies[white] : ~pos.occupancies[black]);
+        uint64_t attacks = get_rook_attacks(pos, source, pos->occupancies[both]) & ( (pos->colour_to_move==white) ? ~pos->occupancies[white] : ~pos->occupancies[black]);
 
         while (attacks)
         {
             int target = get_lsb_index(attacks);
             
             // non-capture move
-            if ( !get_bit( (pos.colour_to_move==white) ? pos.occupancies[black] : pos.occupancies[white], target ) )
+            if ( !get_bit( (pos->colour_to_move==white) ? pos->occupancies[black] : pos->occupancies[white], target ) )
             {
                 moves.push_back(parse_move(source, target, piece, 0, 0, 0, 0, 0));
             }
@@ -377,20 +377,20 @@ void parse_rook_moves(thrawn::Position& pos, uint64_t& curr, const int& piece, v
     }
 }
 
-void parse_queen_moves(thrawn::Position& pos, uint64_t& curr, const int& piece, vector<int>& moves)
+void parse_queen_moves(thrawn::Position* pos, uint64_t& curr, const int& piece, vector<int>& moves)
 {
     while (curr)
     {
         int source = get_lsb_index(curr);
 
-        uint64_t attacks = get_queen_attacks(pos, source, pos.occupancies[both]) & ( (pos.colour_to_move==white) ? ~pos.occupancies[white] : ~pos.occupancies[black]);
+        uint64_t attacks = get_queen_attacks(pos, source, pos->occupancies[both]) & ( (pos->colour_to_move==white) ? ~pos->occupancies[white] : ~pos->occupancies[black]);
 
         while (attacks)
         {
             int target = get_lsb_index(attacks);
             
             // non-capture move
-            if ( !get_bit( (pos.colour_to_move==white) ? pos.occupancies[black] : pos.occupancies[white], target ) )
+            if ( !get_bit( (pos->colour_to_move==white) ? pos->occupancies[black] : pos->occupancies[white], target ) )
             {
                 moves.push_back(parse_move(source, target, piece, 0, 0, 0, 0, 0));
             }
@@ -406,20 +406,20 @@ void parse_queen_moves(thrawn::Position& pos, uint64_t& curr, const int& piece, 
     }
 }
 
-void parse_king_moves(thrawn::Position& pos, uint64_t& curr, const int& piece, vector<int>& moves)
+void parse_king_moves(thrawn::Position* pos, uint64_t& curr, const int& piece, vector<int>& moves)
 {
     while (curr)
     {
         int source = get_lsb_index(curr);
 
-        uint64_t attacks = pos.king_attacks[source] & ( (pos.colour_to_move==white) ? ~pos.occupancies[white] : ~pos.occupancies[black]);
+        uint64_t attacks = pos->king_attacks[source] & ( (pos->colour_to_move==white) ? ~pos->occupancies[white] : ~pos->occupancies[black]);
 
         while (attacks)
         {
             int target = get_lsb_index(attacks);
             
             // non-capture move
-            if ( !get_bit( (pos.colour_to_move==white) ? pos.occupancies[black] : pos.occupancies[white], target ) )
+            if ( !get_bit( (pos->colour_to_move==white) ? pos->occupancies[black] : pos->occupancies[white], target ) )
             {
                 moves.push_back(parse_move(source, target, piece, 0, 0, 0, 0, 0));
             }
@@ -435,12 +435,20 @@ void parse_king_moves(thrawn::Position& pos, uint64_t& curr, const int& piece, v
     }
 }
 
-int make_move(thrawn::Position& pos, int move, int move_type, int ply)
+int make_move(thrawn::Position* pos, int move, int move_type, int ply)
 {
     if (move_type == all_moves)
     {
-        if(ply!=-1) // -1
-            pos.copyBoard(ply);
+        copyBoard(pos);
+        // if(ply!=-1)
+        // {
+        //     pos->undo_stack[ply].move           = move;
+        //     pos->undo_stack[ply].captured_piece = -1;
+        //     pos->undo_stack[ply].castle_rights  = pos->castle_rights;
+        //     pos->undo_stack[ply].enpassant      = pos->enpassant;
+        //     pos->undo_stack[ply].fifty_move     = pos->fifty_move;
+        //     pos->undo_stack[ply].zobristKey     = pos->zobristKey;
+        // }
 
         // move parsing
         int source = get_move_source(move);
@@ -453,36 +461,39 @@ int make_move(thrawn::Position& pos, int move, int move_type, int ply)
         int castling = get_is_move_castling(move);
 
         // move piece
-        pop_bit(pos.piece_bitboards[piece], source);
-        set_bit(pos.piece_bitboards[piece], target);
-        pos.zobristKey ^= pos.piece_hashkey[piece][source]; // update hash to exclude source
-        pos.zobristKey ^= pos.piece_hashkey[piece][target]; // update hash to include target
-        pos.fifty_move++;
+        pop_bit(pos->piece_bitboards[piece], source);
+        set_bit(pos->piece_bitboards[piece], target);
+        pos->zobristKey ^= pos->piece_hashkey[piece][source]; // update hash to exclude source
+        pos->zobristKey ^= pos->piece_hashkey[piece][target]; // update hash to include target
+        pos->fifty_move++;
 
         // if pawn moved reset fifty-move rule
         if (piece == P || piece == p)
-            pos.fifty_move = 0;
+            pos->fifty_move = 0;
 
         // if capture move, remove the piece being captured from its corresponding bitboard
         // ie. if white pawn captures black kngiht, remove black knight from black knight bitboard
         if (is_capture_move)
         {
             // if captured a piece reset fifty-move rule
-            pos.fifty_move = 0;
+            pos->fifty_move = 0;
             int start_piece;
             int end_piece;
             
-            (pos.colour_to_move==white) ? start_piece = p : start_piece = P;
-            (pos.colour_to_move==white) ? end_piece = k : end_piece = K;
+            (pos->colour_to_move==white) ? start_piece = p : start_piece = P;
+            (pos->colour_to_move==white) ? end_piece = k : end_piece = K;
 
             for(int i=start_piece; i<=end_piece;i++)
             {
-                if (get_bit(pos.piece_bitboards[i], target))
+                if (get_bit(pos->piece_bitboards[i], target))
                 {
-                    pop_bit(pos.piece_bitboards[i], target);
+                    if (ply != -1)
+                        pos->undo_stack[ply].captured_piece = i;
+
+                    pop_bit(pos->piece_bitboards[i], target);
                     
                     // update hashkey to exclude captured piece
-                    pos.zobristKey ^= pos.piece_hashkey[i][target];
+                    pos->zobristKey ^= pos->piece_hashkey[i][target];
                     break;
                 }
             }
@@ -493,59 +504,59 @@ int make_move(thrawn::Position& pos, int move, int move_type, int ply)
         {
             // erase the pawn from the target square
             // pop_bit(piece_bitboards[(colour_to_move == white) ? P : p], target);
-            if (pos.colour_to_move == white)
+            if (pos->colour_to_move == white)
             {
-                pop_bit(pos.piece_bitboards[P], target);
-                pos.zobristKey ^= pos.piece_hashkey[P][target];
+                pop_bit(pos->piece_bitboards[P], target);
+                pos->zobristKey ^= pos->piece_hashkey[P][target];
             }
             else
             {
-                pop_bit(pos.piece_bitboards[p], target);
-                pos.zobristKey ^= pos.piece_hashkey[p][target];
+                pop_bit(pos->piece_bitboards[p], target);
+                pos->zobristKey ^= pos->piece_hashkey[p][target];
             }
             
-            set_bit(pos.piece_bitboards[promoted_piece], target);
-            pos.zobristKey ^= pos.piece_hashkey[promoted_piece][target];
+            set_bit(pos->piece_bitboards[promoted_piece], target);
+            pos->zobristKey ^= pos->piece_hashkey[promoted_piece][target];
         }
 
         // handle enpassant capture
         if (enpassant_move)
         {
             // target + 8 is going down the board, and vice versa
-            (pos.colour_to_move==white) ? pop_bit(pos.piece_bitboards[p], target + 8) : pop_bit(pos.piece_bitboards[P], target - 8);
+            (pos->colour_to_move==white) ? pop_bit(pos->piece_bitboards[p], target + 8) : pop_bit(pos->piece_bitboards[P], target - 8);
             
-            if (pos.colour_to_move==white)
+            if (pos->colour_to_move==white)
             {
-                pop_bit(pos.piece_bitboards[p], target + 8);
-                pos.zobristKey ^= pos.piece_hashkey[p][target + 8];
+                pop_bit(pos->piece_bitboards[p], target + 8);
+                pos->zobristKey ^= pos->piece_hashkey[p][target + 8];
             }
             else
             {
-                pop_bit(pos.piece_bitboards[P], target - 8);
-                pos.zobristKey ^= pos.piece_hashkey[P][target- 8];
+                pop_bit(pos->piece_bitboards[P], target - 8);
+                pos->zobristKey ^= pos->piece_hashkey[P][target- 8];
             }
         }
 
-        if (pos.enpassant!=null_sq)
+        if (pos->enpassant!=null_sq)
         {
-            pos.zobristKey ^= pos.enpassant_hashkey[pos.enpassant];
+            pos->zobristKey ^= pos->enpassant_hashkey[pos->enpassant];
         }
-        pos.enpassant = null_sq;
+        pos->enpassant = null_sq;
 
         // set enpassant square when pawn double moves
         if (double_pawn_move)
         {
             // (colour_to_move==white) ? enpassant = target + 8 : enpassant = target - 8;
 
-            if (pos.colour_to_move == white)
+            if (pos->colour_to_move == white)
             {
-                pos.enpassant = target + 8;
-                pos.zobristKey ^= pos.enpassant_hashkey[target+8];
+                pos->enpassant = target + 8;
+                pos->zobristKey ^= pos->enpassant_hashkey[target+8];
             }
             else
             {
-                pos.enpassant = target - 8;
-                pos.zobristKey ^= pos.enpassant_hashkey[target-8];
+                pos->enpassant = target - 8;
+                pos->zobristKey ^= pos->enpassant_hashkey[target-8];
             }
         }
 
@@ -554,54 +565,54 @@ int make_move(thrawn::Position& pos, int move, int move_type, int ply)
         {
             if (target == g1)
             {
-                pop_bit(pos.piece_bitboards[R], h1);
-                set_bit(pos.piece_bitboards[R], f1);
+                pop_bit(pos->piece_bitboards[R], h1);
+                set_bit(pos->piece_bitboards[R], f1);
 
-                pos.zobristKey ^= pos.piece_hashkey[R][h1];  // remove rook from h1 from hash key
-                pos.zobristKey ^= pos.piece_hashkey[R][f1];  // put rook on f1 into a hash key
+                pos->zobristKey ^= pos->piece_hashkey[R][h1];  // remove rook from h1 from hash key
+                pos->zobristKey ^= pos->piece_hashkey[R][f1];  // put rook on f1 into a hash key
             }
             else if (target == c1)
             {
-                pop_bit(pos.piece_bitboards[R], a1);
-                set_bit(pos.piece_bitboards[R], d1);
+                pop_bit(pos->piece_bitboards[R], a1);
+                set_bit(pos->piece_bitboards[R], d1);
 
-                pos.zobristKey ^= pos.piece_hashkey[R][a1];  // remove rook from a1 from hash key
-                pos.zobristKey ^= pos.piece_hashkey[R][d1];  // put rook on d1 into a hash key
+                pos->zobristKey ^= pos->piece_hashkey[R][a1];  // remove rook from a1 from hash key
+                pos->zobristKey ^= pos->piece_hashkey[R][d1];  // put rook on d1 into a hash key
             }
             else if (target == g8)
             {
-                pop_bit(pos.piece_bitboards[r], h8);
-                set_bit(pos.piece_bitboards[r], f8);
+                pop_bit(pos->piece_bitboards[r], h8);
+                set_bit(pos->piece_bitboards[r], f8);
 
-                pos.zobristKey ^= pos.piece_hashkey[r][h8];  // remove rook from h8 from hash key
-                pos.zobristKey ^= pos.piece_hashkey[r][f8];  // put rook on f8 into a hash key
+                pos->zobristKey ^= pos->piece_hashkey[r][h8];  // remove rook from h8 from hash key
+                pos->zobristKey ^= pos->piece_hashkey[r][f8];  // put rook on f8 into a hash key
             }
             else if (target == c8)
             {
-                pop_bit(pos.piece_bitboards[r], a8);
-                set_bit(pos.piece_bitboards[r], d8);
+                pop_bit(pos->piece_bitboards[r], a8);
+                set_bit(pos->piece_bitboards[r], d8);
 
-                pos.zobristKey ^= pos.piece_hashkey[r][a8];  // remove rook from a8 from hash key
-                pos.zobristKey ^= pos.piece_hashkey[r][d8];  // put rook on d8 into a hash key
+                pos->zobristKey ^= pos->piece_hashkey[r][a8];  // remove rook from a8 from hash key
+                pos->zobristKey ^= pos->piece_hashkey[r][d8];  // put rook on d8 into a hash key
             }         
         }
-        pos.zobristKey ^= pos.castling_hashkey[pos.castle_rights]; // remove castling right hash
+        pos->zobristKey ^= pos->castling_hashkey[pos->castle_rights]; // remove castling right hash
 
         // updating castling rights after every move
-        pos.castle_rights &= update_castling_right_values[source];
-        pos.castle_rights &= update_castling_right_values[target];
+        pos->castle_rights &= update_castling_right_values[source];
+        pos->castle_rights &= update_castling_right_values[target];
 
-        pos.zobristKey ^= pos.castling_hashkey[pos.castle_rights]; // update castling right hash
+        pos->zobristKey ^= pos->castling_hashkey[pos->castle_rights]; // update castling right hash
 
         // update colour occupancies
-        pos.occupancies[white] = get_white_occupancy(pos);
-        pos.occupancies[black] = get_black_occupancy(pos);
-        pos.occupancies[both]  = get_both_occupancy(pos);
+        pos->occupancies[white] = get_white_occupancy(pos);
+        pos->occupancies[black] = get_black_occupancy(pos);
+        pos->occupancies[both]  = get_both_occupancy(pos);
 
         // change sides
-        pos.colour_to_move ^= 1;
+        pos->colour_to_move ^= 1;
 
-        pos.zobristKey ^= pos.colour_to_move_hashkey;
+        pos->zobristKey ^= pos->colour_to_move_hashkey;
         
         // uint64_t curr_hash = gen_hashkey(); // new hashkey after move made
         // if (curr_hash != zobristKey)
@@ -616,10 +627,9 @@ int make_move(thrawn::Position& pos, int move, int move_type, int ply)
         // }
 
         // handle illegal moves. if move causes king to check, restore previous position and return illegal move
-        if (is_square_under_attack(pos,(pos.colour_to_move==white) ? get_lsb_index(pos.piece_bitboards[k]) : get_lsb_index(pos.piece_bitboards[K]), pos.colour_to_move))
+        if (is_square_under_attack(pos,(pos->colour_to_move==white) ? get_lsb_index(pos->piece_bitboards[k]) : get_lsb_index(pos->piece_bitboards[K]), pos->colour_to_move))
         {   
-            if(ply!=-1)
-                pos.restoreBoard(ply);
+            restoreBoard(pos);
             return 0;
         }
         else 
@@ -629,12 +639,97 @@ int make_move(thrawn::Position& pos, int move, int move_type, int ply)
     else if (move_type == only_captures)
     {
         if (get_is_capture_move(move)) {
-            return make_move(pos, move, all_moves,ply);
-            // make_move(move, all_moves); // ORG < RBedit
+            return make_move(pos, move, all_moves, ply);
         }
         else    
             return 0;
     }
 
-    return 0; // ORG : lacks < RBedit
+    return 0;
 }
+
+// void unmake_move(thrawn::Position* pos, int ply)
+// {
+//     thrawn::UndoData& ud = pos->undo_stack[ply];
+//     int move = ud.move;
+
+//     int source         = get_move_source(move);
+//     int target         = get_move_target(move);
+//     int piece          = get_move_piece(move);
+//     int promoted_piece = get_promoted_piece(move);
+//     int is_capture     = get_is_capture_move(move);
+//     int enpassant_move = get_is_move_enpassant(move);
+//     int castling_move  = get_is_move_castling(move);
+
+//     pos->colour_to_move ^= 1;
+
+//     // Restore old Zobrist, castle rights, enpassant, halfmove from undo stack
+//     pos->zobristKey    = ud.zobristKey;
+//     pos->castle_rights = ud.castle_rights;
+//     pos->enpassant     = ud.enpassant;
+//     pos->fifty_move    = ud.fifty_move;
+
+//     if (promoted_piece)
+//     {
+//         // Remove the new piece from target
+//         pop_bit(pos->piece_bitboards[promoted_piece], target);
+//         // Put the original pawn back on source
+//         set_bit(pos->piece_bitboards[piece], source);
+//     }
+//     else
+//     {
+//         // No promotion: occupant on target was 'piece', so remove it
+//         pop_bit(pos->piece_bitboards[piece], target);
+//         // Return it to source
+//         set_bit(pos->piece_bitboards[piece], source);
+//     }
+
+//     // If there was a capture, restore the captured piece
+//     if (is_capture)
+//     {
+//         int captured = ud.captured_piece; // e.g. black knight, black rook, etc.
+//         if (captured != -1) {
+//             set_bit(pos->piece_bitboards[captured], target);
+//         }
+//     }
+
+//     // If enpassant capture, restore the captured pawn
+//     if (enpassant_move) {
+//         // figure out the square of the captured pawn
+//         if (pos->colour_to_move == white) {
+//             // black pawn was captured
+//             set_bit(pos->piece_bitboards[p], target + 8);
+//         } else {
+//             // white pawn was captured
+//             set_bit(pos->piece_bitboards[P], target - 8);
+//         }
+//     }
+
+//     // If castling, move the rook back
+//     if (castling_move) {
+//         if (target == g1) {
+//             // White O-O
+//             pop_bit(pos->piece_bitboards[R], f1);
+//             set_bit(pos->piece_bitboards[R], h1);
+//         }
+//         else if (target == c1) {
+//             // White O-O-O
+//             pop_bit(pos->piece_bitboards[R], d1);
+//             set_bit(pos->piece_bitboards[R], a1);
+//         }
+//         else if (target == g8) {
+//             // Black O-O
+//             pop_bit(pos->piece_bitboards[r], f8);
+//             set_bit(pos->piece_bitboards[r], h8);
+//         }
+//         else if (target == c8) {
+//             // Black O-O-O
+//             pop_bit(pos->piece_bitboards[r], d8);
+//             set_bit(pos->piece_bitboards[r], a8);
+//         }
+//     }
+
+//     pos->occupancies[white] = get_white_occupancy(pos);
+//     pos->occupancies[black] = get_black_occupancy(pos);
+//     pos->occupancies[both]  = pos->occupancies[white] | pos->occupancies[black];
+// }

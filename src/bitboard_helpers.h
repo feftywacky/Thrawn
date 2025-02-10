@@ -46,7 +46,7 @@ uint64_t gen_magic_num();
 
 void print_bitboard(uint64_t bitboard);
 
-void print_board(thrawn::Position& pos, int side);
+void print_board(thrawn::Position* pos, int side);
 
 void print_bits(uint64_t num);
 

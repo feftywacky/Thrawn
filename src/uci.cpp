@@ -5,8 +5,10 @@
 #include "transposition_table.h"
 #include "bitboard.h"
 #include "fen.h"
+#include "perft.h"
 #include "search.h"
 #include "misc.h"
+#include "globals.h"
 #include <stdlib.h>
 #include <vector>
 #include <cstring>
@@ -56,6 +58,8 @@ int timeset = 0;
 // variable to flag when the time is up
 int stopped = 0;
 
+// Number of threads use for search
+int numThreads = 4;
 
 /*
 TIME CONTROL
@@ -154,7 +158,7 @@ void communicate() {
 UCI PROTOCOL
 */
 
-int uci_parse_move(thrawn::Position& pos, const char *move_str)
+int uci_parse_move(thrawn::Position* pos, const char *move_str)
 {
     std::vector<int> moves = generate_moves(pos);
     
@@ -190,7 +194,7 @@ int uci_parse_move(thrawn::Position& pos, const char *move_str)
     return 0;
 }
 
-void uci_parse_position(thrawn::Position& pos, const char *command) {
+void uci_parse_position(thrawn::Position* pos, const char *command) {
     // Create a non-const pointer for manipulation
     cout<<command<<endl;
     const char *non_const_command = command;
@@ -234,8 +238,8 @@ void uci_parse_position(thrawn::Position& pos, const char *command) {
             if (move == 0)
                 break;
 
-            repetition_index++;
-            repetition_table[repetition_index] = pos.zobristKey;
+            pos->repetition_index++;
+            pos->repetition_table[pos->repetition_index] = pos->zobristKey;
 
             make_move(pos, move, all_moves,-1);
 
@@ -254,7 +258,7 @@ void uci_parse_position(thrawn::Position& pos, const char *command) {
 
 }
 
-void uci_parse_go(thrawn::Position& pos, const char* command)
+void uci_parse_go(thrawn::Position* pos, const char* command)
 {
     reset_time_control();
     int depth = -1;
@@ -263,25 +267,25 @@ void uci_parse_go(thrawn::Position& pos, const char* command)
     if (strstr(command, "infinite") != nullptr) {}
 
     // Match UCI "binc" command
-    if (strstr(command, "binc") != nullptr && pos.colour_to_move == 1) {
+    if (strstr(command, "binc") != nullptr && pos->colour_to_move == 1) {
         // Parse black time increment
         inc = atoi(strstr(command, "binc") + 5);
     }
 
     // Match UCI "winc" command
-    if (strstr(command, "winc") != nullptr && pos.colour_to_move == 0) {
+    if (strstr(command, "winc") != nullptr && pos->colour_to_move == 0) {
         // Parse white time increment
         inc = atoi(strstr(command, "winc") + 5);
     }
 
     // Match UCI "wtime" command
-    if (strstr(command, "wtime") != nullptr && pos.colour_to_move == 0) {
+    if (strstr(command, "wtime") != nullptr && pos->colour_to_move == 0) {
         // Parse white time limit
         uci_time = atoi(strstr(command, "wtime") + 6);
     }
 
     // Match UCI "btime" command
-    if (strstr(command, "btime") != nullptr && pos.colour_to_move == 1) {
+    if (strstr(command, "btime") != nullptr && pos->colour_to_move == 1) {
         // Parse black time limit
         uci_time = atoi(strstr(command, "btime") + 6);
     }
@@ -343,12 +347,11 @@ void uci_parse_go(thrawn::Position& pos, const char* command)
     std::cout << "time:" << uci_time << " start:" << static_cast<unsigned int>(starttime) << " stop:" << static_cast<unsigned int>(stoptime)
               << " depth:" << depth << " timeset:" << timeset << std::endl;
 
-    // Search position
-    search_position(pos,depth);
-    // search_position_threaded(pos, depth, 2);
+    std::cout << "info depth 0 nodes 0 time 0 score cp 0 pv none"<<endl;
+    search_position_threaded(pos, depth, numThreads);  
 }
 
-void uci_loop(thrawn::Position& pos)
+void uci_loop(thrawn::Position* pos)
 {
     // just make it big enough
     #define INPUT_BUFFER 20000
@@ -389,15 +392,15 @@ void uci_loop(thrawn::Position& pos)
         // parse UCI "position" command
         else if (strncmp(input, "position", 8) == 0)
         {
+            tt->reset();
             uci_parse_position(pos, input);
-            reset_hashmap();
         }
 
         // parse UCI "ucinewgame" command
         else if (strncmp(input, "ucinewgame", 10) == 0)
         {
+            tt->reset();
             uci_parse_position(pos, "position startpos");
-            reset_hashmap();
         }
         // parse UCI "go" command
         else if (strncmp(input, "go", 2) == 0)
@@ -413,7 +416,8 @@ void uci_loop(thrawn::Position& pos)
             // print engine info
             cout << "id name Thrawn"<< version << "\n";
             cout << "id author Feiyu Lin\n";
-            cout << "option name Hash type spin default 128 min 4 max " << max_hashmap_size << "\n";
+            cout << "option name Hash type spin default 256 min 4 max 1024" << max_hashmap_size << "\n";
+            cout << "option name Threads type spin default 4 min 1 max 16" << "\n";
             cout << "uciok\n";
         }
         
@@ -427,7 +431,21 @@ void uci_loop(thrawn::Position& pos)
             
             // set hash table size in MB
             std::cout << "    Set hash table size to " << mb << "MB\n";
-            init_hashmap(mb);
+            tt->initTable(mb);
+        }
+
+        else if (!strncmp(input, "setoption name Threads value ", 29)) {
+            int t = 1;
+            sscanf(input, "%*s %*s %*s %*s %d", &t);
+            if (t < 1) t = 1;
+            if (t > 16) t = 16;
+            numThreads = t;
+            std::cout << "info string Set threads = " << numThreads << std::endl;
+        }
+
+        else if (strncmp(input, "perft", 5) == 0)
+        {
+            perft_run_unit_tests();
         }
     }
 }

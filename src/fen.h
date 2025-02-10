@@ -7,6 +7,6 @@
 
 using namespace std;
 
-void parse_fen(thrawn::Position& pos, const char* fen);
+void parse_fen(thrawn::Position* pos, const char* fen);
 
 #endif
