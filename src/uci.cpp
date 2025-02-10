@@ -347,7 +347,7 @@ void uci_parse_go(thrawn::Position* pos, const char* command)
     std::cout << "time:" << uci_time << " start:" << static_cast<unsigned int>(starttime) << " stop:" << static_cast<unsigned int>(stoptime)
               << " depth:" << depth << " timeset:" << timeset << std::endl;
 
-
+    std::cout << "info depth 0 nodes 0 time 0 score cp 0 pv none"<<endl;
     search_position_threaded(pos, depth, numThreads);  
 }
 

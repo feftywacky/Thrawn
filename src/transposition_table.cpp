@@ -18,7 +18,7 @@ TranspositionTable::~TranspositionTable()
 
 void TranspositionTable::initTable(int mb)
 {
-    int bytes = mb * 1024 * 1024;  // Convert MB to bytes
+    int bytes = mb * 0x100000;  // Convert MB to bytes
     numEntries = bytes / sizeof(TTEntry);
 
     if (table) {

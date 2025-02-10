@@ -20,7 +20,7 @@ using namespace std;
 
 constexpr int KILLER_MOVES   = 2;
 constexpr int HISTORY_SIZE   = 12;
-constexpr int MAX_THREADS    = 32;
+constexpr int MAX_THREADS    = 16;
 
 enum{
     white,

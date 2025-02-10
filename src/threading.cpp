@@ -56,10 +56,7 @@ void ThreadData::resetThreadData() {
  */
 void smp_worker_thread_func(thrawn::Position pos, int threadID, int maxDepth)
 {
-    ThreadData td;
-
-    if(threadID==0)
-        stopped = 0;
+    ThreadData* td = &threadDatas[threadID];
     int alpha = -INFINITY;
     int beta  =  INFINITY;
     int score = 0;
@@ -70,11 +67,11 @@ void smp_worker_thread_func(thrawn::Position pos, int threadID, int maxDepth)
         if (stopped == 1)
             break;
         
-        if(threadID==0)
-            td.follow_pv_flag = true;
+        if (threadID == 0)
+            td->follow_pv_flag = true;
         
         // Perform the search at the current depth.
-        score = negamax(&pos, &td, curr_depth, alpha, beta);
+        score = negamax(&pos, td, curr_depth, alpha, beta);
 
         // If the score falls outside the aspiration window, widen the window and continue.
         if ((score <= alpha) || (score >= beta))
@@ -88,49 +85,57 @@ void smp_worker_thread_func(thrawn::Position pos, int threadID, int maxDepth)
         alpha = score - 50;
         beta = score + 50;
         
-        // Only thread 0 prints the search info.
-        if (threadID == 0 && td.pv_depth[0])
+        // Always print an info line from the master thread (thread 0)
+        if (threadID == 0)
         {   
             int currentTime = get_time_ms() - globalSearchStartTime;
+            std::cout << "info depth " << curr_depth
+                      << " nodes " << td->nodes
+                      << " time " << currentTime;
+            
+            // Determine whether to report a mate score or a centipawn score.
             if (score > -mateVal && score < -mateScore)
             {
-                std::cout << "info score mate " << -(score + mateVal) / 2 - 1
-                            << " depth " << curr_depth
-                            << " nodes " << td.nodes
-                            << " time " << currentTime
-                            << " pv ";
+                std::cout << " score mate " << -(score + mateVal) / 2 - 1;
             }
             else if (score > mateScore && score < mateVal)
             {
-                std::cout << "info score mate " << (mateVal - score) / 2 + 1
-                            << " depth " << curr_depth
-                            << " nodes " << td.nodes
-                            << " time " << currentTime
-                            << " pv ";
+                std::cout << " score mate " << (mateVal - score) / 2 + 1;
             }
             else
             {
-                std::cout << "info score cp " << score
-                            << " depth " << curr_depth
-                            << " nodes " << td.nodes
-                            << " time " << currentTime
-                            << " pv ";
+                std::cout << " score cp " << score;
             }
-            for (int i = 0; i < td.pv_depth[0]; i++)
+            
+            // Print the principal variation if it exists; otherwise print a default message.
+            if (td->pv_depth[0] > 0)
             {
-                print_move(td.pv_table[0][i]);
-                std::cout << " ";
+                std::cout << " pv ";
+                for (int i = 0; i < td->pv_depth[0]; i++)
+                {
+                    print_move(td->pv_table[0][i]);
+                    std::cout << " ";
+                }
             }
+            else
+            {
+                std::cout << " pv (none)";
+            }
+            
             std::cout << "\n";
+            std::cout.flush();  // Ensure immediate output
         }
     }
-    if(threadID==0)
+    
+    // When the search is complete, the master thread prints the best move.
+    if (threadID == 0)
     {
-        stopped = 1;
-        cout<<"total nodes across all threads "<<total_nodes<<std::endl;
+        std::cout << "total nodes across all threads " << total_nodes << std::endl;
         std::cout << "bestmove ";
-        print_move(td.pv_table[0][0]);
-        std::cout << std::endl;
+        print_move(td->pv_table[0][0]);
+        std::cout << "\n";
+        std::cout.flush();
+        stopped = 1;
     }
 }
 
@@ -141,6 +146,7 @@ void search_position_threaded(thrawn::Position* rootPos, int maxDepth, int numTh
 {
     // Reset stop flags and counters.
     total_nodes = 0;
+    stopped = 0;
     globalSearchStartTime = get_time_ms();
 
     tt->incrementAge();
@@ -148,6 +154,11 @@ void search_position_threaded(thrawn::Position* rootPos, int maxDepth, int numTh
     // Limit the number of threads to MAX_THREADS.
     if (numThreads > MAX_THREADS)
         numThreads = MAX_THREADS;
+    
+    for(int i=0;i<numThreads;i++)
+    {
+        threadDatas[i].resetThreadData();
+    }
 
     // Create an array of std::thread objects (also on the stack).
     std::vector<std::thread> workerPool;

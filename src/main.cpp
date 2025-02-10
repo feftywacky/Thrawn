@@ -29,5 +29,6 @@ int main() {
     }
 
     delete pos;
+    delete tt;
     return 0;
 }
