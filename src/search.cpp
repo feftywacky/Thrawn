@@ -35,7 +35,7 @@ int negamax(thrawn::Position* pos, ThreadData* td, int depth, int alpha, int bet
     int static_eval = 0;
 
     // init local pv
-    td->pv_depth[pos->ply] = pos->ply;
+    td->pv_length[pos->ply] = pos->ply;
 
     // 1) Check repetition or 50-move draw
     if (pos->ply && isRepetition(pos) || pos->fifty_move >= 100)
@@ -325,11 +325,11 @@ full_search:
 
             // Update PV
             td->pv_table[pos->ply][pos->ply] = move;
-            for (int nextPly = pos->ply + 1; nextPly < td->pv_depth[pos->ply + 1]; nextPly++)
+            for (int nextPly = pos->ply + 1; nextPly < td->pv_length[pos->ply + 1]; nextPly++)
             {
                 td->pv_table[pos->ply][nextPly] = td->pv_table[pos->ply + 1][nextPly];
             }
-            td->pv_depth[pos->ply] = td->pv_depth[pos->ply + 1];
+            td->pv_length[pos->ply] = td->pv_length[pos->ply + 1];
 
             // Fail-hard beta cutoff
             if (alpha >= beta)
