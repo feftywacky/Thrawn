@@ -57,8 +57,8 @@ void ThreadData::resetThreadData() {
 
 /**
  * smp_worker_thread_func
- * Each worker thread performw iterative deepening.
- * Use the local copy of the position and the thread's search data.
+ * Each worker thread performw iterative deepening
+ * Use the local copy of the position and the thread's search data
  */
 void smp_worker_thread_func(thrawn::Position pos, int threadID, int maxDepth)
 {
@@ -67,7 +67,7 @@ void smp_worker_thread_func(thrawn::Position pos, int threadID, int maxDepth)
     int beta  =  INFINITY;
     int score = 0;
 
-    // Perform iterative deepening from depth 1 to maxDepth.
+    // Perform iterative deepening from depth 1 to maxDepth
     for (int curr_depth = 1; curr_depth <= maxDepth; curr_depth++)
     {
         if (stopped == 1)
@@ -75,25 +75,59 @@ void smp_worker_thread_func(thrawn::Position pos, int threadID, int maxDepth)
         
         td->follow_pv_flag = true;
 
-        std::array<int, MAX_DEPTH> backup_pv = td->pv_table[0];
-        int backup_pv_length = td->pv_length[0];
-        
-        // Perform the search at the current depth.
-        score = negamax(&pos, td, curr_depth, alpha, beta);
-
-        // If the score falls outside the aspiration window, widen the window and continue.
-        if ((score <= alpha) || (score >= beta))
+        //  for depths beyond WindowDepth, derive the window from the previous score
+        int delta = WindowSize;
+        if(curr_depth>=WindowDepth)
         {
-            td->pv_table[0] = backup_pv;
-            td->pv_length[0] = backup_pv_length;
+            // Use the previous iteration’s best score (final_score) to set the window.
+            // Here we “clamp” alpha to at least –mateVal and beta to at most mateVal.
+            alpha = std::max(-mateVal, td->final_score - delta);
+            beta  = std::min(mateVal, td->final_score + delta);
+        }
+        else
+        {
             alpha = -INFINITY;
-            beta = INFINITY;
-            continue;
+            beta  = INFINITY;
+        }
+
+        // Aspiration loop: adjust the window until search returns a score in (alpha, beta)
+        while (true)
+        {
+            if(stopped==1)
+                break;
+
+            // Backup the current good PV from the previous iteration.
+            std::array<int, MAX_DEPTH> backup_pv = td->pv_table[0];
+            int backup_pv_length = td->pv_length[0];
+            
+            score = negamax(&pos, td, curr_depth, alpha, beta);
+            
+            // If the score falls inside the window, then we consider the search good
+            if (score > alpha && score < beta)
+                break;
+            
+            // If the search “fails low” (score too low), narrow the window:
+            if (score <= alpha) {
+                // Adjust beta downward (Here we simply take the midpoint)
+                beta = (alpha + beta) / 2;
+                // Expand the lower window boundary by subtracting delta
+                alpha = std::max(-mateVal, alpha - delta);
+                // Restore the previous PV since the current iteration did not complete properly
+                td->pv_table[0] = backup_pv;
+                td->pv_length[0] = backup_pv_length;
+            }
+            // If the search “fails high” (score too high), widen the window upward
+            else if (score >= beta) {
+                beta = std::min(mateVal, beta + delta);
+            }
+            
+            // Increase delta for the next iteration of the aspiration loop
+            delta = delta + delta / 2;
         }
 
         // Update the aspiration window.
-        alpha = score - 50;
-        beta = score + 50;
+        alpha = score - WindowSize;
+        beta = score + WindowSize;
 
         td->final_depth = curr_depth;
         td->final_score = score;
@@ -106,7 +140,7 @@ void smp_worker_thread_func(thrawn::Position pos, int threadID, int maxDepth)
                       << " nodes " << total_nodes
                       << " time " << currentTime;
             
-            // Determine whether to report a mate score or a centipawn score.
+            // Determine whether to report a mate score or a centipawn score
             if (score > -mateVal && score < -mateScore)
             {
                 std::cout << " score mate " << -(score + mateVal) / 2 - 1;
@@ -120,7 +154,6 @@ void smp_worker_thread_func(thrawn::Position pos, int threadID, int maxDepth)
                 std::cout << " score cp " << score;
             }
             
-            // Print the principal variation if it exists; otherwise print a default message.
             if (td->pv_length[0] > 0)
             {
                 std::cout << " pv ";

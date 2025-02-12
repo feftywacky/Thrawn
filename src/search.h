@@ -57,4 +57,8 @@ void quicksort_moves(std::vector<int> &moves,
 int futility_margin(int depth);
 int futility_move_count(int depth);
 
+// some search constants
+static const int WindowDepth   = 4;
+static const int WindowSize    = 10;
+
 #endif // SEARCH_H
