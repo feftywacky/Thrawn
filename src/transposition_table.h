@@ -6,9 +6,10 @@
 
 // Constants for the tt->
 static const int no_hashmap_entry = 100000;  // Sentinel for "TT miss"
-static const int hashFlagEXACT    = 0;
-static const int hashFlagALPHA    = 1;
-static const int hashFlagBETA     = 2;
+static const int BOUND_NONE       = 0;
+static const int BOUND_LOWER      = 1;
+static const int BOUND_UPPER      = 2;
+static const int BOUND_EXACT      = 3;
 
 struct TTEntry 
 {
@@ -38,11 +39,10 @@ public:
     void incrementAge() { currentAge++; }
 
     // Lookup a position in the tt
-    int probe(const thrawn::Position* pos, int depth, int alpha, int beta,
-              int &bestMove, int ply);
+    bool probe(const thrawn::Position* pos, int& depth, int alpha, int beta, int& bestMove, int& score, int& flag);
 
     // Store an entry in the tt
-    void store(const thrawn::Position* pos, int depth, int score, int flag, int bestMove, int ply);
+    void store(const thrawn::Position* pos, int depth, int score, int flag, int bestMove);
     
     uint64_t encodeTTData(int bestMove, int depth, int score, int hash_flag);
 
