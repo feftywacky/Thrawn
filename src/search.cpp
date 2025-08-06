@@ -31,11 +31,11 @@ int negamax(thrawn::Position* pos, ThreadData* td, int depth, int alpha, int bet
 {
     int score = 0;
     int bestMove = 0;
-    int hashFlag = hashFlagALPHA;
+    int hashFlag = BOUND_UPPER;
     int static_eval = 0;
 
     // init local pv
-    td->pv_depth[pos->ply] = pos->ply;
+    td->pv_length[pos->ply] = pos->ply;
 
     // 1) Check repetition or 50-move draw
     if (pos->ply && isRepetition(pos) || pos->fifty_move >= 100)
@@ -46,10 +46,27 @@ int negamax(thrawn::Position* pos, ThreadData* td, int depth, int alpha, int bet
     int isPvNode = ((beta - alpha) > 1);
 
     // 2) Transposition Table lookup
-    if (pos->ply && !isPvNode && (score = tt->probe(pos, depth, alpha, beta, bestMove, pos->ply)) != no_hashmap_entry)
+    int ttHit=0;
+    int ttDepth = 0;
+    int ttMove = 0;
+    int ttFlag = BOUND_NONE;
+    int ttScore = 0;
+    if ((ttHit = tt->probe(pos, ttDepth, alpha, beta, ttMove, ttScore, ttFlag)))
     {
-        if (pos->fifty_move < 90)
-            return score;
+        if (ttDepth >= depth && !isPvNode)
+        {
+            // Table is exact or produces a cutoff
+            if ( ttFlag == BOUND_EXACT 
+                || (ttFlag == BOUND_LOWER && ttScore >= beta) 
+                || (ttFlag == BOUND_UPPER && ttScore <= alpha))
+                return ttScore;
+        }
+
+        // if (!isPvNode && ttDepth >= depth - 1 &&
+        //     (ttFlag & BOUND_UPPER) &&
+        //     ttScore <= alpha &&
+        //     ttScore + 141 <= alpha)
+        //     return alpha;
     }
 
     // For periodic UCI output / time check
@@ -178,7 +195,7 @@ int negamax(thrawn::Position* pos, ThreadData* td, int depth, int alpha, int bet
 
     // No-hashmove reduction
     // bestMove==0 means not in tt
-    if (!inCheck && !isPvNode && depth >= 3 && bestMove==0)
+    if (!inCheck && !isPvNode && depth >= 3 && ttMove==0)
         depth--;
 
 full_search:
@@ -190,7 +207,7 @@ full_search:
     if (td->follow_pv_flag)
         score_pv(moves, td);
 
-    sort_moves(pos, td, moves, bestMove);
+    sort_moves(pos, td, moves, ttMove);
 
     // We are about to search each move
     int valid_moves = 0;
@@ -313,7 +330,7 @@ full_search:
         if (score > alpha)
         {
             bestMove = move;
-            hashFlag = hashFlagEXACT; // PV node
+            hashFlag = BOUND_EXACT; // PV node
 
             // Update history for quiet moves
             if (get_is_capture_move(move) == 0)
@@ -325,16 +342,16 @@ full_search:
 
             // Update PV
             td->pv_table[pos->ply][pos->ply] = move;
-            for (int nextPly = pos->ply + 1; nextPly < td->pv_depth[pos->ply + 1]; nextPly++)
+            for (int nextPly = pos->ply + 1; nextPly < td->pv_length[pos->ply + 1]; nextPly++)
             {
                 td->pv_table[pos->ply][nextPly] = td->pv_table[pos->ply + 1][nextPly];
             }
-            td->pv_depth[pos->ply] = td->pv_depth[pos->ply + 1];
+            td->pv_length[pos->ply] = td->pv_length[pos->ply + 1];
 
             // Fail-hard beta cutoff
             if (alpha >= beta)
             {
-                tt->store(pos, depth, beta, hashFlagBETA, bestMove, pos->ply);
+                tt->store(pos, depth, beta, BOUND_LOWER, bestMove);
 
                 // killer move
                 if (get_is_capture_move(move) == 0)
@@ -359,7 +376,7 @@ full_search:
     }
 
     // 14) Store in TT and return
-    tt->store(pos, depth, alpha, hashFlag, bestMove, pos->ply);
+    tt->store(pos, depth, alpha, hashFlag, bestMove);
     return alpha;
 }
 

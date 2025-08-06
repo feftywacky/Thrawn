@@ -46,7 +46,7 @@ void TranspositionTable::reset()
     currentAge = 0;
 }
 
-int TranspositionTable::probe(const thrawn::Position* pos, int depth, int alpha, int beta, int &bestMove, int ply)
+bool TranspositionTable::probe(const thrawn::Position* pos, int& depth, int alpha, int beta, int& bestMove, int& score, int& flag)
 {
     int index = static_cast<int>(pos->zobristKey % numEntries);
 
@@ -56,58 +56,62 @@ int TranspositionTable::probe(const thrawn::Position* pos, int depth, int alpha,
 
     if(test_key == entry.smp_key)
     {
-        int entry_depth = extractTTDepth(entry.smp_data);
-        int entry_best_move = extractTTBestMove(entry.smp_data);
-        int entry_score = extractTTScore(entry.smp_data);
-        int entry_hash_flag = extractTTHashFlag(entry.smp_data);
+        depth = extractTTDepth(entry.smp_data);
+        bestMove = extractTTBestMove(entry.smp_data);
+        flag = extractTTHashFlag(entry.smp_data);
+        
+        score = extractTTScore(entry.smp_data);
+        // adjusted mate
+        if (score < -mateScore)
+            score += pos->ply;
+        if (score > mateScore) 
+            score -= pos->ply;
 
-        if(entry_depth >= depth)
-        {
-            int score = entry_score;
+        // if (entry_hash_flag == BOUND_EXACT) // pv node
+        //     return score;
+        // if (entry_hash_flag == BOUND_LOWER && score <= alpha) // fail-low score
+        //     return alpha;
+        // if (entry_hash_flag == BOUND_UPPER && score >= beta) // fail-high score
+        //     return beta;
 
-            if (score < -mateScore)
-                score += ply;
-            if (score > mateScore) 
-                score -= ply;
-
-            if (entry_hash_flag == hashFlagEXACT) // pv node
-                return score;
-            if (entry_hash_flag == hashFlagALPHA && score <= alpha) // fail-low score
-                return alpha;
-            if (entry_hash_flag == hashFlagBETA && score >= beta) // fail-high score
-                return beta;
-        }
-
-        bestMove = entry_best_move;
+        return true;
     }
-    return no_hashmap_entry;
+    return false;
 }
 
-void TranspositionTable::store(const thrawn::Position* pos, int depth, int score, int flag, int bestMove, int ply)
+void TranspositionTable::store(const thrawn::Position* pos, int depth, int score, int flag, int bestMove)
 {
     int index = static_cast<int>(pos->zobristKey % numEntries);
     TTEntry &entry = table[index];
 
-    bool shouldReplace = false;
-    if (entry.smp_data == 0)
-    {
-        shouldReplace = true;
-    }
-    else
-    {
-        if (currentAge > entry.age)
-            shouldReplace = true;
-        else if ( depth >= extractTTDepth(entry.smp_data))
-            shouldReplace = true;
-    }
+    // bool shouldReplace = false;
+    // if (entry.smp_data == 0)
+    // {
+    //     shouldReplace = true;
+    // }
+    // else
+    // {
+    //     if (currentAge > entry.age)
+    //         shouldReplace = true;
+    //     else if ( depth >= extractTTDepth(entry.smp_data))
+    //         shouldReplace = true;
+    // }
 
-    if (!shouldReplace)
+    // if (!shouldReplace)
+    //     return;
+
+    // Don't overwrite an entry from the same position (a collision has occured and the stored entry is the same as current position), unless we have
+    // an exact bound or depth that is nearly as good as the old one
+    if(entry.smp_data!=0 && (entry.smp_data^entry.smp_key)==pos->zobristKey && flag!=BOUND_EXACT && depth < extractTTDepth(entry.smp_data)-2)
         return;
 
-    if (score < -mateScore) score -= ply;
-    if (score > mateScore) score += ply;
+    // Adjust mate scores consistently:
+    if (score < -mateScore)
+        score -= pos->ply;
+    if (score > mateScore)
+        score += pos->ply;
 
-    uint64_t data = encodeTTData(bestMove,depth,score,flag);
+    uint64_t data = encodeTTData(bestMove, depth, score, flag);
     uint64_t key = pos->zobristKey ^ data;
     
     table[index].smp_key = key;

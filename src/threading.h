@@ -9,7 +9,7 @@
 class ThreadData {
 public:
     // PV storage: one array for PV lengths and a 2D array for the PV lines.
-    std::array<int, MAX_DEPTH> pv_depth;
+    std::array<int, MAX_DEPTH> pv_length;
     std::array<std::array<int, MAX_DEPTH>, MAX_DEPTH> pv_table;
 
     // Killer moves and history moves.
@@ -23,6 +23,9 @@ public:
 
     long long nodes;
 
+    int final_depth;
+    int final_score;
+
     // Constructor initializes all arrays to zero and flags to false (or true where needed).
     ThreadData();
 
@@ -35,7 +38,6 @@ void smp_worker_thread_func(thrawn::Position pos, int threadID, int maxDepth);
 // search position entry point
 void search_position_threaded(thrawn::Position* pos, int depth, int numThreads);
 
-// for testing purposes
-void search_pos_single(thrawn::Position* pos, int depth);
+ThreadData* select_best_thread(ThreadData threadDatas[], int numThreads);
 
 #endif // THREADING_H
