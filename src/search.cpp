@@ -13,6 +13,7 @@
 #include <algorithm>
 #include <numeric>
 #include <atomic>
+#include <cstdlib>
 
 /*
 some notes for negamax
@@ -26,6 +27,17 @@ std::atomic<uint64_t> total_nodes(0);
 
 std::array<int, 4> LateMovePruning_factors = {0, 8, 12, 24};
 int RFP_factor = 64;
+
+// History gravity update helper
+static inline void update_history(ThreadData* td, int move, int bonus)
+{
+    if (!move) return;
+    int piece = get_move_piece(move);
+    int to = get_move_target(move);
+    int clamped = std::max(-MAX_HISTORY, std::min(MAX_HISTORY, bonus));
+    int& h = td->history_moves[piece][to];
+    h += clamped - (h * std::abs(clamped)) / MAX_HISTORY;
+}
 
 int negamax(thrawn::Position* pos, ThreadData* td, int depth, int alpha, int beta)
 {
@@ -202,6 +214,9 @@ full_search:
 
     // 11) Generate moves
     std::vector<int> moves = generate_moves(pos);
+    // Track quiet moves that were searched before a cutoff for history maluses
+    std::vector<int> quiets_tried;
+    quiets_tried.reserve(moves.size());
 
     // 12) If we had a best move from TT, ensure it gets sorted first
     if (td->follow_pv_flag)
@@ -235,6 +250,8 @@ full_search:
         if (moves_searched == 0)
         {
             // First move: full-window search
+            // Set previous move for child (for countermove scoring)
+            td->prev_move_at_ply[pos->ply] = move;
             score = -negamax(pos, td, depth - 1, -beta, -alpha);
         }
         else
@@ -296,6 +313,8 @@ full_search:
             {
                 // Reduced search
                 int reduction = 2;
+                // Set previous move for child (for countermove scoring)
+                td->prev_move_at_ply[pos->ply] = move;
                 score = -negamax(pos, td, depth - reduction, -alpha - 1, -alpha);
             }
             else
@@ -308,11 +327,15 @@ full_search:
             if (score > alpha)
             {
                 // Do a PVS re-search with a narrow window
+                // Set previous move for child (for countermove scoring)
+                td->prev_move_at_ply[pos->ply] = move;
                 score = -negamax(pos, td, depth - 1, -alpha - 1, -alpha);
 
                 // If it's still above alpha but not >= beta, do a full re-search
                 if (score > alpha && score < beta)
                 {
+                    // Set previous move for child (for countermove scoring)
+                    td->prev_move_at_ply[pos->ply] = move;
                     score = -negamax(pos, td, depth - 1, -beta, -alpha);
                 }
             }
@@ -321,6 +344,9 @@ full_search:
         pos->ply--;
         pos->repetition_index--;
         restoreBoard(pos);
+        // Track quiet moves that were searched (for maluses if a later quiet fails high)
+        if (get_is_capture_move(move) == 0)
+            quiets_tried.push_back(move);
         moves_searched++;
 
         if (stopped == 1)
@@ -332,11 +358,9 @@ full_search:
             bestMove = move;
             hashFlag = BOUND_EXACT; // PV node
 
-            // Update history for quiet moves
+            // Update history for quiet moves (small bonus on improvement)
             if (get_is_capture_move(move) == 0)
-            {
-                td->history_moves[get_move_piece(move)][get_move_target(move)] += depth;
-            }
+                update_history(td, move, depth * depth);
 
             alpha = score;
 
@@ -353,11 +377,27 @@ full_search:
             {
                 tt->store(pos, depth, beta, BOUND_LOWER, bestMove);
 
-                // killer move
+                // killer move, countermove, and history bonuses/maluses for quiet cutoffs
                 if (get_is_capture_move(move) == 0)
                 {
+                    // Killers
                     td->killer_moves[1][pos->ply] = td->killer_moves[0][pos->ply];
                     td->killer_moves[0][pos->ply] = move;
+
+                    // Countermove: previous move at this node gets refuted by current move
+                    int prev = td->prev_move_at_ply[pos->ply];
+                    if (prev)
+                    {
+                        td->counter_moves[get_move_piece(prev)][get_move_target(prev)] = move;
+                    }
+
+                    // History gravity bonus for the winning quiet and maluses for previously searched quiets
+                    int bonus = 300 * depth - 250;
+                    if (bonus < 0) bonus = 0;
+                    update_history(td, move, bonus);
+                    for (int q : quiets_tried)
+                        if (q != move)
+                            update_history(td, q, -bonus);
                 }
                 return beta;
             }
@@ -492,7 +532,13 @@ int score_move(thrawn::Position* pos, ThreadData* td, int move)
             return 9000;
         else if (td->killer_moves[1][pos->ply] == move)
             return 8000;
-        else if (get_promoted_piece(move) == Q || get_promoted_piece(move) == q)
+
+        // Countermove bonus: if this move is the stored response to opponent's previous move
+        int prev = td->prev_move_at_ply[pos->ply];
+        if (prev && td->counter_moves[get_move_piece(prev)][get_move_target(prev)] == move)
+            return 7000;
+
+        if (get_promoted_piece(move) == Q || get_promoted_piece(move) == q)
             return mvv_lva[get_move_piece(move)][get_move_target(move)] + 100;
         else
             return td->history_moves[get_move_piece(move)][get_move_target(move)];
