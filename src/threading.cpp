@@ -60,7 +60,7 @@ void ThreadData::resetThreadData() {
  * Each worker thread performw iterative deepening
  * Use the local copy of the position and the thread's search data
  */
-void smp_worker_thread_func(thrawn::Position pos, int threadID, int maxDepth)
+void smp_worker_thread_func(thrawn::Position* pos, int threadID, int maxDepth)
 {
     ThreadData* td = &threadDatas[threadID];
     int alpha = -INFINITY;
@@ -100,7 +100,7 @@ void smp_worker_thread_func(thrawn::Position pos, int threadID, int maxDepth)
             std::array<int, MAX_DEPTH> backup_pv = td->pv_table[0];
             int backup_pv_length = td->pv_length[0];
             
-            score = negamax(&pos, td, curr_depth, alpha, beta);
+            score = negamax(pos, td, curr_depth, alpha, beta);
             
             // If the score falls inside the window, then we consider the search good
             if (score > alpha && score < beta)
@@ -195,18 +195,29 @@ void search_position_threaded(thrawn::Position* rootPos, int maxDepth, int numTh
         threadDatas[i].resetThreadData();
     }
 
-    // Create an array of std::thread objects (also on the stack).
+    // Create position copies for each thread (on the heap)
+    std::vector<thrawn::Position*> positionCopies;
+    positionCopies.reserve(numThreads);
+    for (int i = 0; i < numThreads; i++) {
+        positionCopies.push_back(new thrawn::Position(*rootPos));
+    }
+    
+    // Create worker threads
     std::vector<std::thread> workerPool;
     workerPool.reserve(numThreads);
-    for (int i = 0; i < numThreads; i++)
-    {
-        workerPool.emplace_back(smp_worker_thread_func, *rootPos, i, maxDepth);
+    for (int i = 0; i < numThreads; i++) {
+        workerPool.emplace_back(smp_worker_thread_func, positionCopies[i], i, maxDepth);
     }
 
     // Wait for all worker threads to complete.
     for (int i = 0; i < numThreads; i++)
     {
         workerPool[i].join();
+    }
+    
+    // Delete allocated memory for position copies
+    for (int i = 0; i < numThreads; i++) {
+        delete positionCopies[i];
     }
 
     // After all threads have finished, select the best result.

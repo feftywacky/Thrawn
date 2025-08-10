@@ -33,7 +33,7 @@ public:
     void resetThreadData();
 };
 
-void smp_worker_thread_func(thrawn::Position pos, int threadID, int maxDepth);
+void smp_worker_thread_func(thrawn::Position* pos, int threadID, int maxDepth);
 
 // search position entry point
 void search_position_threaded(thrawn::Position* pos, int depth, int numThreads);
