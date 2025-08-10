@@ -5,6 +5,7 @@
 *.out
 *.app
 *.exe
+Thrawn
 
 # Code Editors
 *.vscode
