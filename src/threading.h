@@ -16,6 +16,12 @@ public:
     std::array<std::array<int, MAX_DEPTH>, KILLER_MOVES> killer_moves;
     std::array<std::array<int, MAX_DEPTH>, HISTORY_SIZE> history_moves;
 
+    // Countermove heuristic: for each [piece][toSquare] of the previous move,
+    // store the refuting move as a packed move int. Thread-local for safety.
+    std::array<std::array<int, 64>, HISTORY_SIZE> counter_moves;
+    // Track previous move per ply to address countermoves
+    std::array<int, MAX_DEPTH> prev_move_at_ply;
+
     // Flags used for move ordering and search heuristics.
     bool follow_pv_flag;
     bool score_pv_flag;

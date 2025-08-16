@@ -22,6 +22,9 @@ ThreadData::ThreadData() {
         row.fill(0);
     for (auto &row : history_moves)
         row.fill(0);
+    for (auto &row : counter_moves)
+        row.fill(0);
+    prev_move_at_ply.fill(0);
 
     follow_pv_flag = false;
     score_pv_flag  = false;
@@ -44,6 +47,9 @@ void ThreadData::resetThreadData() {
         row.fill(0);
     for (auto &row : history_moves)
         row.fill(0);
+    for (auto &row : counter_moves)
+        row.fill(0);
+    prev_move_at_ply.fill(0);
 
     follow_pv_flag = false;
     score_pv_flag  = false;
